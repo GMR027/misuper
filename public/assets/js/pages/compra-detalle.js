@@ -899,3 +899,59 @@ function redirectIfSessionLost(error) {
 
     return false;
 }
+
+/* Ticket original en modal --------------------------------------------- */
+
+bindTicketPhoto();
+
+function bindTicketPhoto() {
+    const opener = document.querySelector('[data-ticket-foto-open]');
+    const modal = document.querySelector('[data-ticket-foto-modal]');
+    const image = document.querySelector('[data-ticket-foto-img]');
+    const close = document.querySelector('[data-ticket-foto-close]');
+
+    if (
+        !(opener instanceof HTMLButtonElement)
+        || !(modal instanceof HTMLElement)
+        || !(image instanceof HTMLImageElement)
+    ) {
+        return;
+    }
+
+    const cerrar = () => {
+        modal.hidden = true;
+        document.body.classList.remove('ticket-photo-open');
+        image.removeAttribute('src');
+    };
+
+    const abrir = () => {
+        const url = opener.dataset.ticketFotoUrl ?? '';
+
+        if (url === '') {
+            return;
+        }
+
+        image.src = url;
+        modal.hidden = false;
+        document.body.classList.add('ticket-photo-open');
+
+        if (close instanceof HTMLButtonElement) {
+            close.focus();
+        }
+    };
+
+    opener.addEventListener('click', abrir);
+    close?.addEventListener('click', cerrar);
+
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            cerrar();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !modal.hidden) {
+            cerrar();
+        }
+    });
+}

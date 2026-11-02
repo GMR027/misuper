@@ -54,7 +54,8 @@ final class TicketController
         try {
             $data = $this->tickets->procesar(
                 $usuario['id'],
-                is_array($_FILES['foto'] ?? null) ? $_FILES['foto'] : []
+                is_array($_FILES['foto'] ?? null) ? $_FILES['foto'] : [],
+                isset($_POST['titulo']) && is_string($_POST['titulo']) ? $_POST['titulo'] : null
             );
         } catch (DomainException $error) {
             $this->responderError($error);

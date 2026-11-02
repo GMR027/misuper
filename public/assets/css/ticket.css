@@ -80,6 +80,26 @@
     color: var(--muted-3);
 }
 
+.ticket-upload__title {
+    max-width: 24rem;
+    margin: 0 auto 1.25rem;
+    text-align: left;
+}
+
+.ticket-upload__title .form-label {
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: var(--muted);
+}
+
+.ticket-upload__title .form-control {
+    background-color: var(--surface-2);
+}
+
+.ticket-upload__title .ticket-upload__hint {
+    margin-top: 0.35rem;
+}
+
 .ticket-preview {
     display: flex;
     flex-direction: column;
@@ -156,6 +176,22 @@
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1.25rem;
+}
+
+.ticket-review__title-field {
+    margin-bottom: 1rem;
+}
+
+.ticket-review__title-field .form-label {
+    font-size: 0.7rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+}
+
+.ticket-review__title-field .form-control {
+    background-color: var(--surface-2);
 }
 
 .ticket-review__title {

@@ -40,22 +40,6 @@ body.app {
     -webkit-font-smoothing: antialiased;
 }
 
-.skip-link {
-    position: absolute;
-    top: -40px;
-    left: 16px;
-    z-index: 20;
-    padding: 10px 14px;
-    color: #ffffff;
-    background: var(--accent-dark);
-    border-radius: 8px;
-    text-decoration: none;
-}
-
-.skip-link:focus {
-    top: 12px;
-}
-
 /* Cabecera ------------------------------------------------------------ */
 
 .app-header {

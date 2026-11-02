@@ -74,8 +74,6 @@ if ($avatarEsPreset) {
     <link rel="stylesheet" href="/assets/css/modes.css">
 </head>
 <body class="app">
-    <a class="skip-link" href="#contenido">Saltar al contenido</a>
-
     <header class="app-header">
         <div class="app-header__inner">
             <a class="app-header__brand" href="/">
@@ -150,12 +148,18 @@ if ($avatarEsPreset) {
     <?php if (!$ocultarNav): ?>
         <nav class="app-dock" data-dock aria-label="Navegación rápida">
             <div class="app-dock__bar">
-                <a class="app-dock__item<?= $active === 'inicio' ? ' is-active' : '' ?>" href="/" aria-label="Pantalla rápida" title="Pantalla rápida"<?= $active === 'inicio' ? ' aria-current="page"' : '' ?>>
+                <a class="app-dock__item app-dock__item--inicio<?= $active === 'inicio' ? ' is-active' : '' ?>" href="/" aria-label="Pantalla rápida" title="Pantalla rápida"<?= $active === 'inicio' ? ' aria-current="page"' : '' ?>>
                     <i class="bi bi-house-door-fill" aria-hidden="true"></i>
+                </a>
+                <a class="app-dock__item app-dock__item--notas<?= $active === 'notas' ? ' is-active' : '' ?>" href="/notas" aria-label="Notas" title="Notas"<?= $active === 'notas' ? ' aria-current="page"' : '' ?>>
+                    <i class="bi bi-journal-richtext" aria-hidden="true"></i>
                 </a>
                 <button class="app-dock__fab" type="button" data-dock-nuevo aria-expanded="false" aria-controls="dock-search-modal" aria-label="Buscar producto" title="Buscar producto">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i>
                 </button>
+                <a class="app-dock__item app-dock__item--ticket<?= $active === 'ticket' ? ' is-active' : '' ?>" href="/ticket" aria-label="Ticket" title="Ticket"<?= $active === 'ticket' ? ' aria-current="page"' : '' ?>>
+                    <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+                </a>
                 <button class="app-dock__item app-dock__item--menu" type="button" data-dock-menu aria-expanded="false" aria-controls="dock-menu-modal" aria-label="Abrir menú" title="Menú">
                     <i class="bi bi-list" aria-hidden="true"></i>
                 </button>

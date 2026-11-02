@@ -34,6 +34,8 @@ function init(root) {
     const template = root.querySelector('[data-ticket-item-template]');
     const empty = root.querySelector('[data-ticket-vacio]');
     const dateInput = root.querySelector('[data-ticket-fecha]');
+    const initialTitle = root.querySelector('[data-ticket-titulo-inicial]');
+    const reviewTitle = root.querySelector('[data-ticket-titulo]');
     const totalDetectado = root.querySelector('[data-ticket-total-detectado]');
     const sumatoria = root.querySelector('[data-ticket-suma]');
     const totalWarning = root.querySelector('[data-ticket-total-warning]');
@@ -52,6 +54,8 @@ function init(root) {
         || !(readButton instanceof HTMLButtonElement)
         || !(saveButton instanceof HTMLButtonElement)
         || !(dateInput instanceof HTMLInputElement)
+        || !(initialTitle instanceof HTMLInputElement)
+        || !(reviewTitle instanceof HTMLInputElement)
         || !(totalDetectado instanceof HTMLElement)
         || !(sumatoria instanceof HTMLElement)
         || !(totalWarning instanceof HTMLElement)
@@ -229,6 +233,8 @@ function init(root) {
         rawText.textContent = '';
         totalTicket = null;
         productos = [];
+        reviewTitle.value = '';
+        initialTitle.value = '';
         totalDetectado.textContent = '—';
         sumatoria.textContent = formatCurrency(0);
         root.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -251,6 +257,7 @@ function init(root) {
 
             const formData = new FormData();
             formData.append('foto', preparado);
+            formData.append('titulo', initialTitle.value.trim());
 
             const data = await fetchApi('/api/tickets', {
                 method: 'POST',
@@ -295,6 +302,9 @@ function init(root) {
             : hoy;
 
         dateInput.value = fecha;
+        reviewTitle.value = typeof data?.titulo === 'string' && data.titulo.trim() !== ''
+            ? data.titulo
+            : initialTitle.value.trim();
         totalDetectado.textContent = totalTicket === null ? '—' : formatCurrency(totalTicket);
         rawText.textContent = typeof data?.texto === 'string' ? data.texto : '';
 
@@ -547,6 +557,7 @@ function init(root) {
                 method: 'POST',
                 body: {
                     fecha: dateInput.value,
+                    titulo: reviewTitle.value.trim(),
                     items,
                 },
             });

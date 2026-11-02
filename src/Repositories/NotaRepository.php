@@ -13,7 +13,9 @@ use PDO;
  */
 final class NotaRepository
 {
-    private const COLUMNS = 'id, usuario_id, titulo, contenido, created_at, updated_at';
+    private const COLUMNS = 'id, usuario_id, titulo, contenido, created_at, updated_at,
+        UNIX_TIMESTAMP(created_at) AS created_ts,
+        UNIX_TIMESTAMP(updated_at) AS updated_ts';
 
     private readonly PDO $pdo;
 

@@ -43,6 +43,7 @@ $minimo = (new DateTimeImmutable('today'))->modify('-2 years')->format('Y-m-d');
 
 $items = is_array($compra['items']) ? $compra['items'] : [];
 $ticketId = isset($compra['ticket_id']) ? (int) $compra['ticket_id'] : 0;
+$ticketTitulo = isset($compra['ticket_titulo']) ? trim((string) $compra['ticket_titulo']) : '';
 $desdeTicket = ($_GET['ticket'] ?? '') === '1' && $ticketId > 0;
 $itemsJson = json_encode(
     $items,
@@ -67,19 +68,25 @@ ob_start();
                 <span class="title-icon"><i class="bi bi-receipt-cutoff" aria-hidden="true"></i></span>
                 Compra del <?= htmlspecialchars($formatearFecha((string) $compra['fecha']), ENT_QUOTES, 'UTF-8') ?>
             </h2>
+            <?php if ($ticketTitulo !== ''): ?>
+                <p class="text-muted small mb-0 mt-1">
+                    <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+                    Ticket: <?= htmlspecialchars($ticketTitulo, ENT_QUOTES, 'UTF-8') ?>
+                </p>
+            <?php endif; ?>
         </div>
 
         <div class="d-flex flex-wrap gap-2">
             <?php if ($ticketId > 0): ?>
-                <a
+                <button
                     class="btn btn-outline-secondary"
-                    href="/ticket/<?= $ticketId ?>/foto"
-                    target="_blank"
-                    rel="noopener"
+                    type="button"
+                    data-ticket-foto-open
+                    data-ticket-foto-url="/ticket/<?= $ticketId ?>/foto"
                 >
                     <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
                     Ver ticket original
-                </a>
+                </button>
             <?php endif; ?>
 
             <button class="btn btn-outline-danger" type="button" id="btn-delete-compra" data-borrar-compra>
@@ -316,6 +323,13 @@ ob_start();
             </div>
         </form>
     </div>
+</div>
+
+<div class="app-modal ticket-photo-modal" data-ticket-foto-modal hidden role="dialog" aria-modal="true" aria-label="Ticket original">
+    <button class="ticket-photo-modal__close" type="button" data-ticket-foto-close aria-label="Cerrar foto del ticket">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+    </button>
+    <img class="ticket-photo-modal__img" alt="Foto del ticket original" data-ticket-foto-img>
 </div>
 
 <div class="toast-stack" data-toast-stack aria-live="polite"></div>

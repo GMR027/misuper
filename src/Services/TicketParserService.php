@@ -31,6 +31,35 @@ final class TicketParserService
         'dic' => 12,
     ];
 
+    /** @var array<string, string> Clave normalizada => nombre visible. */
+    private const COMERCIOS = [
+        'bodega aurrera' => 'Bodega Aurrera',
+        'la comer' => 'La Comer',
+        'casa ley' => 'Casa Ley',
+        'super del norte' => 'Super del Norte',
+        'farmacias del ahorro' => 'Farmacias del Ahorro',
+        'farmacia guadalajara' => 'Farmacia Guadalajara',
+        'sams club' => "Sam's Club",
+        'sam s club' => "Sam's Club",
+        'seven eleven' => '7-Eleven',
+        '7 eleven' => '7-Eleven',
+        '7-eleven' => '7-Eleven',
+        's mart' => 'S-Mart',
+        's-mart' => 'S-Mart',
+        'costco' => 'Costco',
+        'costeo' => 'Costco',
+        'costro' => 'Costco',
+        'costc0' => 'Costco',
+        'wholesale' => 'Costco',
+        'walmart' => 'Walmart',
+        'soriana' => 'Soriana',
+        'chedraui' => 'Chedraui',
+        'calimax' => 'Calimax',
+        'merza' => 'Merza',
+        'oxxo' => 'OXXO',
+        'heb' => 'H-E-B',
+    ];
+
     private const RUIDO = [
         'ticket', 'factura', 'recibo', 'nota de venta', 'comprobante',
         'rfc', 'regimen fiscal', 'telefono', 'teléfono', 'direccion', 'dirección',
@@ -171,6 +200,51 @@ final class TicketParserService
             'total_suma' => round($suma, 2),
             'items' => $items,
         ];
+    }
+
+    /**
+     * Sugiere un nombre legible para identificar el ticket.
+     *
+     * Usa el comercio conocido y la fecha detectada. Si no reconoce el
+     * comercio, genera un nombre genérico con la fecha. El usuario puede
+     * cambiarlo después en la pantalla de revisión.
+     */
+    public function sugerirTitulo(string $texto, ?string $fecha): string
+    {
+        $normalizado = NormalizadorService::normalizar($texto);
+        $comercio = null;
+
+        foreach (self::COMERCIOS as $clave => $nombre) {
+            if (str_contains($normalizado, $clave)) {
+                $comercio = $nombre;
+
+                break;
+            }
+        }
+
+        $fechaTexto = null;
+
+        if ($fecha !== null) {
+            $fechaObjeto = \DateTimeImmutable::createFromFormat('!Y-m-d', $fecha);
+
+            if ($fechaObjeto !== false && $fechaObjeto->format('Y-m-d') === $fecha) {
+                $fechaTexto = $fechaObjeto->format('d/m/Y');
+            }
+        }
+
+        if ($comercio !== null && $fechaTexto !== null) {
+            return $comercio . ' · ' . $fechaTexto;
+        }
+
+        if ($comercio !== null) {
+            return $comercio;
+        }
+
+        if ($fechaTexto !== null) {
+            return 'Ticket del ' . $fechaTexto;
+        }
+
+        return 'Ticket de compra';
     }
 
     private function limpiarLinea(string $linea): string

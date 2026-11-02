@@ -13,7 +13,7 @@ use PDO;
  */
 final class TicketRepository
 {
-    private const COLUMNS = 't.id, t.usuario_id, t.compra_id, t.ruta, t.texto_ocr,
+    private const COLUMNS = 't.id, t.usuario_id, t.compra_id, t.titulo, t.ruta, t.texto_ocr,
         t.total_detectado, t.estado, t.created_at';
 
     private readonly PDO $pdo;
@@ -25,15 +25,16 @@ final class TicketRepository
 
     public function create(
         int $usuarioId,
+        string $titulo,
         string $ruta,
         string $textoOcr,
         ?string $totalDetectado
     ): Ticket {
         $statement = $this->pdo->prepare(
-            'INSERT INTO tickets (usuario_id, ruta, texto_ocr, total_detectado)
-             VALUES (?, ?, ?, ?)'
+            'INSERT INTO tickets (usuario_id, titulo, ruta, texto_ocr, total_detectado)
+             VALUES (?, ?, ?, ?, ?)'
         );
-        $statement->execute([$usuarioId, $ruta, $textoOcr, $totalDetectado]);
+        $statement->execute([$usuarioId, $titulo, $ruta, $textoOcr, $totalDetectado]);
 
         $ticket = $this->findOwned((int) $this->pdo->lastInsertId(), $usuarioId);
 
@@ -63,14 +64,18 @@ final class TicketRepository
      * Confirma un ticket solo si sigue pendiente. Evita compras duplicadas
      * cuando dos peticiones intentan confirmar el mismo ticket.
      */
-    public function marcarConfirmado(int $id, int $usuarioId, int $compraId): bool
-    {
+    public function marcarConfirmado(
+        int $id,
+        int $usuarioId,
+        int $compraId,
+        ?string $titulo = null
+    ): bool {
         $statement = $this->pdo->prepare(
             "UPDATE tickets
-             SET compra_id = ?, estado = 'confirmado'
+             SET compra_id = ?, estado = 'confirmado', titulo = COALESCE(?, titulo)
              WHERE id = ? AND usuario_id = ? AND compra_id IS NULL AND estado = 'procesado'"
         );
-        $statement->execute([$compraId, $id, $usuarioId]);
+        $statement->execute([$compraId, $titulo, $id, $usuarioId]);
 
         return $statement->rowCount() > 0;
     }

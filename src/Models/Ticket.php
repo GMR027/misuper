@@ -16,6 +16,7 @@ final class Ticket
         public readonly int $id,
         public readonly int $usuarioId,
         public readonly ?int $compraId,
+        public readonly string $titulo,
         public readonly string $ruta,
         public readonly ?string $textoOcr,
         public readonly ?string $totalDetectado,
@@ -33,6 +34,7 @@ final class Ticket
             id: (int) $row['id'],
             usuarioId: (int) $row['usuario_id'],
             compraId: isset($row['compra_id']) ? (int) $row['compra_id'] : null,
+            titulo: (string) ($row['titulo'] ?? ''),
             ruta: (string) $row['ruta'],
             textoOcr: isset($row['texto_ocr']) ? (string) $row['texto_ocr'] : null,
             totalDetectado: isset($row['total_detectado'])
@@ -44,13 +46,14 @@ final class Ticket
     }
 
     /**
-     * @return array{id: int, compra_id: int|null, estado: string, total_detectado: float|null, created_at: string|null}
+     * @return array{id: int, compra_id: int|null, titulo: string, estado: string, total_detectado: float|null, created_at: string|null}
      */
     public function toArray(): array
     {
         return [
             'id' => $this->id,
             'compra_id' => $this->compraId,
+            'titulo' => $this->titulo,
             'estado' => $this->estado,
             'total_detectado' => $this->totalDetectado === null
                 ? null

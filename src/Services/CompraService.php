@@ -113,7 +113,7 @@ final class CompraService
      */
     public function crear(int $usuarioId, array $data): array
     {
-        return $this->crearInterno($usuarioId, $data, null);
+        return $this->crearInterno($usuarioId, $data, null, null);
     }
 
     /**
@@ -123,17 +123,25 @@ final class CompraService
      * @param array<string, mixed> $data Ya validado.
      * @return array{id: int, fecha: string, total: float, items_count: int, ticket_id: int|null}
      */
-    public function crearDesdeTicket(int $usuarioId, array $data, int $ticketId): array
-    {
-        return $this->crearInterno($usuarioId, $data, $ticketId);
+    public function crearDesdeTicket(
+        int $usuarioId,
+        array $data,
+        int $ticketId,
+        ?string $titulo = null
+    ): array {
+        return $this->crearInterno($usuarioId, $data, $ticketId, $titulo);
     }
 
     /**
      * @param array<string, mixed> $data Ya validado.
      * @return array{id: int, fecha: string, total: float, items_count: int, ticket_id: int|null}
      */
-    private function crearInterno(int $usuarioId, array $data, ?int $ticketId): array
-    {
+    private function crearInterno(
+        int $usuarioId,
+        array $data,
+        ?int $ticketId,
+        ?string $titulo = null
+    ): array {
         $this->pdo->beginTransaction();
 
         try {
@@ -149,7 +157,7 @@ final class CompraService
 
             $this->totales->recalcular($compraId);
 
-            if ($ticketId !== null && !$this->tickets->marcarConfirmado($ticketId, $usuarioId, $compraId)) {
+            if ($ticketId !== null && !$this->tickets->marcarConfirmado($ticketId, $usuarioId, $compraId, $titulo)) {
                 throw new DomainException('El ticket ya fue confirmado o no está disponible.', 409);
             }
 

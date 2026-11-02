@@ -17,6 +17,7 @@ final class Compra
         public readonly string $fecha,
         public readonly string $total,
         public readonly ?int $ticketId = null,
+        public readonly ?string $ticketTitulo = null,
         public readonly ?string $createdAt = null,
         public readonly ?string $updatedAt = null,
     ) {
@@ -35,13 +36,16 @@ final class Compra
             ticketId: isset($row['ticket_id']) && $row['ticket_id'] !== null
                 ? (int) $row['ticket_id']
                 : null,
+            ticketTitulo: isset($row['ticket_titulo']) && $row['ticket_titulo'] !== ''
+                ? (string) $row['ticket_titulo']
+                : null,
             createdAt: isset($row['created_at']) ? (string) $row['created_at'] : null,
             updatedAt: isset($row['updated_at']) ? (string) $row['updated_at'] : null,
         );
     }
 
     /**
-     * @return array{id: int, fecha: string, total: float, items_count: int, ticket_id: int|null}
+     * @return array{id: int, fecha: string, total: float, items_count: int, ticket_id: int|null, ticket_titulo: string|null}
      */
     public function toSummaryArray(int $itemsCount): array
     {
@@ -51,12 +55,13 @@ final class Compra
             'total' => round((float) $this->total, 2),
             'items_count' => $itemsCount,
             'ticket_id' => $this->ticketId,
+            'ticket_titulo' => $this->ticketTitulo,
         ];
     }
 
     /**
      * @param array<int, array<string, mixed>> $items
-     * @return array{id: int, fecha: string, total: float, ticket_id: int|null, items: array<int, array<string, mixed>>}
+     * @return array{id: int, fecha: string, total: float, ticket_id: int|null, ticket_titulo: string|null, items: array<int, array<string, mixed>>}
      */
     public function toDetailArray(array $items): array
     {
@@ -65,6 +70,7 @@ final class Compra
             'fecha' => $this->fecha,
             'total' => round((float) $this->total, 2),
             'ticket_id' => $this->ticketId,
+            'ticket_titulo' => $this->ticketTitulo,
             'items' => $items,
         ];
     }

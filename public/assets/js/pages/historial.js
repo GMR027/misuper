@@ -169,6 +169,13 @@ function init(root) {
             ticket.className = 'history-row__ticket badge text-bg-light';
             ticket.innerHTML = '<i class="bi bi-receipt-cutoff" aria-hidden="true"></i> Ticket';
             meta.append(ticket);
+
+            if (typeof compra.ticket_titulo === 'string' && compra.ticket_titulo.trim() !== '') {
+                const title = document.createElement('span');
+                title.className = 'history-row__ticket-title';
+                title.textContent = compra.ticket_titulo;
+                meta.append(title);
+            }
         }
 
         info.append(date, meta);

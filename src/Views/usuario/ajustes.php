@@ -134,6 +134,33 @@ ob_start();
                 </button>
             </div>
 
+            <div class="focus-picker">
+                <div class="focus-picker__head">
+                    <span class="mode-picker__label">Color de enfoque</span>
+                    <span class="focus-picker__hint">Tiñe el halo del fondo y los detalles de acento.</span>
+                </div>
+                <div class="focus-grid" role="group" aria-label="Colores de enfoque" data-focus-grid>
+                    <button class="focus-option" type="button" data-focus-choice="auto" aria-pressed="true">
+                        <i class="bi bi-magic" aria-hidden="true"></i>
+                        Automático
+                    </button>
+                    <label class="focus-custom">
+                        <input type="color" data-focus-custom data-default="#14b8a6" value="#14b8a6" aria-label="Color de enfoque personalizado">
+                        <span class="focus-custom__label">Personalizado</span>
+                    </label>
+                </div>
+                <div class="focus-intensity">
+                    <label class="focus-intensity__label" for="focus-intensity">Intensidad</label>
+                    <input class="focus-intensity__range" id="focus-intensity" type="range" min="0" max="200" step="5" value="100" data-focus-intensity aria-describedby="focus-intensity-value">
+                    <output class="focus-intensity__value" id="focus-intensity-value" for="focus-intensity" data-focus-intensity-value>100%</output>
+                </div>
+                <div class="focus-intensity">
+                    <label class="focus-intensity__label" for="focus-spread">Expansión</label>
+                    <input class="focus-intensity__range" id="focus-spread" type="range" min="50" max="250" step="5" value="100" data-focus-spread aria-describedby="focus-spread-value">
+                    <output class="focus-intensity__value" id="focus-spread-value" for="focus-spread" data-focus-spread-value>100%</output>
+                </div>
+            </div>
+
             <p class="theme-picker__note mb-0">
                 <i class="bi bi-info-circle" aria-hidden="true"></i>
                 Este ajuste es personal y no cambia la cuenta.

@@ -151,7 +151,7 @@ function init(root) {
         fecha.className = 'note-card__date';
         fecha.dateTime = String(nota.created_at ?? '');
         fecha.innerHTML = '<i class="bi bi-calendar3" aria-hidden="true"></i>';
-        fecha.append(document.createTextNode(formatearFecha(nota.created_at)));
+        fecha.append(document.createTextNode(formatearFecha(nota.created_ts ?? nota.created_at)));
 
         const acciones = document.createElement('div');
         acciones.className = 'note-card__actions';
@@ -285,7 +285,7 @@ function init(root) {
             document.createTextNode(
                 nota === null
                     ? 'La fecha se guarda automáticamente.'
-                    : `Creada el ${formatearFecha(nota.created_at)}`,
+                    : `Creada el ${formatearFecha(nota.created_ts ?? nota.created_at)}`,
             ),
         );
 
@@ -649,15 +649,17 @@ function init(root) {
     }
 
     /**
-     * @param {string|null|undefined} iso
+     * @param {string|number|null|undefined} valor
      * @returns {string}
      */
-    function formatearFecha(iso) {
-        if (typeof iso !== 'string' || iso === '') {
+    function formatearFecha(valor) {
+        if (valor === null || valor === undefined || valor === '') {
             return '';
         }
 
-        const fecha = new Date(iso);
+        const fecha = typeof valor === 'number'
+            ? new Date(valor * 1000)
+            : new Date(valor);
 
         if (Number.isNaN(fecha.getTime())) {
             return '';
@@ -671,8 +673,11 @@ function init(root) {
      * @returns {string}
      */
     function pieTexto(nota) {
-        if (nota.updated_at && nota.updated_at !== nota.created_at && nota.updated_at !== null) {
-            return `Editada el ${formatearFecha(nota.updated_at)}`;
+        const creada = Number(nota.created_ts ?? 0);
+        const actualizada = Number(nota.updated_ts ?? 0);
+
+        if (actualizada > 0 && creada > 0 && actualizada !== creada) {
+            return `Editada el ${formatearFecha(actualizada)}`;
         }
 
         const fotos = Array.isArray(nota.fotos) ? nota.fotos.length : 0;

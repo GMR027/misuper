@@ -42,6 +42,20 @@ ob_start();
                 los artículos para que los revises.
             </p>
 
+            <div class="ticket-upload__title">
+                <label class="form-label" for="ticket-titulo-inicial">Nombre del ticket <span class="text-muted">(opcional)</span></label>
+                <input
+                    class="form-control"
+                    type="text"
+                    id="ticket-titulo-inicial"
+                    maxlength="150"
+                    autocomplete="off"
+                    placeholder="Ej. Costco 16/10"
+                    data-ticket-titulo-inicial
+                >
+                <p class="ticket-upload__hint">Si lo dejas vacío, lo generamos automáticamente al leer la imagen.</p>
+            </div>
+
             <div class="ticket-upload__actions">
                 <label class="btn btn-primary ticket-upload__btn" for="ticket-camara">
                     <i class="bi bi-camera-fill" aria-hidden="true"></i>
@@ -107,6 +121,20 @@ ob_start();
                 <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
                 Elegir otra imagen
             </button>
+        </div>
+
+        <div class="ticket-review__title-field">
+            <label class="form-label" for="ticket-titulo">Nombre del ticket</label>
+            <input
+                class="form-control"
+                type="text"
+                id="ticket-titulo"
+                maxlength="150"
+                autocomplete="off"
+                placeholder="Ej. Costco 16/10"
+                data-ticket-titulo
+            >
+            <p class="form-text mb-0">Puedes cambiar el nombre automático antes de guardar.</p>
         </div>
 
         <div class="ticket-review__summary">

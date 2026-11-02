@@ -23,6 +23,8 @@ final class Nota
         public readonly ?string $createdAt = null,
         public readonly ?string $updatedAt = null,
         public readonly array $fotos = [],
+        public readonly ?int $createdTs = null,
+        public readonly ?int $updatedTs = null,
     ) {
     }
 
@@ -38,6 +40,8 @@ final class Nota
             contenido: (string) ($row['contenido'] ?? ''),
             createdAt: isset($row['created_at']) ? (string) $row['created_at'] : null,
             updatedAt: isset($row['updated_at']) ? (string) $row['updated_at'] : null,
+            createdTs: isset($row['created_ts']) ? (int) $row['created_ts'] : null,
+            updatedTs: isset($row['updated_ts']) ? (int) $row['updated_ts'] : null,
         );
     }
 
@@ -56,6 +60,8 @@ final class Nota
             createdAt: $this->createdAt,
             updatedAt: $this->updatedAt,
             fotos: $fotos,
+            createdTs: $this->createdTs,
+            updatedTs: $this->updatedTs,
         );
     }
 
@@ -67,6 +73,8 @@ final class Nota
      *     fecha: string,
      *     created_at: string|null,
      *     updated_at: string|null,
+     *     created_ts: int|null,
+     *     updated_ts: int|null,
      *     fotos: array<int, array{id: int, ruta: string}>
      * }
      */
@@ -79,6 +87,8 @@ final class Nota
             'fecha' => $this->createdAt === null ? '' : substr($this->createdAt, 0, 10),
             'created_at' => self::iso($this->createdAt),
             'updated_at' => self::iso($this->updatedAt),
+            'created_ts' => $this->createdTs,
+            'updated_ts' => $this->updatedTs,
             'fotos' => array_values($this->fotos),
         ];
     }

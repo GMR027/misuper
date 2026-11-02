@@ -49,8 +49,8 @@ body.app {
     color: var(--bs-body-color);
     background-color: var(--bs-body-bg);
     background-image:
-        radial-gradient(1100px 620px at 8% -12%, rgba(var(--p-rgb), 0.1), transparent 60%),
-        radial-gradient(900px 520px at 102% 4%, rgba(var(--a-rgb), 0.12), transparent 58%);
+        radial-gradient(calc(1100px * var(--focus-spread, 1)) calc(620px * var(--focus-spread, 1)) at 8% -12%, rgba(var(--focus-rgb), var(--focus-alpha-1, 0.1)), transparent 60%),
+        radial-gradient(calc(900px * var(--focus-spread, 1)) calc(520px * var(--focus-spread, 1)) at 102% 4%, rgba(var(--focus-rgb), var(--focus-alpha-2, 0.12)), transparent 58%);
     background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -686,17 +686,17 @@ p { color: inherit; }
 .auth::before {
     top: -120px;
     left: -120px;
-    width: 360px;
-    height: 360px;
-    background: radial-gradient(circle, rgba(var(--p-rgb), 0.22), transparent 70%);
+    width: calc(360px * var(--focus-spread, 1));
+    height: calc(360px * var(--focus-spread, 1));
+    background: radial-gradient(circle, rgba(var(--focus-rgb), var(--focus-alpha-glow, 0.22)), transparent 70%);
 }
 
 .auth::after {
     right: -140px;
     bottom: -160px;
-    width: 420px;
-    height: 420px;
-    background: radial-gradient(circle, rgba(var(--a-rgb), 0.22), transparent 70%);
+    width: calc(420px * var(--focus-spread, 1));
+    height: calc(420px * var(--focus-spread, 1));
+    background: radial-gradient(circle, rgba(var(--focus-rgb), var(--focus-alpha-glow, 0.22)), transparent 70%);
 }
 
 .auth > .auth__card {
@@ -1696,7 +1696,7 @@ html[data-mode="dark"] .dock-menu__logout {
     .app-dock__bar {
         position: relative;
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         align-items: center;
         min-height: 3.55rem;
         max-width: 34rem;
@@ -1722,12 +1722,20 @@ html[data-mode="dark"] .dock-menu__logout {
         transition: color 0.15s ease, background-color 0.15s ease;
     }
 
-    .app-dock__bar > a.app-dock__item {
+    .app-dock__item--inicio {
         grid-column: 1;
     }
 
+    .app-dock__item--notas {
+        grid-column: 2;
+    }
+
+    .app-dock__item--ticket {
+        grid-column: 4;
+    }
+
     .app-dock__item--menu {
-        grid-column: 3;
+        grid-column: 5;
     }
 
     .app-dock__item i {

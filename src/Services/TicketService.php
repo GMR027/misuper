@@ -76,7 +76,7 @@ final class TicketService
      * @param array<string, mixed> $file Entrada de $_FILES['foto'].
      * @return array<string, mixed>
      */
-    public function procesar(int $usuarioId, array $file): array
+    public function procesar(int $usuarioId, array $file, ?string $titulo = null): array
     {
         if ($this->tickets->countRecent($usuarioId, 3600) >= self::MAX_POR_HORA) {
             throw new DomainException(
@@ -126,7 +126,16 @@ final class TicketService
                 ? null
                 : number_format((float) $propuesta['total'], 2, '.', '');
 
-            $ticket = $this->tickets->create($usuarioId, self::UPLOAD_URL . '/' . $nombre, $texto, $totalDetectado);
+            $tituloSugerido = $this->parser->sugerirTitulo($texto, $propuesta['fecha']);
+            $tituloFinal = $this->tituloValido($titulo) ?? $tituloSugerido;
+
+            $ticket = $this->tickets->create(
+                $usuarioId,
+                $tituloFinal,
+                self::UPLOAD_URL . '/' . $nombre,
+                $texto,
+                $totalDetectado
+            );
             $ticketCreado = $ticket;
             $catalogo = $this->productos->activosParaMatch();
             $items = [];
@@ -160,6 +169,7 @@ final class TicketService
 
             return [
                 'ticket' => $ticket->toArray(),
+                'titulo' => $ticket->titulo,
                 'fecha' => $propuesta['fecha'] ?? (new \DateTimeImmutable('today'))->format('Y-m-d'),
                 'total_detectado' => $propuesta['total'],
                 'total_suma' => round($suma, 2),
@@ -209,7 +219,18 @@ final class TicketService
             }
         }
 
-        return $this->compras->validarCreacion($data);
+        $errors = $this->compras->validarCreacion($data);
+
+        if (isset($data['titulo']) && is_string($data['titulo']) && trim($data['titulo']) !== '') {
+            $titulo = trim($data['titulo']);
+            $longitud = mb_strlen($titulo, 'UTF-8');
+
+            if ($longitud < 2 || $longitud > 150) {
+                $errors['titulo'] = 'El nombre del ticket debe tener entre 2 y 150 caracteres.';
+            }
+        }
+
+        return $errors;
     }
 
     /**
@@ -228,7 +249,11 @@ final class TicketService
             throw new DomainException('Este ticket ya fue confirmado.', 409);
         }
 
-        $compra = $this->compras->crearDesdeTicket($usuarioId, $data, $ticketId);
+        $titulo = isset($data['titulo']) && is_string($data['titulo'])
+            ? $this->tituloValido($data['titulo'])
+            : null;
+
+        $compra = $this->compras->crearDesdeTicket($usuarioId, $data, $ticketId, $titulo);
 
         $this->registrarSugerencias($usuarioId, $data);
 
@@ -291,6 +316,22 @@ final class TicketService
                 @unlink($archivo);
             }
         }
+    }
+
+    private function tituloValido(?string $titulo): ?string
+    {
+        if ($titulo === null) {
+            return null;
+        }
+
+        $titulo = trim($titulo);
+        $longitud = mb_strlen($titulo, 'UTF-8');
+
+        if ($longitud < 2 || $longitud > 150) {
+            return null;
+        }
+
+        return $titulo;
     }
 
     /**

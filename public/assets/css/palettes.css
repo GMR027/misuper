@@ -38,6 +38,10 @@ html[data-theme="esmeralda"] {
     --a-900: #78350f;
     --a-rgb: 245, 158, 11;
 
+    /* Color de enfoque: por defecto sigue el acento de la paleta. */
+    --focus-color: var(--a-500);
+    --focus-rgb: var(--a-rgb);
+
     --page-bg: #f7f4ec;
     --surface: #fffdf9;
     --surface-2: #fbf8f0;
