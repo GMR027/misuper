@@ -157,7 +157,6 @@ ob_start();
             <pre class="ticket-raw__text" data-ticket-texto></pre>
         </details>
     </section>
-</div>
 
 <template data-ticket-item-template>
     <li class="ticket-item" data-ticket-item>
@@ -214,6 +213,7 @@ ob_start();
         </div>
     </li>
 </template>
+</div>
 
 <div class="toast-stack" data-toast-stack aria-live="polite"></div>
 <?php

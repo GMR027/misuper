@@ -201,7 +201,7 @@ final class TicketParserService
             return true;
         }
 
-        if (str_contains($normalizado, 'items')) {
+        if (str_contains($normalizado, 'item')) {
             return true;
         }
 
