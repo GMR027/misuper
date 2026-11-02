@@ -6,9 +6,9 @@ ve cuánto gasta al mes y en qué 10 productos se le va el dinero.
 Stack: PHP 8.1+, MySQL 8, PDO, HTML + CSS + JS vanilla (módulos ES6). Sin frameworks.
 
 ## Estado
-- Fase actual: MVP COMPLETO CON BOOTSTRAP
-- Fases completadas: Fase 1, Fase 2, Fase 3, Fase 4, Fase 5, Fase 6, Fase 7, Fase 8, Fase 9, Fase 10, Fase 11.0, Fase 11.1, Fase 11.2, Fase 11.3, Fase 11.4
-- Próximo chunk: MVP COMPLETO CON BOOTSTRAP. Sin fases pendientes.
+- Fase actual: MVP COMPLETO + LECTURA DE TICKETS
+- Fases completadas: Fase 1 a Fase 11.4, Fase 12.0 a Fase 12.9
+- Próximo chunk: post-MVP. Sin fases pendientes.
 
 ## Alcance del MVP (resumen)
 - Registro abierto, login, logout, sesiones PHP.
@@ -21,10 +21,11 @@ Stack: PHP 8.1+, MySQL 8, PDO, HTML + CSS + JS vanilla (módulos ES6). Sin frame
 - Métricas: gasto mensual + top 10 productos por gasto del mes.
 - Sugerencias: ítem libre genera sugerencia agrupada; Admin aprueba o ignora.
 - Ajustes: cambiar nombre/email, cambiar contraseña, cerrar sesión, eliminar cuenta (hard delete).
+- Tickets: subir foto, OCR con Tesseract, propuesta editable, relación con el catálogo y compra en el historial.
 
 ## Fuera del alcance (NO implementar)
 - Recetas, planes alimenticios, calculadora de despensa.
-- Presupuestos, OCR de tickets, notificaciones internas.
+- Presupuestos, notificaciones internas.
 - Auditoría, familias, cotizaciones, estados múltiples de compra.
 - Import/export CSV desde la app (solo script de importación inicial).
 - Sinónimos, atributos extensibles, métricas globales, cron.
@@ -36,7 +37,7 @@ Stack: PHP 8.1+, MySQL 8, PDO, HTML + CSS + JS vanilla (módulos ES6). Sin frame
 - Usuario: usa la app, gestiona sus compras y métricas.
 - Admin: gestiona catálogo, sugerencias y usuarios. Accede por /admin/*.
 
-## Modelo de datos (6 tablas)
+## Modelo de datos (7 tablas)
 
 usuarios (id, nombre, email UNIQUE, password_hash, rol ENUM('usuario','admin'),
           debe_cambiar_password BOOL, created_at)
@@ -45,7 +46,7 @@ categorias (id, nombre UNIQUE)
 -- Seed fijo: Lácteos, Carnes, Frutas y Verduras, Cereales y Legumbres,
 -- Bebidas, Limpieza, Hogar, Otros. Sin CRUD.
 
-productos (id, nombre, categoria_id FK, unidad_base ENUM('kg','L','pza'),
+productos (id, nombre, categoria_id FK, unidad_base ENUM('kg','gr','L','ml','pza'),
            imagen_url VARCHAR(500) NULL, estado ENUM('activo','inactivo'),
            created_at, updated_at)
 
@@ -62,6 +63,11 @@ sugerencias_producto (id, nombre_normalizado VARCHAR(150), nombre_original VARCH
                       usuario_id FK, created_at,
                       UNIQUE(nombre_normalizado, usuario_id, estado))
 
+tickets (id, usuario_id FK ON DELETE CASCADE, compra_id NULL FK ON DELETE SET NULL,
+         ruta VARCHAR(255), texto_ocr MEDIUMTEXT, total_detectado DECIMAL(12,2) NULL,
+         estado ENUM('procesado','confirmado','error') DEFAULT 'procesado',
+         created_at, updated_at)
+
 ## Reglas clave
 - compras.total es caché: se recalcula al crear/editar/borrar ítems.
 - compra_items: producto_id XOR nombre_libre, nunca ambos.
@@ -73,13 +79,16 @@ sugerencias_producto (id, nombre_normalizado VARCHAR(150), nombre_original VARCH
 - CSRF obligatorio en POST/PUT/DELETE.
 - Rate limiting: 5 intentos / 15 min en login y registro.
 - password_hash(PASSWORD_DEFAULT) y password_verify. Nunca MD5/SHA1.
+- Tickets: Tesseract lee la imagen; el usuario revisa antes de crear la compra.
+- Un ticket solo se confirma una vez y en la misma transacción que la compra.
+- Los artículos no catalogados de un ticket se guardan como nombre_libre y generan sugerencia.
 
 ## Convenciones
 - PHP PSR-12, namespaces App\..., Composer autoload.
 - SQL snake_case plural, FK tabla_id.
 - JS módulos ES6, camelCase.
 - API responde { ok: bool, data: any, error: { code, message } }.
-- HTTP: 400, 401, 403, 404, 422, 429, 500.
+- HTTP: 400, 401, 403, 404, 409, 422, 429, 500, 503.
 - Migraciones SQL numeradas e idempotentes con IF NOT EXISTS.
 
 ## Estructura de carpetas
@@ -120,6 +129,12 @@ sugerencias_producto (id, nombre_normalizado VARCHAR(150), nombre_original VARCH
 22. Recuperación de contraseña = reset manual por Admin.
 23. HTTP en dev, HTTPS en prod (cookies Secure solo en prod).
 24. Borrado de cuenta = hard delete total.
+25. OCR de tickets con Tesseract del servidor (idioma español), sin servicios externos.
+26. El ticket siempre pasa por revisión humana antes de crear la compra.
+27. Artículos no catalogados = ítem libre + sugerencia al Admin; no se crean productos automáticamente.
+28. La compra desde ticket se crea en una transacción y queda marcada con su ticket.
+29. La foto del ticket se sirve por endpoint autenticado, no por URL pública directa.
+30. Límite de 20 tickets por hora por usuario.
 
 ## Deudas / pendientes
 - Decisión de estilos visuales: CSS puro (decidido en Fase 1, sin framework).
@@ -162,6 +177,10 @@ sugerencias_producto (id, nombre_normalizado VARCHAR(150), nombre_original VARCH
 - Modales propios .app-modal controlados por JS, estilizados con Bootstrap. Reset de contraseña usa modal de dos paneles.
 - cuenta.css (383 líneas) es el único CSS propio pendiente de reducir. Se puede hacer en una iteración futura si molesta.
 - Pendientes post-MVP: imágenes de productos (actualmente NULL), deploy a producción con HTTPS y usuario dedicado de MySQL, backup automático, SRI o auto-hospedaje de Bootstrap.
+- Tickets: el parser es heurístico y depende de la calidad de la foto y del formato de cada tienda. La revisión humana es obligatoria.
+- Tickets no confirmados quedan en la tabla con su imagen. Evaluar limpieza periódica (por ejemplo, > 30 días) si crece el almacenamiento.
+- Los ítems libres de ticket no guardan unidad_base; se envía 'pza' solo para validar. Si se necesita conservarla, migración para agregarla a compra_items.
+- Tesseract debe existir en el entorno local; en Docker y Helm ya está previsto.
 
 ## Archivos creados
 Fase 1: estructura base (ver STATE_HANDOFF de Fase 1).
@@ -179,6 +198,7 @@ Fase 11.1: 6 archivos modificados (src/Views/auth/login.php, src/Views/auth/regi
 Fase 11.2: 3 archivos modificados (src/Views/usuario/pantalla-rapida.php, public/assets/css/pantalla-rapida.css reducido a 285 líneas, public/assets/js/pages/pantalla-rapida.js solo clases de render). Modales propios renombrados .app-modal para evitar colisión con Bootstrap. Detalle en STATE_HANDOFF de Fase 11.2.
 Fase 11.3: 7 archivos modificados (src/Views/usuario/historial.php, compra-detalle.php, metricas.php, public/assets/css/historial.css reducido a 94 líneas, public/assets/css/metricas.css reducido a 29 líneas, public/assets/js/pages/historial.js solo clases, public/assets/js/pages/compra-detalle.js solo clases). Detalle en STATE_HANDOFF de Fase 11.3.
 Fase 11.4: 10 archivos modificados (4 vistas admin: productos/lista.php, productos/form.php, sugerencias/lista.php, usuarios/lista.php; 3 CSS: admin.css reducido a 50 líneas, admin-sugerencias.css a 8 líneas, admin-usuarios.css a 20 líneas; 3 JS: admin-productos.js, admin-sugerencias.js, admin-usuarios.js solo clases de render + preview de imagen). Detalle en STATE_HANDOFF de Fase 11.4.
+Fase 12.9: 12 archivos nuevos (011_create_tickets.sql, Ticket.php, TicketRepository, TicketService, TicketOcrService, TicketParserService, TicketImagePreprocessor, ProductoMatcherService, TicketController, ticket.php, ticket.js, ticket.css) + modificados (Compra, CompraRepository, CompraService, ProductoRepository, AccountService, routes, layout, historial.js, historial.css, compra-detalle.php, Dockerfile, Helm, README, .env.example, PROJECT_STATE.md).
 
 ## Cómo trabajar con el modelo
 - Una fase por sesión. No pegar dos prompts juntos.
@@ -494,3 +514,20 @@ STATE_HANDOFF — Fase 12.8 (Docker + Kubernetes) — 2026-11-01
 - BD despensa_app migrada al clúster desde la instancia local: 1 admin (mismo hash), 8 categorías, 200 productos, 10 migraciones.
 - Verificado: login HTTPS con usuario temporal (eliminado), API de categorías/productos, escritura en PVC como www-data y segundo despliegue (tag 2) sin pérdida de datos.
 - Secretos reales solo en helm/misuper/values.local.yaml (ignorado por git) y en el Secret de Kubernetes.
+
+STATE_HANDOFF — Fase 12.9 (Tickets de compra con OCR) — 2026-11-02
+- Nueva sección «Ticket» a la derecha de Notas en la nav de escritorio y en el menú móvil. Vista `/ticket` con carga desde cámara (`capture="environment"`), galería/carpetas, arrastrar y soltar, vista previa y botón «Leer ticket».
+- La imagen se reduce a 2200 px y se convierte a JPEG en el navegador antes de subirla. El servidor valida MIME real, dimensiones y tamaño máximo de 8 MB.
+- OCR con Tesseract del servidor (`-l spa`, `--psm 6`; reintento con `--psm 4` si no hay artículos). Sin dependencias de Composer ni servicios externos.
+- `TicketImagePreprocessor` (GD) recorta el área blanca del ticket, la amplía y aplica umbral adaptativo antes de Tesseract. Si GD no está disponible, se usa la imagen original.
+- Probado con la foto real `compras.jpg` (Costco, 886x1280, ticket térmico con sombras y mano): 9 artículos, fecha 2026-10-16 y total 2,572.30 detectados correctamente.
+- Parser heurístico: fecha, total, líneas con importe, cantidades (`2 x`, `2 PZA`, `1.5 KG`), unión de descripciones partidas y filtrado de encabezados/RFC/IVA/cambio.
+- Matching contra los 200 productos activos (normalización, contención de tokens, Jaccard y similitud). Devuelve hasta 3 sugerencias y preselecciona solo coincidencias altas.
+- La revisión es obligatoria: nombre, producto del catálogo (o ítem libre), cantidad y precio. Se avisa si la suma no coincide con el total detectado.
+- Al confirmar, la compra y el estado del ticket se guardan en una transacción. Los ítems libres generan sugerencia para el Admin.
+- Migración 011: tabla `tickets` con FK a usuarios (cascada) y compras (set null). La foto se guarda en `public/uploads/tickets` y se sirve por `GET /ticket/{id}/foto` con autenticación y ownership.
+- Historial: badge «Ticket» en las compras con ticket y enlace «Ver ticket original» en el detalle; aviso al llegar desde `?ticket=1`.
+- Límite de 20 tickets por hora por usuario. Si Tesseract no está disponible se responde 503 con mensaje claro.
+- `DELETE /api/tickets/{id}` descarta un ticket no confirmado y borra su imagen; la UI lo usa al elegir otra imagen.
+- Docker instala `tesseract-ocr` y `tesseract-ocr-spa`, sube uploads a 12M/14M y crea `/uploads/tickets`; Helm crea la carpeta en el initContainer. README y `.env.example` documentan `TESSERACT_BIN`.
+- Verificado con `php -l` y `node --check`, parser y matcher con tickets de ejemplo, OCR real con Tesseract local, y flujo HTTP completo (login, subida 201, revisión, confirmación 201, duplicado 409, foto 200 JPEG, historial con badge). Datos de prueba eliminados.

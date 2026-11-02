@@ -16,6 +16,7 @@ final class Compra
         public readonly int $usuarioId,
         public readonly string $fecha,
         public readonly string $total,
+        public readonly ?int $ticketId = null,
         public readonly ?string $createdAt = null,
         public readonly ?string $updatedAt = null,
     ) {
@@ -31,13 +32,16 @@ final class Compra
             usuarioId: (int) $row['usuario_id'],
             fecha: (string) $row['fecha'],
             total: (string) $row['total'],
+            ticketId: isset($row['ticket_id']) && $row['ticket_id'] !== null
+                ? (int) $row['ticket_id']
+                : null,
             createdAt: isset($row['created_at']) ? (string) $row['created_at'] : null,
             updatedAt: isset($row['updated_at']) ? (string) $row['updated_at'] : null,
         );
     }
 
     /**
-     * @return array{id: int, fecha: string, total: float, items_count: int}
+     * @return array{id: int, fecha: string, total: float, items_count: int, ticket_id: int|null}
      */
     public function toSummaryArray(int $itemsCount): array
     {
@@ -46,12 +50,13 @@ final class Compra
             'fecha' => $this->fecha,
             'total' => round((float) $this->total, 2),
             'items_count' => $itemsCount,
+            'ticket_id' => $this->ticketId,
         ];
     }
 
     /**
      * @param array<int, array<string, mixed>> $items
-     * @return array{id: int, fecha: string, total: float, items: array<int, array<string, mixed>>}
+     * @return array{id: int, fecha: string, total: float, ticket_id: int|null, items: array<int, array<string, mixed>>}
      */
     public function toDetailArray(array $items): array
     {
@@ -59,6 +64,7 @@ final class Compra
             'id' => $this->id,
             'fecha' => $this->fecha,
             'total' => round((float) $this->total, 2),
+            'ticket_id' => $this->ticketId,
             'items' => $items,
         ];
     }

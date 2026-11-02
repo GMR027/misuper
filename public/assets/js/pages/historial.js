@@ -160,7 +160,18 @@ function init(root) {
         items.className = 'history-row__items text-muted';
         items.textContent = `${Number(compra.items_count)} ${Number(compra.items_count) === 1 ? 'ítem' : 'ítems'}`;
 
-        info.append(date, items);
+        const meta = document.createElement('span');
+        meta.className = 'history-row__meta';
+        meta.append(items);
+
+        if (Number(compra.ticket_id) > 0) {
+            const ticket = document.createElement('span');
+            ticket.className = 'history-row__ticket badge text-bg-light';
+            ticket.innerHTML = '<i class="bi bi-receipt-cutoff" aria-hidden="true"></i> Ticket';
+            meta.append(ticket);
+        }
+
+        info.append(date, meta);
 
         const total = document.createElement('span');
         total.className = 'history-row__total badge bg-primary rounded-pill fs-6';

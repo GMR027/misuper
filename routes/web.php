@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Controllers\HistorialController;
 use App\Controllers\MetricaController;
 use App\Controllers\NotaController;
+use App\Controllers\TicketController;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Services\ProductoService;
@@ -134,6 +135,11 @@ HTML;
 
             return;
 
+        case 'GET /ticket':
+            (new TicketController())->vista();
+
+            return;
+
         case 'GET /metricas':
             (new MetricaController())->index();
 
@@ -226,6 +232,22 @@ HTML;
 
         header('Content-Type: text/html; charset=utf-8');
         require BASE_PATH . '/src/Views/admin/productos/form.php';
+
+        return;
+    }
+
+    if (preg_match('#^/ticket/([1-9][0-9]*)/foto$#', $path, $matches) === 1) {
+        if ($method !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            header('Content-Type: text/plain; charset=utf-8');
+
+            echo "Método no permitido.\n";
+
+            return;
+        }
+
+        (new TicketController())->foto((int) $matches[1]);
 
         return;
     }

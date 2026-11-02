@@ -3,6 +3,14 @@
 App web personal para registrar las compras del súper, consultar el gasto mensual
 y ver en qué productos se va el dinero.
 
+## Tickets de compra
+
+La sección **Ticket** permite subir una foto del ticket (cámara o galería).
+El servidor la lee con Tesseract, propone fecha, artículos, cantidades y precios,
+y los relaciona con el catálogo. El usuario revisa la propuesta antes de guardar.
+Las compras confirmadas aparecen en el historial con el badge **Ticket** y la foto
+original queda enlazada desde el detalle de la compra.
+
 ## Stack
 
 - PHP 8.1+ con PDO
@@ -12,9 +20,19 @@ y ver en qué productos se va el dinero.
 
 ## Requisitos
 
-- PHP 8.1 o superior con las extensiones `pdo_mysql`, `mbstring` y `fileinfo`
+- PHP 8.1 o superior con las extensiones `pdo_mysql`, `mbstring`, `fileinfo` y `gd`
 - MySQL 8
 - Composer (solo para generar el autoload)
+- Tesseract OCR con el idioma español (para leer tickets de compra)
+
+En Debian/Ubuntu:
+
+```bash
+sudo apt install tesseract-ocr tesseract-ocr-spa
+```
+
+Si el binario está en una ruta distinta, define `TESSERACT_BIN=/ruta/a/tesseract`
+en `.env`. La imagen Docker ya incluye Tesseract y el idioma español.
 
 ## Instalación
 
@@ -94,7 +112,7 @@ El script:
 - URL: https://misuper.iguzman.com.mx
 - Chart: `helm/misuper`
 - MySQL 8 en el clúster, datos en el PVC `misuper-mysql-data`.
-- Fotos de avatares y notas en el PVC `misuper-uploads`.
+- Fotos de avatares, notas y tickets en el PVC `misuper-uploads`.
 - TLS automático con cert-manager (`letsencrypt-prod`).
 
 La base de datos y los uploads viven en PVCs, así que los upgrades no los

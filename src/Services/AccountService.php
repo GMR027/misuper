@@ -94,6 +94,7 @@ final class AccountService
         }
 
         (new NotaService())->eliminarArchivosDeUsuario($id);
+        (new TicketService())->eliminarArchivosDeUsuario($id);
 
         $this->usuarios->delete($id);
     }

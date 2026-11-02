@@ -8,6 +8,23 @@
     margin-top: 1.5rem;
 }
 
+.history-row__meta {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.history-row__ticket {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
 /* Bootstrap da .list-group pero el marcador de ul/ol sigue visible. */
 .history-list,
 #items-list,

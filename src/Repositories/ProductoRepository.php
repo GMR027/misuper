@@ -185,6 +185,33 @@ final class ProductoRepository
         $statement->execute([$id]);
     }
 
+    /**
+     * Catálogo mínimo de productos activos para relacionar tickets.
+     *
+     * @return array<int, array{id: int, nombre: string, unidad_base: string}>
+     */
+    public function activosParaMatch(): array
+    {
+        $statement = $this->pdo->query(
+            "SELECT id, nombre, unidad_base
+             FROM productos
+             WHERE estado = 'activo'
+             ORDER BY nombre ASC, id ASC"
+        );
+
+        $productos = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $productos[] = [
+                'id' => (int) $row['id'],
+                'nombre' => (string) $row['nombre'],
+                'unidad_base' => (string) $row['unidad_base'],
+            ];
+        }
+
+        return $productos;
+    }
+
     public function categoriaExists(int $id): bool
     {
         $statement = $this->pdo->prepare('SELECT 1 FROM categorias WHERE id = ? LIMIT 1');

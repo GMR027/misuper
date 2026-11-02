@@ -13,6 +13,7 @@ use App\Controllers\MetricaController;
 use App\Controllers\NotaController;
 use App\Controllers\ProductoController;
 use App\Controllers\SugerenciaController;
+use App\Controllers\TicketController;
 use App\Middleware\AdminMiddleware;
 use App\Support\Response;
 
@@ -106,6 +107,11 @@ return static function (string $method, string $path): void {
 
                 return;
 
+            case 'POST /api/tickets':
+                (new TicketController())->store();
+
+                return;
+
             case 'GET /api/metricas/gasto-mensual':
                 (new MetricaController())->gastoMensual();
 
@@ -183,6 +189,24 @@ return static function (string $method, string $path): void {
         ) {
             if ($method === 'DELETE') {
                 (new NotaController())->destroyFoto((int) $matches[1], (int) $matches[2]);
+
+                return;
+            }
+        }
+
+        // Rutas con identificador: /api/tickets/{id}
+        if (preg_match('#^/api/tickets/([1-9][0-9]*)$#', $path, $matches) === 1) {
+            if ($method === 'DELETE') {
+                (new TicketController())->destroy((int) $matches[1]);
+
+                return;
+            }
+        }
+
+        // Rutas con identificador: /api/tickets/{id}/confirm
+        if (preg_match('#^/api/tickets/([1-9][0-9]*)/confirm$#', $path, $matches) === 1) {
+            if ($method === 'POST') {
+                (new TicketController())->confirmar((int) $matches[1]);
 
                 return;
             }

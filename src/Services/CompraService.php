@@ -6,8 +6,10 @@ namespace App\Services;
 
 use App\Models\CompraItem;
 use App\Repositories\CompraRepository;
+use App\Repositories\TicketRepository;
 use App\Support\Database;
 use App\Validators\CompraValidator;
+use DomainException;
 use InvalidArgumentException;
 use PDO;
 use Throwable;
@@ -32,14 +34,18 @@ final class CompraService
 
     private readonly TotalesService $totales;
 
+    private readonly TicketRepository $tickets;
+
     public function __construct(
         ?CompraRepository $compras = null,
         ?TotalesService $totales = null,
-        ?PDO $pdo = null
+        ?PDO $pdo = null,
+        ?TicketRepository $tickets = null
     ) {
         $this->pdo = $pdo ?? Database::connection();
         $this->compras = $compras ?? new CompraRepository($this->pdo);
         $this->totales = $totales ?? new TotalesService($this->pdo);
+        $this->tickets = $tickets ?? new TicketRepository($this->pdo);
     }
 
     /**
@@ -103,9 +109,30 @@ final class CompraService
 
     /**
      * @param array<string, mixed> $data Ya validado.
-     * @return array{id: int, fecha: string, total: float, items_count: int}
+     * @return array{id: int, fecha: string, total: float, items_count: int, ticket_id: int|null}
      */
     public function crear(int $usuarioId, array $data): array
+    {
+        return $this->crearInterno($usuarioId, $data, null);
+    }
+
+    /**
+     * Crea la compra y marca el ticket como confirmado en la misma transacción.
+     * Si la compra falla, el ticket permanece pendiente para reintentar.
+     *
+     * @param array<string, mixed> $data Ya validado.
+     * @return array{id: int, fecha: string, total: float, items_count: int, ticket_id: int|null}
+     */
+    public function crearDesdeTicket(int $usuarioId, array $data, int $ticketId): array
+    {
+        return $this->crearInterno($usuarioId, $data, $ticketId);
+    }
+
+    /**
+     * @param array<string, mixed> $data Ya validado.
+     * @return array{id: int, fecha: string, total: float, items_count: int, ticket_id: int|null}
+     */
+    private function crearInterno(int $usuarioId, array $data, ?int $ticketId): array
     {
         $this->pdo->beginTransaction();
 
@@ -121,6 +148,10 @@ final class CompraService
             }
 
             $this->totales->recalcular($compraId);
+
+            if ($ticketId !== null && !$this->tickets->marcarConfirmado($ticketId, $usuarioId, $compraId)) {
+                throw new DomainException('El ticket ya fue confirmado o no está disponible.', 409);
+            }
 
             $compra = $this->compras->findOwned($compraId, $usuarioId);
 

@@ -1,0 +1,422 @@
+/*
+ * ticket.css — pantalla de carga y revisión de tickets de compra.
+ * Usa variables del tema y utilidades de Bootstrap; aquí va la composición
+ * de la tarjeta de subida y la lista editable de artículos.
+ */
+
+.ticket-upload {
+    max-width: 760px;
+    margin: 0 auto 1.5rem;
+    padding: clamp(1.5rem, 4vw, 2.6rem);
+    text-align: center;
+    background-color: var(--surface);
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 55%),
+        repeating-linear-gradient(115deg, rgba(var(--ink-rgb), 0.014) 0 1px, transparent 1px 6px);
+    border: 1px dashed var(--border-strong);
+    border-radius: 1.25rem;
+    box-shadow: var(--shadow-card);
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.ticket-upload.is-dragging {
+    background-color: var(--p-50);
+    border-color: var(--p-500);
+    transform: scale(1.005);
+}
+
+.ticket-upload.is-loading {
+    pointer-events: none;
+    opacity: 0.82;
+}
+
+.ticket-upload__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    color: var(--p-700);
+    background: var(--p-50);
+    border: 1px solid var(--p-200);
+    border-radius: 50%;
+}
+
+.ticket-upload__title {
+    margin-bottom: 0.4rem;
+    font-size: clamp(1.25rem, 2.4vw, 1.55rem);
+    font-weight: 750;
+    letter-spacing: -0.015em;
+}
+
+.ticket-upload__text {
+    max-width: 34rem;
+    margin: 0 auto 1.35rem;
+    color: var(--muted);
+}
+
+.ticket-upload__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.65rem;
+}
+
+.ticket-upload__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 10.5rem;
+    justify-content: center;
+    padding: 0.7rem 1.1rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.ticket-upload__hint {
+    margin: 1rem 0 0;
+    font-size: 0.78rem;
+    color: var(--muted-3);
+}
+
+.ticket-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-width: 30rem;
+    margin: 1.25rem auto 0;
+}
+
+.ticket-preview__img {
+    display: block;
+    width: 100%;
+    max-height: 360px;
+    object-fit: contain;
+    background-color: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+}
+
+.ticket-preview__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    text-align: left;
+}
+
+.ticket-preview__name {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ticket-upload__status {
+    max-width: 34rem;
+    margin: 1rem auto 0;
+    color: var(--p-800);
+    background: var(--p-50);
+    border-color: var(--p-200);
+}
+
+.ticket-upload__status.is-error {
+    color: var(--danger);
+    background: var(--danger-soft);
+    border-color: rgba(179, 38, 30, 0.25);
+}
+
+.ticket-upload__read {
+    margin-top: 1rem;
+    min-width: 12rem;
+    padding: 0.7rem 1.2rem;
+    font-weight: 650;
+}
+
+/* Revisión ------------------------------------------------------------ */
+
+.ticket-review {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: clamp(1rem, 2.5vw, 1.75rem);
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    box-shadow: var(--shadow-card);
+}
+
+.ticket-review__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.ticket-review__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.2rem;
+    font-size: 1.2rem;
+    font-weight: 750;
+}
+
+.ticket-review__summary {
+    display: grid;
+    grid-template-columns: minmax(12rem, 1.3fr) repeat(2, minmax(8rem, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.1rem;
+}
+
+.ticket-review__field,
+.ticket-review__metric {
+    padding: 0.8rem 0.9rem;
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 0.85rem;
+}
+
+.ticket-review__metric {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.ticket-review__caption {
+    font-size: 0.7rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+}
+
+.ticket-review__value {
+    font-size: 1.35rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+
+.ticket-review__field .form-label {
+    margin-bottom: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+}
+
+.ticket-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.ticket-item {
+    padding: 0.85rem;
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+}
+
+.ticket-item__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+}
+
+.ticket-item__index {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--p-800);
+    background-color: var(--p-50);
+    border-radius: 50%;
+}
+
+.ticket-item__confidence {
+    font-weight: 650;
+}
+
+.ticket-item__remove {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    margin-left: auto;
+    padding: 0;
+    font-size: 0.8rem;
+    color: var(--muted);
+    background: transparent;
+    border: 0;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
+.ticket-item__remove:hover {
+    color: #b03a35;
+    background-color: rgba(176, 58, 53, 0.1);
+}
+
+.ticket-item__grid {
+    display: grid;
+    grid-template-columns: minmax(12rem, 2fr) minmax(12rem, 2fr) minmax(6rem, 0.8fr) minmax(7rem, 0.9fr);
+    gap: 0.65rem;
+}
+
+.ticket-item__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.ticket-item__field > span:first-child {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.ticket-item__field .form-control,
+.ticket-item__field .form-select {
+    background-color: var(--surface);
+}
+
+.ticket-item__hint {
+    font-size: 0.7rem;
+    line-height: 1.3;
+}
+
+.ticket-item .input-group-text {
+    background-color: var(--surface-3);
+}
+
+.ticket-review__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding-top: 0.5rem;
+}
+
+.ticket-review__actions .btn {
+    min-width: 10rem;
+}
+
+.ticket-review .form__message.is-error {
+    color: var(--danger);
+    background: var(--danger-soft);
+    border-color: rgba(179, 38, 30, 0.25);
+}
+
+.ticket-review .form__message.is-info {
+    color: var(--p-800);
+    background: var(--p-50);
+    border-color: var(--p-200);
+}
+
+.ticket-raw {
+    margin-top: 1.1rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--border);
+}
+
+.ticket-raw summary {
+    font-size: 0.8rem;
+    font-weight: 650;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.ticket-raw__text {
+    max-height: 260px;
+    margin: 0.7rem 0 0;
+    padding: 0.85rem;
+    overflow: auto;
+    font-size: 0.76rem;
+    line-height: 1.45;
+    color: var(--muted);
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 0.7rem;
+    white-space: pre-wrap;
+}
+
+/* Modo oscuro --------------------------------------------------------- */
+
+html[data-mode="dark"] .ticket-upload {
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 55%),
+        repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 6px);
+}
+
+html[data-mode="dark"] .ticket-upload.is-dragging {
+    background-color: var(--surface-3);
+}
+
+html[data-mode="dark"] .ticket-upload__status {
+    color: var(--p-200);
+    background-color: var(--surface-3);
+    border-color: var(--border);
+}
+
+html[data-mode="dark"] .ticket-upload__status.is-error {
+    color: #ffb4ab;
+    background-color: rgba(176, 58, 53, 0.18);
+    border-color: rgba(255, 180, 171, 0.28);
+}
+
+/* Responsive ---------------------------------------------------------- */
+
+@media (max-width: 767.98px) {
+    .ticket-review__summary {
+        grid-template-columns: 1fr;
+    }
+
+    .ticket-item__grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ticket-item__field--name,
+    .ticket-item__field--product {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .ticket-upload {
+        padding: 1.4rem 1rem;
+    }
+
+    .ticket-upload__actions {
+        flex-direction: column;
+    }
+
+    .ticket-upload__btn {
+        width: 100%;
+    }
+
+    .ticket-item__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ticket-review__head,
+    .ticket-review__actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ticket-review__actions .btn {
+        width: 100%;
+    }
+}

@@ -32,10 +32,15 @@ FROM php:8.3-apache
 # Extensiones:
 #   pdo_mysql → conexión PDO a MySQL
 #   mbstring  → normalización de textos (acentos, búsquedas, contraseñas)
+#   gd        → preprocesado de las fotos de tickets antes del OCR
 # fileinfo viene compilado en la imagen oficial (validación MIME real de fotos).
+# Tesseract + traineddata español se usan para leer los tickets de compra.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends libonig-dev \
- && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring \
+ && apt-get install -y --no-install-recommends \
+      libonig-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libwebp-dev \
+      tesseract-ocr tesseract-ocr-spa \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+ && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring gd \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -52,11 +57,11 @@ RUN a2enmod rewrite headers \
       > /etc/apache2/conf-available/misuper.conf \
  && a2enconf misuper
 
-# Límites para fotos de notas/avatares (máx. 2 MB por archivo).
+# Límites para fotos de notas/avatares (máx. 2 MB) y tickets (máx. 8 MB).
 RUN { \
       echo 'date.timezone = America/Mexico_City'; \
-      echo 'upload_max_filesize = 8M'; \
-      echo 'post_max_size = 8M'; \
+      echo 'upload_max_filesize = 12M'; \
+      echo 'post_max_size = 14M'; \
       echo 'memory_limit = 256M'; \
       echo 'max_execution_time = 120'; \
     } > /usr/local/etc/php/conf.d/misuper.ini
@@ -70,7 +75,7 @@ COPY --chown=www-data:www-data . /var/www/html
 COPY --from=composer --chown=www-data:www-data /app/vendor /var/www/html/vendor
 
 # Carpetas escribibles por Apache/PHP.
-RUN mkdir -p public/uploads/avatars public/uploads/notas storage/logs \
+RUN mkdir -p public/uploads/avatars public/uploads/notas public/uploads/tickets storage/logs \
  && chown -R www-data:www-data public/uploads storage \
  && chmod -R ug+rwX public/uploads storage
 

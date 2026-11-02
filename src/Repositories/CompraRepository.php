@@ -18,7 +18,8 @@ use PDO;
  */
 final class CompraRepository
 {
-    private const COMPRA_COLUMNS = 'c.id, c.usuario_id, c.fecha, c.total, c.created_at, c.updated_at';
+    private const COMPRA_COLUMNS = 'c.id, c.usuario_id, c.fecha, c.total, c.created_at, c.updated_at,
+        (SELECT t.id FROM tickets t WHERE t.compra_id = c.id ORDER BY t.id DESC LIMIT 1) AS ticket_id';
 
     private const ITEM_COLUMNS = 'ci.id, ci.compra_id, ci.producto_id, ci.nombre_libre,
         ci.cantidad, ci.precio_total,

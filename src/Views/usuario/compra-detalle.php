@@ -42,6 +42,8 @@ $hoy = (new DateTimeImmutable('today'))->format('Y-m-d');
 $minimo = (new DateTimeImmutable('today'))->modify('-2 years')->format('Y-m-d');
 
 $items = is_array($compra['items']) ? $compra['items'] : [];
+$ticketId = isset($compra['ticket_id']) ? (int) $compra['ticket_id'] : 0;
+$desdeTicket = ($_GET['ticket'] ?? '') === '1' && $ticketId > 0;
 $itemsJson = json_encode(
     $items,
     JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE
@@ -67,11 +69,31 @@ ob_start();
             </h2>
         </div>
 
-        <button class="btn btn-outline-danger" type="button" id="btn-delete-compra" data-borrar-compra>
-            <i class="bi bi-trash3" aria-hidden="true"></i>
-            Borrar compra
-        </button>
+        <div class="d-flex flex-wrap gap-2">
+            <?php if ($ticketId > 0): ?>
+                <a
+                    class="btn btn-outline-secondary"
+                    href="/ticket/<?= $ticketId ?>/foto"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+                    Ver ticket original
+                </a>
+            <?php endif; ?>
+
+            <button class="btn btn-outline-danger" type="button" id="btn-delete-compra" data-borrar-compra>
+                <i class="bi bi-trash3" aria-hidden="true"></i>
+                Borrar compra
+            </button>
+        </div>
     </div>
+
+    <?php if ($desdeTicket): ?>
+        <div class="alert alert-success" role="status">
+            Compra registrada desde tu ticket. Revisa los artículos y ajusta lo que necesites.
+        </div>
+    <?php endif; ?>
 
     <div class="mb-4">
         <label class="form-label" for="input-fecha">Fecha</label>

@@ -97,6 +97,10 @@ if ($avatarEsPreset) {
                         <i class="bi bi-journal-richtext" aria-hidden="true"></i>
                         <span>Notas</span>
                     </a>
+                    <a class="app-nav__link<?= $active === 'ticket' ? ' is-active' : '' ?>" href="/ticket">
+                        <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+                        <span>Ticket</span>
+                    </a>
                     <a class="app-nav__link<?= $active === 'metricas' ? ' is-active' : '' ?>" href="/metricas">
                         <i class="bi bi-bar-chart-line-fill" aria-hidden="true"></i>
                         <span>Métricas</span>
@@ -226,6 +230,11 @@ if ($avatarEsPreset) {
                     <a class="dock-menu__link<?= $active === 'notas' ? ' is-active' : '' ?>" href="/notas">
                         <span class="dock-menu__icon"><i class="bi bi-journal-richtext" aria-hidden="true"></i></span>
                         <span class="dock-menu__text">Notas</span>
+                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
+                    </a>
+                    <a class="dock-menu__link<?= $active === 'ticket' ? ' is-active' : '' ?>" href="/ticket">
+                        <span class="dock-menu__icon"><i class="bi bi-receipt-cutoff" aria-hidden="true"></i></span>
+                        <span class="dock-menu__text">Ticket</span>
                         <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
                     </a>
                     <a class="dock-menu__link<?= $active === 'metricas' ? ' is-active' : '' ?>" href="/metricas">

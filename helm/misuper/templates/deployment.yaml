@@ -42,7 +42,7 @@ spec:
             - -c
             - |
               set -e
-              mkdir -p /uploads/avatars /uploads/notas /logs
+              mkdir -p /uploads/avatars /uploads/notas /uploads/tickets /logs
               chown -R www-data:www-data /uploads /logs
               chmod -R ug+rwX /uploads /logs
           volumeMounts:
