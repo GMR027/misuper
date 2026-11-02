@@ -1,0 +1,94 @@
+/*
+ * historial.css — overrides mínimos sobre Bootstrap.
+ * Listado, paginación, detalle e ítems usan list-group, cards, badges,
+ * botones y utilidades de Bootstrap. Solo quedan ajustes de medida.
+ */
+
+.history-pagination {
+    margin-top: 1.5rem;
+}
+
+/* Bootstrap da .list-group pero el marcador de ul/ol sigue visible. */
+.history-list,
+#items-list,
+[data-top-list] {
+    list-style: none;
+}
+
+.detail-date {
+    max-width: 240px;
+}
+
+.history-pagination .pagination__status {
+    min-width: 10rem;
+    text-align: center;
+}
+
+/* Detalle: edición inline de cantidad y precio */
+
+.detail-item__info {
+    min-width: 12rem;
+}
+
+.detail-item__fields {
+    flex: 1 1 20rem;
+}
+
+.detail-item__field {
+    min-width: 5.5rem;
+}
+
+.detail-item__value,
+.detail-item__unit-price {
+    min-width: 6rem;
+}
+
+.detail-item__input {
+    width: 7rem;
+}
+
+/* Modal de agregar: resultados y separador */
+
+.add-results {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.add-results:empty {
+    display: none;
+}
+
+.add-result {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.add-result__name {
+    font-weight: 600;
+}
+
+.add-result__meta {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+}
+
+.add-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 1rem 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--bs-secondary-color);
+    text-transform: uppercase;
+}
+
+.add-divider::before,
+.add-divider::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--bs-border-color);
+}

@@ -1,0 +1,379 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Models\CompraItem;
+use App\Repositories\CompraRepository;
+use App\Support\Database;
+use App\Validators\CompraValidator;
+use InvalidArgumentException;
+use PDO;
+use Throwable;
+
+/**
+ * Reglas de negocio de compras e ítems.
+ *
+ * Cada operación que modifica ítems y su recálculo de total se ejecuta en
+ * una sola transacción.
+ */
+final class CompraService
+{
+    public const PER_PAGE = 20;
+
+    private const MAX_FRECUENTES = 8;
+
+    private const MAX_BUSQUEDA = 10;
+
+    private readonly PDO $pdo;
+
+    private readonly CompraRepository $compras;
+
+    private readonly TotalesService $totales;
+
+    public function __construct(
+        ?CompraRepository $compras = null,
+        ?TotalesService $totales = null,
+        ?PDO $pdo = null
+    ) {
+        $this->pdo = $pdo ?? Database::connection();
+        $this->compras = $compras ?? new CompraRepository($this->pdo);
+        $this->totales = $totales ?? new TotalesService($this->pdo);
+    }
+
+    /**
+     * Valida POST /api/compras, incluida la existencia de cada producto.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
+    public function validarCreacion(array $data): array
+    {
+        $errors = CompraValidator::crear($data);
+        $items = $data['items'] ?? null;
+
+        if (!is_array($items)) {
+            return $errors;
+        }
+
+        foreach ($items as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $prefix = "items.{$index}.";
+
+            if (isset($errors[$prefix . 'producto_id']) || isset($errors[$prefix . '_general'])) {
+                continue;
+            }
+
+            $productoId = $this->productoId($item);
+
+            if ($productoId !== null && $this->compras->productoActivo($productoId) === null) {
+                $errors[$prefix . 'producto_id'] = 'El producto no existe o está inactivo.';
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Valida un ítem nuevo, incluida la existencia del producto.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
+    public function validarItem(array $data): array
+    {
+        $errors = CompraValidator::item($data);
+
+        if (isset($errors['producto_id']) || isset($errors['_general'])) {
+            return $errors;
+        }
+
+        $productoId = $this->productoId($data);
+
+        if ($productoId !== null && $this->compras->productoActivo($productoId) === null) {
+            $errors['producto_id'] = 'El producto no existe o está inactivo.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @param array<string, mixed> $data Ya validado.
+     * @return array{id: int, fecha: string, total: float, items_count: int}
+     */
+    public function crear(int $usuarioId, array $data): array
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $compraId = $this->compras->create($usuarioId, (string) $data['fecha']);
+
+            foreach ($data['items'] as $item) {
+                if (!is_array($item)) {
+                    throw new InvalidArgumentException('Ítem inválido.');
+                }
+
+                $this->persistirItem($compraId, $item);
+            }
+
+            $this->totales->recalcular($compraId);
+
+            $compra = $this->compras->findOwned($compraId, $usuarioId);
+
+            if ($compra === null) {
+                throw new InvalidArgumentException('No se pudo leer la compra recién creada.');
+            }
+
+            $itemsCount = $this->compras->countItems($compraId);
+            $this->pdo->commit();
+
+            return $compra->toSummaryArray($itemsCount);
+        } catch (Throwable $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $error;
+        }
+    }
+
+    /**
+     * @return array{items: array<int, array<string, mixed>>, total: int, page: int, per_page: int}
+     */
+    public function listar(int $usuarioId, int $page): array
+    {
+        $page = max(1, $page);
+        $resultado = $this->compras->listByUser($usuarioId, $page, self::PER_PAGE);
+
+        return [
+            'items' => array_map(
+                static fn (array $fila): array => $fila['compra']->toSummaryArray($fila['items_count']),
+                $resultado['items']
+            ),
+            'total' => $resultado['total'],
+            'page' => $page,
+            'per_page' => self::PER_PAGE,
+        ];
+    }
+
+    /**
+     * @return array{id: int, fecha: string, total: float, items: array<int, array<string, mixed>>}|null
+     */
+    public function obtener(int $usuarioId, int $compraId): ?array
+    {
+        $compra = $this->compras->findOwned($compraId, $usuarioId);
+
+        if ($compra === null) {
+            return null;
+        }
+
+        $items = array_map(
+            static fn (CompraItem $item): array => $item->toArray(),
+            $this->compras->items($compra->id)
+        );
+
+        return $compra->toDetailArray($items);
+    }
+
+    /**
+     * @return array{id: int, fecha: string, total: float, items_count: int}|null
+     */
+    public function actualizarFecha(int $usuarioId, int $compraId, string $fecha): ?array
+    {
+        $compra = $this->compras->findOwned($compraId, $usuarioId);
+
+        if ($compra === null) {
+            return null;
+        }
+
+        $this->compras->updateFecha($compraId, $usuarioId, $fecha);
+        $actualizada = $this->compras->findOwned($compraId, $usuarioId);
+
+        if ($actualizada === null) {
+            return null;
+        }
+
+        return $actualizada->toSummaryArray($this->compras->countItems($compraId));
+    }
+
+    public function eliminar(int $usuarioId, int $compraId): bool
+    {
+        if ($this->compras->findOwned($compraId, $usuarioId) === null) {
+            return false;
+        }
+
+        return $this->compras->delete($compraId, $usuarioId);
+    }
+
+    /**
+     * @param array<string, mixed> $data Ya validado.
+     * @return array<string, mixed>|null null si la compra no es del usuario.
+     */
+    public function agregarItem(int $usuarioId, int $compraId, array $data): ?array
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            if ($this->compras->findOwned($compraId, $usuarioId) === null) {
+                $this->pdo->rollBack();
+
+                return null;
+            }
+
+            $itemId = $this->persistirItem($compraId, $data);
+            $this->totales->recalcular($compraId);
+
+            $item = $this->compras->findItemWithProduct($itemId);
+            $this->pdo->commit();
+
+            return $item?->toArray();
+        } catch (Throwable $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $error;
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $data Ya validado.
+     * @return array<string, mixed>|null null si la compra o el ítem no son del usuario.
+     */
+    public function actualizarItem(int $usuarioId, int $compraId, int $itemId, array $data): ?array
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            if ($this->compras->findOwned($compraId, $usuarioId) === null) {
+                $this->pdo->rollBack();
+
+                return null;
+            }
+
+            if ($this->compras->findItemOwned($itemId, $compraId, $usuarioId) === null) {
+                $this->pdo->rollBack();
+
+                return null;
+            }
+
+            $campos = [];
+
+            if (array_key_exists('cantidad', $data)) {
+                $campos['cantidad'] = $data['cantidad'];
+            }
+
+            if (array_key_exists('precio_total', $data)) {
+                $campos['precio_total'] = $data['precio_total'];
+            }
+
+            $this->compras->updateItem($itemId, $campos);
+            $this->totales->recalcular($compraId);
+
+            $item = $this->compras->findItemWithProduct($itemId);
+            $this->pdo->commit();
+
+            return $item?->toArray();
+        } catch (Throwable $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $error;
+        }
+    }
+
+    public function eliminarItem(int $usuarioId, int $compraId, int $itemId): bool
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            if ($this->compras->findOwned($compraId, $usuarioId) === null) {
+                $this->pdo->rollBack();
+
+                return false;
+            }
+
+            if ($this->compras->findItemOwned($itemId, $compraId, $usuarioId) === null) {
+                $this->pdo->rollBack();
+
+                return false;
+            }
+
+            $this->compras->deleteItem($itemId);
+            $this->totales->recalcular($compraId);
+            $this->pdo->commit();
+
+            return true;
+        } catch (Throwable $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $error;
+        }
+    }
+
+    /**
+     * @return array<int, array{id: int, nombre: string, categoria_id: int, unidad_base: string, imagen_url: string|null, veces_comprado: int}>
+     */
+    public function frecuentes(int $usuarioId): array
+    {
+        return $this->compras->frecuentes($usuarioId, self::MAX_FRECUENTES);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function buscarProductos(string $q, ?int $categoriaId): array
+    {
+        return $this->compras->buscarActivos(
+            NormalizadorService::normalizar($q),
+            $categoriaId,
+            self::MAX_BUSQUEDA
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private function persistirItem(int $compraId, array $item): int
+    {
+        $productoId = $this->productoId($item);
+        $nombreLibre = null;
+
+        if ($productoId !== null) {
+            if ($this->compras->productoActivo($productoId) === null) {
+                throw new InvalidArgumentException('El producto no existe o está inactivo.');
+            }
+        } else {
+            $nombreLibre = trim((string) ($item['nombre_libre'] ?? ''));
+        }
+
+        return $this->compras->addItem(
+            $compraId,
+            $productoId,
+            $nombreLibre,
+            (string) $item['cantidad'],
+            (string) $item['precio_total']
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private function productoId(array $item): ?int
+    {
+        $valor = $item['producto_id'] ?? null;
+
+        if ($valor === null || $valor === '') {
+            return null;
+        }
+
+        return (int) $valor;
+    }
+}

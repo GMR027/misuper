@@ -1,0 +1,201 @@
+nombre,categoria,unidad_base
+Leche entera,Lácteos,L
+Leche descremada,Lácteos,L
+Leche en polvo,Lácteos,pza
+Leche evaporada,Lácteos,pza
+Leche condensada,Lácteos,pza
+Yogur natural,Lácteos,pza
+Yogur de fresa,Lácteos,pza
+Yogur griego,Lácteos,pza
+Crema ácida,Lácteos,pza
+Crema para batir,Lácteos,pza
+Queso fresco,Lácteos,kg
+Queso panela,Lácteos,kg
+Queso manchego,Lácteos,kg
+Queso oaxaca,Lácteos,kg
+Queso cottage,Lácteos,pza
+Queso crema,Lácteos,pza
+Mantequilla,Lácteos,pza
+Margarina,Lácteos,pza
+Requesón,Lácteos,kg
+Nata para cocinar,Lácteos,pza
+Bebida láctea,Lácteos,L
+Leche sabor chocolate,Lácteos,L
+Leche de almendra,Lácteos,L
+Queso amarillo en rebanadas,Lácteos,pza
+Queso parmesano rallado,Lácteos,pza
+Pechuga de pollo,Carnes,kg
+Muslo de pollo,Carnes,kg
+Ala de pollo,Carnes,kg
+Pollo entero,Carnes,kg
+Carne molida de res,Carnes,kg
+Carne molida de cerdo,Carnes,kg
+Bistec de res,Carnes,kg
+Milanesa de res,Carnes,kg
+Falda de res,Carnes,kg
+Costilla de res,Carnes,kg
+Carne para deshebrar,Carnes,kg
+Chuleta de cerdo,Carnes,kg
+Lomo de cerdo,Carnes,kg
+Tocino,Carnes,kg
+Salchicha,Carnes,kg
+Jamón,Carnes,kg
+Chorizo,Carnes,kg
+Longaniza,Carnes,kg
+Pescado tilapia,Carnes,kg
+Camarón,Carnes,kg
+Plátano,Frutas y Verduras,kg
+Manzana roja,Frutas y Verduras,kg
+Manzana verde,Frutas y Verduras,kg
+Pera,Frutas y Verduras,kg
+Naranja,Frutas y Verduras,kg
+Mandarina,Frutas y Verduras,kg
+Limón,Frutas y Verduras,kg
+Toronja,Frutas y Verduras,kg
+Papaya,Frutas y Verduras,kg
+Piña,Frutas y Verduras,kg
+Mango,Frutas y Verduras,kg
+Sandía,Frutas y Verduras,kg
+Melón,Frutas y Verduras,kg
+Uva,Frutas y Verduras,kg
+Fresas,Frutas y Verduras,kg
+Aguacate,Frutas y Verduras,kg
+Jitomate,Frutas y Verduras,kg
+Tomate verde,Frutas y Verduras,kg
+Cebolla blanca,Frutas y Verduras,kg
+Cebolla morada,Frutas y Verduras,kg
+Ajo,Frutas y Verduras,kg
+Papa,Frutas y Verduras,kg
+Zanahoria,Frutas y Verduras,kg
+Calabacita,Frutas y Verduras,kg
+Pepino,Frutas y Verduras,kg
+Lechuga,Frutas y Verduras,pza
+Espinaca,Frutas y Verduras,kg
+Col,Frutas y Verduras,pza
+Brócoli,Frutas y Verduras,kg
+Coliflor,Frutas y Verduras,pza
+Chayote,Frutas y Verduras,kg
+Ejotes,Frutas y Verduras,kg
+Chile poblano,Frutas y Verduras,kg
+Chile jalapeño,Frutas y Verduras,kg
+Cilantro,Frutas y Verduras,pza
+Arroz blanco,Cereales y Legumbres,kg
+Arroz integral,Cereales y Legumbres,kg
+Frijol negro,Cereales y Legumbres,kg
+Frijol pinto,Cereales y Legumbres,kg
+Frijol bayo,Cereales y Legumbres,kg
+Lentejas,Cereales y Legumbres,kg
+Garbanzo,Cereales y Legumbres,kg
+Habas secas,Cereales y Legumbres,kg
+Avena,Cereales y Legumbres,kg
+Harina de trigo,Cereales y Legumbres,kg
+Harina de maíz,Cereales y Legumbres,kg
+Harina de arroz,Cereales y Legumbres,kg
+Pasta para sopa,Cereales y Legumbres,pza
+Espagueti,Cereales y Legumbres,pza
+Coditos,Cereales y Legumbres,pza
+Pan de caja,Cereales y Legumbres,pza
+Pan bolillo,Cereales y Legumbres,pza
+Pan integral,Cereales y Legumbres,pza
+Tortillas de maíz,Cereales y Legumbres,kg
+Tortillas de harina,Cereales y Legumbres,pza
+Galletas de avena,Cereales y Legumbres,pza
+Cereal de maíz,Cereales y Legumbres,pza
+Cereal de hojuelas,Cereales y Legumbres,pza
+Maíz palomero,Cereales y Legumbres,kg
+Semillas de girasol,Cereales y Legumbres,kg
+Agua purificada,Bebidas,L
+Agua mineral,Bebidas,L
+Refresco de cola,Bebidas,L
+Refresco de limón,Bebidas,L
+Refresco de naranja,Bebidas,L
+Jugo de naranja,Bebidas,L
+Jugo de manzana,Bebidas,L
+Jugo de uva,Bebidas,L
+Néctar de mango,Bebidas,L
+Té helado,Bebidas,L
+Café molido,Bebidas,pza
+Café soluble,Bebidas,pza
+Café en grano,Bebidas,pza
+Té de manzanilla,Bebidas,pza
+Té verde,Bebidas,pza
+Chocolate en polvo,Bebidas,pza
+Bebida energética,Bebidas,pza
+Bebida isotónica,Bebidas,L
+Cerveza clara,Bebidas,pza
+Cerveza oscura,Bebidas,pza
+Vino tinto,Bebidas,pza
+Vino blanco,Bebidas,pza
+Ron blanco,Bebidas,pza
+Agua tónica,Bebidas,L
+Bebida de soya,Bebidas,L
+Jabón de baño,Limpieza,pza
+Jabón líquido para manos,Limpieza,pza
+Shampoo,Limpieza,pza
+Acondicionador,Limpieza,pza
+Gel para baño,Limpieza,pza
+Pasta dental,Limpieza,pza
+Cepillo dental,Limpieza,pza
+Hilo dental,Limpieza,pza
+Desodorante,Limpieza,pza
+Papel higiénico,Limpieza,pza
+Toallas sanitarias,Limpieza,pza
+Pañales,Limpieza,pza
+Detergente en polvo,Limpieza,pza
+Detergente líquido,Limpieza,L
+Suavizante de ropa,Limpieza,L
+Blanqueador,Limpieza,L
+Limpiador multiusos,Limpieza,L
+Limpiador de baños,Limpieza,L
+Limpiador de vidrios,Limpieza,L
+Lavatrastes líquido,Limpieza,L
+Estropajo,Limpieza,pza
+Fibras para limpieza,Limpieza,pza
+Bolsas de basura,Limpieza,pza
+Desinfectante,Limpieza,L
+Ambientador,Limpieza,pza
+Servilletas,Hogar,pza
+Papel aluminio,Hogar,pza
+Plástico autoadherible,Hogar,pza
+Bolsas para sándwich,Hogar,pza
+Vasos desechables,Hogar,pza
+Platos desechables,Hogar,pza
+Cubiertos desechables,Hogar,pza
+Cerillos,Hogar,pza
+Velas,Hogar,pza
+Focos,Hogar,pza
+Pilas alcalinas,Hogar,pza
+Escoba,Hogar,pza
+Trapeador,Hogar,pza
+Recogedor,Hogar,pza
+Cubeta,Hogar,pza
+Ganchos para ropa,Hogar,pza
+Organizador de plástico,Hogar,pza
+Contenedor hermético,Hogar,pza
+Almohada,Hogar,pza
+Sábanas,Hogar,pza
+Huevo blanco,Otros,pza
+Huevo rojo,Otros,pza
+Mayonesa,Otros,pza
+Mostaza,Otros,pza
+Salsa catsup,Otros,pza
+Salsa picante,Otros,pza
+Salsa de tomate,Otros,pza
+Aceite vegetal,Otros,L
+Aceite de oliva,Otros,L
+Vinagre blanco,Otros,L
+Sal de mesa,Otros,pza
+Azúcar estándar,Otros,kg
+Azúcar mascabado,Otros,kg
+Miel de abeja,Otros,pza
+Mermelada de fresa,Otros,pza
+Crema de cacahuate,Otros,pza
+Chocolate en barra,Otros,pza
+Galletas saladas,Otros,pza
+Botanas de maíz,Otros,pza
+Palomitas para microondas,Otros,pza
+Atún en lata,Otros,pza
+Sardinas en lata,Otros,pza
+Frijoles refritos en lata,Otros,pza
+Puré de tomate,Otros,pza
+Caldo de pollo en polvo,Otros,pza

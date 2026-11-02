@@ -1,0 +1,358 @@
+/*
+ * texture.css — grano, tramas y profundidad.
+ * Se carga después de theme.css. Usa las variables de palettes.css para que
+ * la textura cambie de color junto con el tema elegido.
+ */
+
+/* Grano global muy fino: da sensación de papel impreso en toda la app. */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.42;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    mix-blend-mode: multiply;
+}
+
+/* Fondo: lavados de color + retícula de puntos + halo cálido. */
+body,
+body.app {
+    background-color: var(--page-bg);
+    background-image:
+        radial-gradient(1100px 620px at 8% -12%, rgba(var(--p-rgb), 0.13), transparent 60%),
+        radial-gradient(900px 520px at 102% 4%, rgba(var(--a-rgb), 0.15), transparent 58%),
+        radial-gradient(700px 420px at 50% 112%, rgba(var(--p-rgb), 0.08), transparent 65%),
+        radial-gradient(rgba(var(--ink-rgb), 0.07) 1px, transparent 1.35px);
+    background-size: auto, auto, auto, 22px 22px;
+    background-attachment: fixed;
+}
+
+/* Cabecera: cristal tibio con trama de puntos y filo inferior luminoso. */
+.app-header {
+    background-color: var(--page-bg);
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.32)),
+        radial-gradient(rgba(var(--ink-rgb), 0.055) 1px, transparent 1.2px);
+    background-size: auto, 16px 16px;
+    border-bottom-color: rgba(var(--p-rgb), 0.16);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.75) inset,
+        0 12px 34px rgba(var(--shadow-rgb), 0.08);
+    backdrop-filter: blur(12px) saturate(1.15);
+}
+
+.app-header__brand:hover .brand-mark {
+    transform: rotate(-6deg) scale(1.05);
+}
+
+.brand-mark {
+    position: relative;
+    overflow: hidden;
+    background-image: linear-gradient(135deg, var(--p-500), var(--p-900));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.35) inset,
+        0 10px 22px rgba(var(--shadow-rgb), 0.3);
+    transition: transform 0.2s ease;
+}
+
+.brand-mark::after {
+    content: "";
+    position: absolute;
+    inset: -40% -60%;
+    background-image: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.45) 50%, transparent 60%);
+    transform: translateX(-60%);
+    transition: transform 0.5s ease;
+}
+
+.app-header__brand:hover .brand-mark::after {
+    transform: translateX(60%);
+}
+
+.app-nav__link.is-active {
+    background-image: linear-gradient(135deg, var(--p-500), var(--p-900));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.3) inset,
+        0 10px 22px rgba(var(--shadow-rgb), 0.28);
+}
+
+.app-header__avatar {
+    background-image: linear-gradient(135deg, var(--a-300), var(--a-500));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.45) inset,
+        0 6px 14px rgba(var(--a-rgb), 0.38);
+}
+
+.app-header__logout {
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.45));
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+
+/* Tarjetas: papel con veta diagonal, brillo superior y sombra en capas. */
+.card,
+.search-box,
+.frequent-card,
+.list-group-item,
+.table-responsive,
+.app-modal .modal-content {
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0) 55%),
+        repeating-linear-gradient(115deg, rgba(var(--ink-rgb), 0.014) 0 1px, transparent 1px 6px);
+}
+
+.card--bs,
+.product-card,
+.frequent-card,
+.search-box {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 1px 2px rgba(var(--shadow-rgb), 0.05),
+        var(--shadow-card);
+}
+
+.card--bs {
+    border-color: rgba(var(--ink-rgb), 0.1);
+}
+
+.card-title .title-icon,
+h2 .title-icon,
+h3 .title-icon,
+h5 .title-icon {
+    background-image: linear-gradient(135deg, var(--p-100), var(--p-200));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.8) inset,
+        0 5px 12px rgba(var(--p-rgb), 0.16);
+}
+
+/* Botones: brillo interior y degradados vivos. */
+.btn-primary,
+.btn-success,
+.btn-danger,
+.btn-light {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.28) inset,
+        0 10px 22px rgba(var(--shadow-rgb), 0.18);
+}
+
+.btn-primary {
+    background-image: linear-gradient(135deg, var(--p-500), var(--p-800));
+}
+
+.btn-primary:hover:not(:disabled),
+.btn-primary:focus-visible:not(:disabled) {
+    background-image: linear-gradient(135deg, var(--p-600), var(--p-900));
+}
+
+.btn-success {
+    background-image: linear-gradient(135deg, var(--p-500), var(--p-800));
+}
+
+.btn-outline-primary,
+.btn-outline-success {
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0));
+}
+
+.btn-light {
+    color: var(--p-900);
+    background-image: linear-gradient(180deg, #ffffff, #fdf7ea);
+}
+
+.btn-light:hover:not(:disabled) {
+    background-image: linear-gradient(180deg, #ffffff, var(--a-100));
+}
+
+/* Hero: retícula, vetas y anillos decorativos. */
+.hero-card {
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.18) 1.1px, transparent 1.6px),
+        repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 10px),
+        radial-gradient(620px 320px at 92% 8%, rgba(255, 255, 255, 0.2), transparent 62%),
+        linear-gradient(135deg, var(--p-950) 0%, var(--p-700) 58%, var(--p-500) 100%);
+    background-size: 18px 18px, auto, auto, auto;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.22) inset,
+        0 32px 64px rgba(var(--shadow-rgb), 0.32);
+}
+
+.hero-card::before {
+    content: "";
+    position: absolute;
+    top: -38%;
+    right: 12%;
+    width: 340px;
+    height: 340px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 40px rgba(255, 255, 255, 0.045),
+        0 0 0 80px rgba(255, 255, 255, 0.03);
+    pointer-events: none;
+}
+
+.hero-title {
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.18);
+}
+
+.hero-eyebrow {
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset;
+    backdrop-filter: blur(4px);
+}
+
+/* Títulos de sección: subrayado degradado con brillo. */
+.app-main > .container > h2:first-child,
+.admin-shell > h2:first-child {
+    position: relative;
+    padding-bottom: 0.55rem;
+}
+
+.app-main > .container > h2:first-child::after,
+.admin-shell > h2:first-child::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 74px;
+    height: 4px;
+    border-radius: 999px;
+    background-image: linear-gradient(90deg, var(--p-500), var(--a-500));
+    box-shadow: 0 2px 10px rgba(var(--p-rgb), 0.45);
+}
+
+/* Chips, filas y tarjetas de producto. */
+[data-categorias] .chip {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 3px 8px rgba(var(--shadow-rgb), 0.05);
+}
+
+[data-categorias] .chip.btn-primary {
+    background-image: linear-gradient(135deg, var(--p-500), var(--p-900));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.28) inset,
+        0 8px 18px rgba(var(--shadow-rgb), 0.24);
+}
+
+.product-card:hover {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 22px 44px rgba(var(--shadow-rgb), 0.17);
+}
+
+.product-card .card-img-top {
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+.product-card .result__thumb--empty {
+    background-image:
+        radial-gradient(rgba(var(--p-rgb), 0.16) 1px, transparent 1.4px),
+        linear-gradient(135deg, var(--p-100), var(--p-200));
+    background-size: 12px 12px, auto;
+}
+
+/* Carrito: papel rayado sutil y borde luminoso. */
+.cart-panel {
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%),
+        repeating-linear-gradient(0deg, rgba(var(--ink-rgb), 0.018) 0 1px, transparent 1px 7px),
+        linear-gradient(180deg, var(--surface), var(--surface-2));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 24px 48px rgba(var(--shadow-rgb), 0.12);
+}
+
+.cart-item {
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 70%),
+        linear-gradient(135deg, rgba(var(--p-rgb), 0.07), rgba(var(--p-rgb), 0.02));
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+}
+
+/* Tablas: encabezado con veta, filas con brillo al pasar. */
+.table > thead th {
+    background-color: var(--surface-3);
+    background-image: repeating-linear-gradient(135deg, rgba(var(--ink-rgb), 0.025) 0 2px, transparent 2px 6px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+}
+
+.table-hover > tbody > tr:hover > * {
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+/* Progreso y badges con relieve. */
+.progress {
+    box-shadow: inset 0 1px 3px rgba(var(--shadow-rgb), 0.14);
+}
+
+.progress-bar {
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 50%),
+        linear-gradient(90deg, var(--p-500), var(--p-800));
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+}
+
+.badge.bg-primary {
+    background-image: linear-gradient(135deg, var(--p-500), var(--p-800)) !important;
+}
+
+/* Modales: fondo tramado y borde superior de color. */
+.app-modal {
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1.4px),
+        linear-gradient(180deg, rgba(var(--shadow-rgb), 0.55), rgba(var(--shadow-rgb), 0.7));
+    background-size: 18px 18px, auto;
+    backdrop-filter: blur(3px);
+}
+
+.app-modal .modal-content {
+    border-top: 4px solid var(--p-500);
+}
+
+.app-modal .modal-header {
+    background-image: linear-gradient(180deg, rgba(var(--p-rgb), 0.06), transparent);
+}
+
+.toast-stack .toast {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.25) inset,
+        0 18px 40px rgba(var(--shadow-rgb), 0.32);
+}
+
+/* Detalles finales. */
+.history-row {
+    background-image: linear-gradient(90deg, rgba(var(--p-rgb), 0.04), transparent 40%);
+}
+
+.metrics-bar__fill {
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.25), transparent 60%), linear-gradient(90deg, var(--p-500), var(--p-800));
+}
+
+.title-icon {
+    transition: transform 0.2s ease;
+}
+
+h2:hover .title-icon,
+h3:hover .title-icon,
+h5:hover .title-icon {
+    transform: rotate(-5deg) scale(1.06);
+}
+
+@media (max-width: 720px) {
+    body,
+    body.app {
+        background-size: auto, auto, auto, 18px 18px;
+    }
+
+    body::after {
+        opacity: 0.32;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .brand-mark,
+    .brand-mark::after,
+    .title-icon {
+        transition: none;
+    }
+}

@@ -1,0 +1,338 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Repositories;
+
+use App\Models\Compra;
+use App\Models\CompraItem;
+use App\Models\Producto;
+use App\Services\NormalizadorService;
+use App\Support\Database;
+use PDO;
+
+/**
+ * Acceso a compras, compra_items y consultas de productos para la captura.
+ *
+ * Todas las consultas usan prepared statements.
+ */
+final class CompraRepository
+{
+    private const COMPRA_COLUMNS = 'c.id, c.usuario_id, c.fecha, c.total, c.created_at, c.updated_at';
+
+    private const ITEM_COLUMNS = 'ci.id, ci.compra_id, ci.producto_id, ci.nombre_libre,
+        ci.cantidad, ci.precio_total,
+        p.nombre AS producto_nombre, p.unidad_base AS producto_unidad';
+
+    private readonly PDO $pdo;
+
+    public function __construct(?PDO $pdo = null)
+    {
+        $this->pdo = $pdo ?? Database::connection();
+    }
+
+    public function create(int $usuarioId, string $fecha): int
+    {
+        $statement = $this->pdo->prepare(
+            'INSERT INTO compras (usuario_id, fecha, total) VALUES (?, ?, 0)'
+        );
+        $statement->execute([$usuarioId, $fecha]);
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    public function findOwned(int $id, int $usuarioId): ?Compra
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::COMPRA_COLUMNS . '
+             FROM compras c
+             WHERE c.id = ? AND c.usuario_id = ?
+             LIMIT 1'
+        );
+        $statement->execute([$id, $usuarioId]);
+
+        $row = $statement->fetch();
+
+        return $row === false ? null : Compra::fromRow($row);
+    }
+
+    /**
+     * @return array{items: array<int, array{compra: Compra, items_count: int}>, total: int}
+     */
+    public function listByUser(int $usuarioId, int $page, int $perPage): array
+    {
+        $count = $this->pdo->prepare('SELECT COUNT(*) FROM compras WHERE usuario_id = ?');
+        $count->execute([$usuarioId]);
+        $total = (int) $count->fetchColumn();
+
+        $offset = ($page - 1) * $perPage;
+
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::COMPRA_COLUMNS . ',
+                (SELECT COUNT(*) FROM compra_items ci WHERE ci.compra_id = c.id) AS items_count
+             FROM compras c
+             WHERE c.usuario_id = ?
+             ORDER BY c.fecha DESC, c.id DESC
+             LIMIT ? OFFSET ?'
+        );
+        $statement->bindValue(1, $usuarioId, PDO::PARAM_INT);
+        $statement->bindValue(2, $perPage, PDO::PARAM_INT);
+        $statement->bindValue(3, $offset, PDO::PARAM_INT);
+        $statement->execute();
+
+        $items = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $items[] = [
+                'compra' => Compra::fromRow($row),
+                'items_count' => (int) $row['items_count'],
+            ];
+        }
+
+        return ['items' => $items, 'total' => $total];
+    }
+
+    public function updateFecha(int $id, int $usuarioId, string $fecha): void
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE compras SET fecha = ? WHERE id = ? AND usuario_id = ?'
+        );
+        $statement->execute([$fecha, $id, $usuarioId]);
+    }
+
+    public function delete(int $id, int $usuarioId): bool
+    {
+        $statement = $this->pdo->prepare(
+            'DELETE FROM compras WHERE id = ? AND usuario_id = ?'
+        );
+        $statement->execute([$id, $usuarioId]);
+
+        return $statement->rowCount() > 0;
+    }
+
+    public function countItems(int $compraId): int
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM compra_items WHERE compra_id = ?'
+        );
+        $statement->execute([$compraId]);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    /**
+     * @return array<int, CompraItem>
+     */
+    public function items(int $compraId): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::ITEM_COLUMNS . '
+             FROM compra_items ci
+             LEFT JOIN productos p ON p.id = ci.producto_id
+             WHERE ci.compra_id = ?
+             ORDER BY ci.id ASC'
+        );
+        $statement->execute([$compraId]);
+
+        return array_map(
+            static fn (array $row): CompraItem => CompraItem::fromRow($row),
+            $statement->fetchAll()
+        );
+    }
+
+    public function findItemWithProduct(int $itemId): ?CompraItem
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::ITEM_COLUMNS . '
+             FROM compra_items ci
+             LEFT JOIN productos p ON p.id = ci.producto_id
+             WHERE ci.id = ?
+             LIMIT 1'
+        );
+        $statement->execute([$itemId]);
+
+        $row = $statement->fetch();
+
+        return $row === false ? null : CompraItem::fromRow($row);
+    }
+
+    public function findItemOwned(int $itemId, int $compraId, int $usuarioId): ?CompraItem
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::ITEM_COLUMNS . '
+             FROM compra_items ci
+             INNER JOIN compras c ON c.id = ci.compra_id
+             LEFT JOIN productos p ON p.id = ci.producto_id
+             WHERE ci.id = ? AND ci.compra_id = ? AND c.usuario_id = ?
+             LIMIT 1'
+        );
+        $statement->execute([$itemId, $compraId, $usuarioId]);
+
+        $row = $statement->fetch();
+
+        return $row === false ? null : CompraItem::fromRow($row);
+    }
+
+    public function addItem(
+        int $compraId,
+        ?int $productoId,
+        ?string $nombreLibre,
+        string $cantidad,
+        string $precioTotal
+    ): int {
+        $statement = $this->pdo->prepare(
+            'INSERT INTO compra_items
+                (compra_id, producto_id, nombre_libre, cantidad, precio_total)
+             VALUES (?, ?, ?, ?, ?)'
+        );
+        $statement->execute([$compraId, $productoId, $nombreLibre, $cantidad, $precioTotal]);
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    /**
+     * @param array<string, mixed> $campos Claves permitidas: cantidad, precio_total.
+     */
+    public function updateItem(int $itemId, array $campos): void
+    {
+        $sets = [];
+        $params = [];
+
+        foreach (['cantidad', 'precio_total'] as $columna) {
+            if (array_key_exists($columna, $campos)) {
+                $sets[] = $columna . ' = ?';
+                $params[] = $campos[$columna];
+            }
+        }
+
+        if ($sets === []) {
+            return;
+        }
+
+        $params[] = $itemId;
+
+        $statement = $this->pdo->prepare(
+            'UPDATE compra_items SET ' . implode(', ', $sets) . ' WHERE id = ?'
+        );
+        $statement->execute($params);
+    }
+
+    public function deleteItem(int $itemId): void
+    {
+        $statement = $this->pdo->prepare('DELETE FROM compra_items WHERE id = ?');
+        $statement->execute([$itemId]);
+    }
+
+    /**
+     * @return array{id: int, nombre: string, unidad_base: string}|null
+     */
+    public function productoActivo(int $id): ?array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT id, nombre, unidad_base FROM productos
+             WHERE id = ? AND estado = 'activo'
+             LIMIT 1"
+        );
+        $statement->execute([$id]);
+
+        $row = $statement->fetch();
+
+        if ($row === false) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $row['id'],
+            'nombre' => (string) $row['nombre'],
+            'unidad_base' => (string) $row['unidad_base'],
+        ];
+    }
+
+    /**
+     * Productos que el usuario ha comprado con más frecuencia.
+     *
+     * @return array<int, array{id: int, nombre: string, categoria_id: int, unidad_base: string, imagen_url: string|null, veces_comprado: int}>
+     */
+    public function frecuentes(int $usuarioId, int $limit): array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT p.id, p.nombre, p.categoria_id, p.unidad_base, p.imagen_url,
+                    COUNT(*) AS veces_comprado
+             FROM compra_items ci
+             INNER JOIN compras c ON c.id = ci.compra_id
+             INNER JOIN productos p ON p.id = ci.producto_id
+             WHERE c.usuario_id = ? AND p.estado = 'activo'
+             GROUP BY p.id, p.nombre, p.categoria_id, p.unidad_base, p.imagen_url
+             ORDER BY veces_comprado DESC, p.nombre ASC
+             LIMIT ?"
+        );
+        $statement->bindValue(1, $usuarioId, PDO::PARAM_INT);
+        $statement->bindValue(2, $limit, PDO::PARAM_INT);
+        $statement->execute();
+
+        $items = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $items[] = [
+                'id' => (int) $row['id'],
+                'nombre' => (string) $row['nombre'],
+                'categoria_id' => (int) $row['categoria_id'],
+                'unidad_base' => (string) $row['unidad_base'],
+                'imagen_url' => isset($row['imagen_url']) ? (string) $row['imagen_url'] : null,
+                'veces_comprado' => (int) $row['veces_comprado'],
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Búsqueda de productos activos sin paginación (máximo 10 por defecto).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function buscarActivos(string $q, ?int $categoriaId, int $limit): array
+    {
+        $where = ["p.estado = 'activo'"];
+        $params = [];
+
+        if ($q !== '') {
+            // La collation general_ci es insensible a mayúsculas y acentos.
+            $where[] = "LOWER(p.nombre) COLLATE utf8mb4_general_ci LIKE ? ESCAPE '!'";
+            $params[] = '%' . NormalizadorService::patronLike($q) . '%';
+        }
+
+        if ($categoriaId !== null) {
+            $where[] = 'p.categoria_id = ?';
+            $params[] = $categoriaId;
+        }
+
+        $statement = $this->pdo->prepare(
+            'SELECT p.id, p.nombre, p.categoria_id, c.nombre AS categoria_nombre,
+                    p.unidad_base, p.imagen_url, p.estado, p.created_at, p.updated_at
+             FROM productos p
+             INNER JOIN categorias c ON c.id = p.categoria_id
+             WHERE ' . implode(' AND ', $where) . '
+             ORDER BY p.nombre ASC, p.id ASC
+             LIMIT ?'
+        );
+
+        $index = 1;
+
+        foreach ($params as $param) {
+            $statement->bindValue(
+                $index++,
+                $param,
+                is_int($param) ? PDO::PARAM_INT : PDO::PARAM_STR
+            );
+        }
+
+        $statement->bindValue($index, $limit, PDO::PARAM_INT);
+        $statement->execute();
+
+        return array_map(
+            static fn (array $row): array => Producto::fromRow($row)->toPublicArray(),
+            $statement->fetchAll()
+        );
+    }
+}

@@ -1,0 +1,24 @@
+# Dependencias
+/vendor/
+
+# Entorno
+.env
+.env.*
+!.env.example
+
+# Logs y temporales
+/storage/logs/*
+!/storage/logs/.gitkeep
+/database/backups/
+*.log
+*.tmp
+.DS_Store
+
+# Editores y sesiones locales de herramientas
+.idea/
+.vscode/
+*.swp
+.liveproject/
+.opencode/
+.claude/
+.cursor/

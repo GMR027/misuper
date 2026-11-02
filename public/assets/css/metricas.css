@@ -1,0 +1,29 @@
+/*
+ * metricas.css — overrides mínimos sobre Bootstrap.
+ * Barras con .progress, listas con .list-group y utilidades de Bootstrap.
+ * Solo quedan el grosor de la barra y las miniaturas del top.
+ */
+
+.metrics-bar__track {
+    height: 10px;
+}
+
+.metrics-bar__fill {
+    transition: width 0.25s ease;
+}
+
+.metrics-top__thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: var(--bs-border-radius);
+}
+
+.metrics-top__thumb--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--bs-success);
+    background: var(--bs-success-bg-subtle);
+}

@@ -1,0 +1,155 @@
+/*
+ * admin.css — overrides mínimos sobre Bootstrap.
+ * Tablas, filtros, tarjetas, badges, botones y paginación vienen de Bootstrap.
+ * Solo quedan miniaturas, errores de formulario y vista previa de imagen.
+ */
+
+.thumb {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: var(--bs-border-radius);
+}
+
+.thumb--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: var(--bs-secondary-color);
+}
+
+.form__error {
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--bs-danger);
+}
+
+.form-control[aria-invalid="true"],
+.form-select[aria-invalid="true"] {
+    border-color: var(--bs-danger);
+}
+
+.imagen-preview {
+    max-width: 200px;
+    max-height: 200px;
+    object-fit: cover;
+}
+
+.pagination [data-page-status] {
+    min-width: 9rem;
+    text-align: center;
+}
+
+/* Botones de acciones de tabla: misma caja para Editar/Desactivar/Resetear. */
+.admin-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 12rem;
+    white-space: nowrap;
+}
+
+.admin-actions .btn .bi {
+    margin-right: 0.35rem;
+}
+
+/* Acciones de tabla: botones suaves, no outline duro. */
+.admin-actions .btn {
+    border-width: 1px;
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
+    box-shadow: none;
+}
+
+.admin-actions .btn-outline-primary {
+    color: var(--p-800);
+    background-color: var(--p-100);
+    border-color: var(--p-200);
+}
+
+.admin-actions .btn-outline-primary:hover,
+.admin-actions .btn-outline-primary:focus-visible {
+    color: #fff;
+    background-image: linear-gradient(135deg, var(--p-500), var(--p-800));
+    border-color: transparent;
+    box-shadow: 0 8px 18px rgba(var(--shadow-rgb), 0.22);
+    transform: translateY(-1px);
+}
+
+.admin-actions .btn-outline-danger {
+    color: #a33a34;
+    background-color: #fdeeec;
+    border-color: #f4d4d1;
+}
+
+.admin-actions .btn-outline-danger:hover,
+.admin-actions .btn-outline-danger:focus-visible {
+    color: #fff;
+    background-image: linear-gradient(135deg, #cf4b44, #a82f2a);
+    border-color: transparent;
+    box-shadow: 0 8px 18px rgba(168, 47, 42, 0.24);
+    transform: translateY(-1px);
+}
+
+.admin-actions .btn-outline-success {
+    color: var(--p-800);
+    background-color: var(--p-100);
+    border-color: var(--p-200);
+}
+
+.admin-actions .btn-outline-success:hover,
+.admin-actions .btn-outline-success:focus-visible {
+    color: #fff;
+    background-image: linear-gradient(135deg, var(--p-500), var(--p-800));
+    border-color: transparent;
+    box-shadow: 0 8px 18px rgba(var(--shadow-rgb), 0.22);
+    transform: translateY(-1px);
+}
+
+.admin-actions .btn-outline-secondary {
+    color: var(--muted);
+    background-color: var(--surface-3);
+    border-color: var(--border);
+}
+
+.admin-actions .btn-outline-secondary:hover,
+.admin-actions .btn-outline-secondary:focus-visible {
+    color: var(--ink);
+    background-color: var(--surface-4);
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+}
+
+.admin-actions .btn-outline-warning {
+    color: var(--a-700);
+    background-color: var(--a-50);
+    border-color: var(--a-200);
+}
+
+.admin-actions .btn-outline-warning:hover,
+.admin-actions .btn-outline-warning:focus-visible {
+    color: var(--a-900);
+    background-image: linear-gradient(135deg, var(--a-300), var(--a-500));
+    border-color: transparent;
+    box-shadow: 0 8px 18px rgba(var(--a-rgb), 0.28);
+    transform: translateY(-1px);
+}
+
+.admin-actions .btn:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 575.98px) {
+    .admin-actions .btn {
+        width: auto;
+    }
+}
+
+.page-link:disabled {
+    color: var(--bs-pagination-disabled-color);
+    background-color: var(--bs-pagination-disabled-bg);
+    border-color: var(--bs-pagination-disabled-border-color);
+    pointer-events: none;
+}
