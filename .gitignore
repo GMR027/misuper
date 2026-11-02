@@ -22,3 +22,7 @@
 .opencode/
 .claude/
 .cursor/
+
+# Despliegue
+.deploy-tag
+helm/**/values.local.yaml

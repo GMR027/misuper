@@ -1,0 +1,16 @@
+# ===========================================================================
+# PVC para los datos de MySQL. Persiste entre upgrades y redespliegues.
+# ===========================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: misuper-mysql-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: misuper-mysql
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: {{ .Values.mysql.storageClassName }}
+  resources:
+    requests:
+      storage: {{ .Values.mysql.storage }}

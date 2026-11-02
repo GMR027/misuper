@@ -1,0 +1,33 @@
+# ===========================================================================
+# Ingress — https://misuper.iguzman.com.mx
+# TLS automático con cert-manager (cluster-issuer letsencrypt-prod).
+# ===========================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: misuper
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: misuper
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+    nginx.ingress.kubernetes.io/proxy-body-size: {{ .Values.ingress.proxyBodySize }}
+    nginx.ingress.kubernetes.io/proxy-read-timeout: {{ .Values.ingress.proxyTimeout | quote }}
+    nginx.ingress.kubernetes.io/proxy-send-timeout: {{ .Values.ingress.proxyTimeout | quote }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+    - secretName: {{ .Values.ingress.tlsSecret }}
+      hosts:
+        - {{ .Values.app.host }}
+  rules:
+    - host: {{ .Values.app.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: misuper
+                port:
+                  number: 80

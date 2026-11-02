@@ -12,7 +12,7 @@ y ver en qué productos se va el dinero.
 
 ## Requisitos
 
-- PHP 8.1 o superior con las extensiones `pdo_mysql` y `fileinfo`
+- PHP 8.1 o superior con las extensiones `pdo_mysql`, `mbstring` y `fileinfo`
 - MySQL 8
 - Composer (solo para generar el autoload)
 
@@ -71,6 +71,40 @@ composer serve
 ```
 
 Abre http://localhost:8000.
+
+## Despliegue en Kubernetes
+
+Requisitos: `docker` con sesión en Docker Hub, `helm`, `kubectl` y acceso al
+namespace `misuper`.
+
+```bash
+./deploy.sh        # tag auto-incremental
+./deploy.sh 12     # tag concreto
+```
+
+El script:
+
+1. Genera `helm/misuper/values.local.yaml` con contraseñas aleatorias si no
+   existe (archivo no versionado; consérvalo).
+2. Construye y publica `gmr27/misuper:<tag>` y `:latest`.
+3. Ejecuta `helm upgrade --install` en el namespace `misuper`.
+4. Aplica las migraciones pendientes en el `initContainer` de la app.
+5. Espera el rollout de MySQL y de la app.
+
+- URL: https://misuper.iguzman.com.mx
+- Chart: `helm/misuper`
+- MySQL 8 en el clúster, datos en el PVC `misuper-mysql-data`.
+- Fotos de avatares y notas en el PVC `misuper-uploads`.
+- TLS automático con cert-manager (`letsencrypt-prod`).
+
+La base de datos y los uploads viven en PVCs, así que los upgrades no los
+tocan. Para un clúster nuevo, después del primer despliegue importa el dump o
+crea el Admin con:
+
+```bash
+kubectl -n misuper exec -it deploy/misuper -- \
+  sh -c 'ADMIN_PASSWORD="una-contraseña-segura" php scripts/seed.php'
+```
 
 ## Seguridad
 

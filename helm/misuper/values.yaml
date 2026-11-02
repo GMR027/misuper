@@ -1,0 +1,67 @@
+# ===========================================================================
+# values.yaml — valores por defecto del chart misuper
+#
+# Los secretos reales van en values.local.yaml (NO versionado):
+#
+#   helm upgrade --install misuper ./helm/misuper \
+#     -n misuper --create-namespace \
+#     -f helm/misuper/values.yaml \
+#     -f helm/misuper/values.local.yaml
+#
+# El script deploy.sh automatiza build, push y helm upgrade.
+# ===========================================================================
+
+replicaCount: 1
+
+image:
+  repository: gmr27/misuper
+  tag: "1"                 # deploy.sh lo sobrescribe con --set image.tag
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+app:
+  host: misuper.iguzman.com.mx
+  env: production
+  url: https://misuper.iguzman.com.mx
+  sessionLifetime: "604800"
+
+mysql:
+  image: mysql:8.0
+  database: despensa_app
+  user: misuper
+  storage: 2Gi
+  storageClassName: microk8s-hostpath
+
+persistence:
+  uploads:
+    size: 1Gi
+    storageClassName: microk8s-hostpath
+
+# Credenciales — SOBRESCRIBIR en values.local.yaml
+secrets:
+  dbPassword: CAMBIAR-EN-VALUES-LOCAL
+  mysqlRootPassword: CAMBIAR-EN-VALUES-LOCAL
+
+resources:
+  app:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  mysql:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+ingress:
+  className: public
+  clusterIssuer: letsencrypt-prod
+  tlsSecret: misuper-cert
+  proxyBodySize: 16m
+  proxyTimeout: "120"

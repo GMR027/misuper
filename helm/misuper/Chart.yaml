@@ -1,0 +1,6 @@
+apiVersion: v2
+name: misuper
+description: App web de despensa y compras personales (PHP/Apache + MySQL 8)
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

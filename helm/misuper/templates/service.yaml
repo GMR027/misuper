@@ -1,0 +1,17 @@
+# ===========================================================================
+# Service de la app — ClusterIP, expuesto por el Ingress.
+# ===========================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: misuper
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: misuper
+spec:
+  type: ClusterIP
+  selector:
+    app: misuper
+  ports:
+    - port: 80
+      targetPort: 80

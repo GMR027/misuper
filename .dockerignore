@@ -1,0 +1,37 @@
+# Repositorio y entorno local
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.liveproject/
+.opencode/
+.claude/
+.cursor/
+.vscode/
+.idea/
+
+# Dependencias que se generan dentro de la imagen
+vendor/
+
+# Datos y temporales que no deben viajar en la imagen
+storage/logs/*.log
+storage/logs/*.json
+database/backups/
+public/uploads/avatars/*
+public/uploads/notas/*
+!public/uploads/avatars/.gitkeep
+!public/uploads/notas/.gitkeep
+!public/uploads/avatars/.gitignore
+!public/uploads/notas/.gitignore
+
+# Despliegue y documentación
+helm/
+deploy.sh
+.deploy-tag
+README.md
+PROJECT_STATE.md
+misuper_db_*.sql
+*.log
+*.tmp
+.DS_Store

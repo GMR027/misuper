@@ -1,0 +1,17 @@
+# ===========================================================================
+# PVC para public/uploads — fotos de avatares y de notas.
+# Persiste entre upgrades y reinicios del pod.
+# ===========================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: misuper-uploads
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: misuper
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: {{ .Values.persistence.uploads.storageClassName }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.uploads.size }}

@@ -1,0 +1,132 @@
+# ===========================================================================
+# Deployment de la app (PHP 8.3 + Apache).
+#
+#  · initContainer «migrar-base»: espera a MySQL y aplica las migraciones
+#    pendientes antes de arrancar Apache. Es idempotente (migration_log).
+#  · initContainer «preparar-volumenes»: prepara permisos de uploads y logs
+#    para www-data (33).
+#  · La configuración llega por variables de entorno; no se usa .env dentro
+#    de la imagen.
+# ===========================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: misuper
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: misuper
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: misuper
+  template:
+    metadata:
+      labels:
+        app: misuper
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        fsGroup: 33
+      initContainers:
+        - name: preparar-volumenes
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              mkdir -p /uploads/avatars /uploads/notas /logs
+              chown -R www-data:www-data /uploads /logs
+              chmod -R ug+rwX /uploads /logs
+          volumeMounts:
+            - name: uploads
+              mountPath: /uploads
+            - name: logs
+              mountPath: /logs
+        - name: migrar-base
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              i=0
+              until php scripts/migrate.php; do
+                i=$((i+1))
+                if [ "$i" -ge 60 ]; then
+                  echo "MySQL no respondió a tiempo; se abortan las migraciones."
+                  exit 1
+                fi
+                echo "Esperando a MySQL para migrar (intento $i)..."
+                sleep 2
+              done
+          env:
+            - name: DB_HOST
+              value: misuper-mysql
+            - name: DB_NAME
+              value: {{ .Values.mysql.database | quote }}
+            - name: DB_USER
+              value: {{ .Values.mysql.user | quote }}
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: misuper
+                  key: DB_PASSWORD
+      containers:
+        - name: misuper
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: APP_ENV
+              value: {{ .Values.app.env | quote }}
+            - name: APP_URL
+              value: {{ .Values.app.url | quote }}
+            - name: SESSION_LIFETIME
+              value: {{ .Values.app.sessionLifetime | quote }}
+            - name: DB_HOST
+              value: misuper-mysql
+            - name: DB_NAME
+              value: {{ .Values.mysql.database | quote }}
+            - name: DB_USER
+              value: {{ .Values.mysql.user | quote }}
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: misuper
+                  key: DB_PASSWORD
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            {{- toYaml .Values.resources.app | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /login
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          volumeMounts:
+            - name: uploads
+              mountPath: /var/www/html/public/uploads
+            - name: logs
+              mountPath: /var/www/html/storage/logs
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: misuper-uploads
+        - name: logs
+          emptyDir: {}

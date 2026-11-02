@@ -1,0 +1,17 @@
+# ===========================================================================
+# Service MySQL — la app lo alcanza como host "misuper-mysql".
+# ===========================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: misuper-mysql
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: misuper-mysql
+spec:
+  type: ClusterIP
+  selector:
+    app: misuper-mysql
+  ports:
+    - port: 3306
+      targetPort: 3306

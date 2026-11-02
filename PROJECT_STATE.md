@@ -483,3 +483,14 @@ STATE_HANDOFF — Fase 12.7 (CRUD de usuarios en Admin) — 2026-11-01
 - Nuevos métodos: UsuarioRepository::createAdmin/updateAdmin; AdminUsuarioService::crear/actualizar/eliminar; AdminUsuarioValidator::crear/actualizar.
 - Verificado por API y en Brave headless (CDP): crear, editar, eliminar, duplicado, validaciones, 403 sin rol/CSRF y consola sin errores.
 - BD limpia: 1 admin real, 200 productos, 0 compras/ítems/sugerencias/notas; usuarios temporales de prueba eliminados.
+
+STATE_HANDOFF — Fase 12.8 (Docker + Kubernetes) — 2026-11-01
+- Dockerfile multi-etapa (composer + php:8.3-apache) con pdo_mysql, mbstring, DocumentRoot en /public, FallbackResource a index.php y límites de subida de 8 MB.
+- .dockerignore excluye .env, vendor, logs, backups, uploads locales, helm y documentación.
+- Chart Helm en helm/misuper: Deployment app, MySQL 8, Services, PVC de MySQL y uploads, Ingress con cert-manager (letsencrypt-prod), Secret con credenciales.
+- La app arranca con un initContainer que aplica migraciones pendientes y otro que prepara permisos de los PVC para www-data.
+- deploy.sh construye y publica gmr27/misuper:<tag>, ejecuta helm upgrade --install en el namespace misuper y espera los rollouts. Genera values.local.yaml (no versionado) con contraseñas aleatorias si falta.
+- Desplegado en https://misuper.iguzman.com.mx con TLS válido. MySQL y uploads en PVCs; los upgrades conservan los datos.
+- BD despensa_app migrada al clúster desde la instancia local: 1 admin (mismo hash), 8 categorías, 200 productos, 10 migraciones.
+- Verificado: login HTTPS con usuario temporal (eliminado), API de categorías/productos, escritura en PVC como www-data y segundo despliegue (tag 2) sin pérdida de datos.
+- Secretos reales solo en helm/misuper/values.local.yaml (ignorado por git) y en el Secret de Kubernetes.
