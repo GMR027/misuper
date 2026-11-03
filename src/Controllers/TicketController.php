@@ -73,7 +73,7 @@ final class TicketController
         CsrfMiddleware::enforce();
 
         $data = $this->jsonBody();
-        $errors = $this->tickets->validarConfirmacion($data);
+        $errors = $this->tickets->validarConfirmacion($usuario['id'], $data);
 
         if ($errors !== []) {
             Response::fail('VALIDATION_ERROR', 'Revisa los artículos del ticket.', 422, $errors);

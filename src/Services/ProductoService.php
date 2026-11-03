@@ -124,13 +124,31 @@ final class ProductoService
     /**
      * @param array<string, mixed> $data Ya validado por validarCreacion().
      */
-    public function crear(array $data): Producto
+    public function crear(array $data, ?int $usuarioId = null): Producto
     {
         return $this->productos->create(
             trim((string) $data['nombre']),
             (int) $data['categoria_id'],
             (string) $data['unidad_base'],
-            self::normalizarImagen($data['imagen_url'] ?? null)
+            self::normalizarImagen($data['imagen_url'] ?? null),
+            $usuarioId
+        );
+    }
+
+    /**
+     * Alta de un producto propio del usuario (no visible para otros usuarios
+     * ni para el panel Admin).
+     *
+     * @param array<string, mixed> $data Ya validado por validarCreacion().
+     */
+    public function crearPersonal(int $usuarioId, array $data): Producto
+    {
+        return $this->productos->create(
+            trim((string) $data['nombre']),
+            (int) $data['categoria_id'],
+            (string) $data['unidad_base'],
+            null,
+            $usuarioId
         );
     }
 
@@ -140,7 +158,7 @@ final class ProductoService
      */
     public function actualizar(int $id, array $data): ?Producto
     {
-        if ($this->productos->findById($id) === null) {
+        if ($this->productos->findGlobalById($id) === null) {
             return null;
         }
 
@@ -166,7 +184,7 @@ final class ProductoService
             $this->productos->update($id, $campos);
         }
 
-        return $this->productos->findById($id);
+        return $this->productos->findGlobalById($id);
     }
 
     /**
@@ -176,7 +194,7 @@ final class ProductoService
      */
     public function desactivar(int $id): bool
     {
-        if ($this->productos->findById($id) === null) {
+        if ($this->productos->findGlobalById($id) === null) {
             return false;
         }
 
@@ -187,7 +205,7 @@ final class ProductoService
 
     public function obtenerParaAdmin(int $id): ?Producto
     {
-        return $this->productos->findById($id);
+        return $this->productos->findGlobalById($id);
     }
 
     /**

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Middleware\AuthMiddleware;
+use App\Middleware\CsrfMiddleware;
 use App\Services\ProductoService;
 use App\Support\Response;
 
 /**
- * Endpoints públicos del catálogo. No requieren autenticación.
+ * Endpoints del catálogo. La consulta pública no exige autenticación; el alta
+ * de productos propios sí, y los asocia al usuario de la sesión.
  */
 final class ProductoController
 {
@@ -29,5 +32,47 @@ final class ProductoController
         $page = ProductoService::enteroPositivo($_GET['page'] ?? null) ?? 1;
 
         Response::ok($this->productos->listarPublicos($q, $categoriaId, $page));
+    }
+
+    /**
+     * POST /api/productos — alta de un producto propio del usuario.
+     */
+    public function store(): void
+    {
+        $usuario = AuthMiddleware::require();
+        CsrfMiddleware::enforce();
+
+        $data = $this->jsonBody();
+        $errors = $this->productos->validarCreacion($data);
+
+        if ($errors !== []) {
+            Response::fail('VALIDATION_ERROR', 'Revisa los datos enviados.', 422, $errors);
+        }
+
+        $producto = $this->productos->crearPersonal($usuario['id'], $data);
+
+        Response::ok($producto->toPublicArray(), 201);
+    }
+
+    /**
+     * Cuerpo JSON de la petición. 400 si el JSON es inválido.
+     *
+     * @return array<string, mixed>
+     */
+    private function jsonBody(): array
+    {
+        $raw = file_get_contents('php://input');
+
+        if ($raw === false || $raw === '') {
+            return [];
+        }
+
+        $data = json_decode($raw, true);
+
+        if (!is_array($data)) {
+            Response::fail('INVALID_JSON', 'El cuerpo de la petición no es JSON válido.', 400);
+        }
+
+        return $data;
     }
 }

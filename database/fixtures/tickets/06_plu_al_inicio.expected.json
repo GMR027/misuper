@@ -1,0 +1,8 @@
+{
+    "fecha": null,
+    "total": 53.00,
+    "items": [
+        {"nombre": "REXONA SPRAY", "cantidad": 1, "precio_total": 35.00},
+        {"nombre": "COCA COLA 600ML", "cantidad": 1, "precio_total": 18.00}
+    ]
+}

@@ -4,7 +4,6 @@
 
 import { fetchApi } from '../modules/api.js';
 import {
-    addFree,
     addProduct,
     clearCart,
     count as cartCount,
@@ -332,11 +331,23 @@ function init(root) {
         el.results.replaceChildren();
 
         if (items.length === 0) {
-            const empty = document.createElement('p');
+            const empty = document.createElement('div');
             empty.className = 'quick-empty col-12';
 
             if (state.busqueda !== '' || state.categoria_activa !== null) {
-                empty.textContent = 'No encontramos productos con esa búsqueda.';
+                const texto = document.createElement('p');
+                texto.className = 'mb-3';
+                texto.textContent = 'No encontramos productos con esa búsqueda.';
+
+                const cta = document.createElement('button');
+                cta.type = 'button';
+                cta.className = 'btn btn-primary';
+                cta.innerHTML = '<i class="bi bi-plus-lg" aria-hidden="true"></i> Registrar nuevo producto';
+                cta.addEventListener('click', () => {
+                    abrirNuevoProducto(state.busqueda);
+                });
+
+                empty.append(texto, cta);
             } else {
                 empty.textContent = 'Escribe un producto o elige una categoría para empezar.';
             }
@@ -963,15 +974,7 @@ function init(root) {
 
     function bindModals() {
         root.querySelector('[data-libre-open]')?.addEventListener('click', () => {
-            const form = el.modalLibre?.querySelector('[data-form-libre]');
-
-            if (form instanceof HTMLFormElement) {
-                form.reset();
-            }
-
-            limpiarError(el.modalLibre?.querySelector('[data-libre-error]'));
-            openModal(el.modalLibre);
-            el.modalLibre?.querySelector('[data-libre-nombre]')?.focus();
+            abrirNuevoProducto('');
         });
 
         document.querySelector('[data-close-libre]')?.addEventListener('click', () => {
@@ -998,6 +1001,62 @@ function init(root) {
         });
     }
 
+    /**
+     * Abre el modal de alta de producto propio, opcionalmente con el nombre
+     * buscado y la categoría activa.
+     *
+     * @param {string} nombre
+     */
+    function abrirNuevoProducto(nombre) {
+        const form = el.modalLibre?.querySelector('[data-form-libre]');
+
+        if (form instanceof HTMLFormElement) {
+            form.reset();
+        }
+
+        poblarCategoriasModal();
+
+        const nombreInput = el.modalLibre?.querySelector('[data-libre-nombre]');
+        const categoriaInput = el.modalLibre?.querySelector('[data-libre-categoria]');
+
+        if (nombreInput instanceof HTMLInputElement && nombre !== '') {
+            nombreInput.value = nombre;
+        }
+
+        if (categoriaInput instanceof HTMLSelectElement && state.categoria_activa !== null) {
+            categoriaInput.value = String(state.categoria_activa);
+        }
+
+        limpiarError(el.modalLibre?.querySelector('[data-libre-error]'));
+        openModal(el.modalLibre);
+
+        if (nombreInput instanceof HTMLInputElement) {
+            nombreInput.focus();
+            nombreInput.select();
+        }
+    }
+
+    function poblarCategoriasModal() {
+        const select = el.modalLibre?.querySelector('[data-libre-categoria]');
+
+        if (!(select instanceof HTMLSelectElement)) {
+            return;
+        }
+
+        const anterior = select.value;
+        select.replaceChildren(new Option('Selecciona una categoría', ''));
+
+        for (const categoria of categorias) {
+            select.append(new Option(String(categoria.nombre), String(categoria.id)));
+        }
+
+        if (state.categoria_activa !== null) {
+            select.value = String(state.categoria_activa);
+        } else if (anterior !== '') {
+            select.value = anterior;
+        }
+    }
+
     function bindFreeForm() {
         const form = el.modalLibre?.querySelector('[data-form-libre]');
 
@@ -1005,21 +1064,30 @@ function init(root) {
             return;
         }
 
-        form.addEventListener('submit', (event) => {
+        form.addEventListener('submit', async (event) => {
             event.preventDefault();
             const errorSlot = el.modalLibre?.querySelector('[data-libre-error]');
             const nombreInput = form.querySelector('[data-libre-nombre]');
+            const categoriaInput = form.querySelector('[data-libre-categoria]');
             const unidadInput = form.querySelector('[data-libre-unidad]');
             const cantidadInput = form.querySelector('[data-libre-cantidad]');
             const precioInput = form.querySelector('[data-libre-precio]');
+            const submit = form.querySelector('button[type="submit"]');
 
             const nombre = nombreInput instanceof HTMLInputElement ? nombreInput.value.trim() : '';
+            const categoria = categoriaInput instanceof HTMLSelectElement ? categoriaInput.value : '';
             const unidad = unidadInput instanceof HTMLSelectElement ? unidadInput.value : '';
             const cantidadRaw = cantidadInput instanceof HTMLInputElement ? cantidadInput.value.trim() : '';
             const precioRaw = precioInput instanceof HTMLInputElement ? precioInput.value.trim() : '';
 
             if (nombre.length < 2 || nombre.length > 150) {
                 setError(errorSlot, 'El nombre debe tener entre 2 y 150 caracteres.');
+
+                return;
+            }
+
+            if (categoria === '' || !/^[1-9][0-9]*$/.test(categoria)) {
+                setError(errorSlot, 'Selecciona una categoría.');
 
                 return;
             }
@@ -1046,18 +1114,54 @@ function init(root) {
                 return;
             }
 
-            if (!addFree({ nombre, unidad_base: unidad, cantidad, precio_total: precio })) {
-                setError(errorSlot, 'El carrito alcanzó el límite de 100 ítems.');
+            limpiarError(errorSlot);
 
-                return;
+            if (submit instanceof HTMLButtonElement) {
+                submit.disabled = true;
+                submit.textContent = 'Registrando…';
             }
 
-            // La sugerencia es adicional: no bloquea ni condiciona el carrito.
-            void registrarSugerencia(nombre);
+            try {
+                const producto = await fetchApi('/api/productos', {
+                    method: 'POST',
+                    body: {
+                        nombre,
+                        categoria_id: Number(categoria),
+                        unidad_base: unidad,
+                    },
+                });
 
-            closeModal(el.modalLibre);
-            render();
-            showToast(`${nombre} agregado al carrito.`, 'success');
+                if (!addProduct(producto, { cantidad, precio_total: precio })) {
+                    setError(errorSlot, 'El carrito alcanzó el límite de 100 ítems.');
+
+                    return;
+                }
+
+                closeModal(el.modalLibre);
+                render();
+                showToast(`${nombre} registrado y agregado al carrito.`, 'success');
+                void buscar();
+            } catch (error) {
+                if (redirectIfSessionLost(error)) {
+                    return;
+                }
+
+                const detalle = error?.data && typeof error.data === 'object'
+                    ? Object.values(error.data)[0]
+                    : null;
+
+                setError(
+                    errorSlot,
+                    typeof detalle === 'string'
+                        ? detalle
+                        : error?.message ?? 'No se pudo registrar el producto.',
+                );
+            } finally {
+                if (submit instanceof HTMLButtonElement) {
+                    submit.disabled = false;
+                    submit.textContent = 'Registrar y agregar';
+                }
+            }
         });
     }
 
@@ -1260,24 +1364,6 @@ function limpiarError(slot) {
     if (slot instanceof HTMLElement) {
         slot.textContent = '';
         slot.hidden = true;
-    }
-}
-
-/**
- * Registra una sugerencia en segundo plano. Un fallo no afecta al carrito:
- * solo se deja constancia en la consola.
- *
- * @param {string} nombre
- * @returns {Promise<void>}
- */
-async function registrarSugerencia(nombre) {
-    try {
-        await fetchApi('/api/sugerencias', {
-            method: 'POST',
-            body: { nombre },
-        });
-    } catch (error) {
-        console.warn('No se pudo registrar la sugerencia del producto libre.', error);
     }
 }
 

@@ -7,9 +7,15 @@ namespace App\Services;
 /**
  * Convierte el texto plano de Tesseract en una propuesta de artículos.
  *
- * Los tickets varían mucho entre tiendas. El parser aplica heurísticas
- * conservadoras: prefiere dejar fuera una línea dudosa a inventar un artículo.
- * El usuario siempre revisa el resultado antes de guardar la compra.
+ * Trabaja en dos modos:
+ *  - parsearEstructura(): usa las coordenadas TSV para detectar la columna de
+ *    precios y el bloque real de artículos. Es el modo preferido.
+ *  - parsear(): modo de respaldo con texto plano; solo acepta rachas de líneas
+ *    que terminan en un importe con decimales.
+ *
+ * En ambos modos se descartan encabezados (dirección, teléfono, RFC, folio,
+ * cajero…) y pies (subtotal, IVA, total, pago, cambio…). Ante la duda se omite
+ * la línea: el usuario siempre revisa y completa la propuesta.
  */
 final class TicketParserService
 {
@@ -71,11 +77,20 @@ final class TicketParserService
         'www', 'http', 'moneda', 'cajon', 'cajón', 'terminal', 'autorizacion',
         'autorización', 'operacion', 'operación', 'firma', 'recibí', 'recibi',
         'cupon', 'cupón', 'membresia', 'membresía', 'blvd', 'boulevard',
-        'avenida', 'calle', 'colonia', 'sucursal', 'descripcion', 'descripción',
-        'precio', 'inicio', 'fin', 'pagos', 'carr', 'crr',
+        'descripcion', 'descripción', 'precio', 'inicio', 'fin', 'pagos',
+        'carr', 'crr', 'whatsapp', 'celular', 'correo', 'email', 'aviso',
+        'bienvenido', 'monedero', 'referencia', 'razon social', 'razón social',
     ];
 
-    private const RUIDO_REGEX = '/^(?:\*+|-+|blvd\.?|boulevard|av\.?|avenida|calle|col\.?|colonia|cp\.?|rfc|sucursal|crr|carr|blvd|membresia|descripcion|descripción|precio|inicio|fin|sub-?total|descuento|cupon|cupón|pagos|articulos|artículos|cajero|caja|folio|terminal|operacion|operación|autorizacion|autorización)\b/iu';
+    private const RUIDO_REGEX = '/^(?:\*+|-+|blvd\.?|boulevard|av\.?|avenida|calle|col\.?|colonia|cp\.?|rfc|sucursal|crr|carr|blvd|membresia|descripcion|descripción|precio|inicio|fin|sub-?total|descuento|cupon|cupón|pagos|articulos|artículos|cajero|caja|folio|terminal|operacion|operación|autorizacion|autorización|fecha|hora|ticket|recibo|factura)\b/iu';
+
+    /**
+     * Palabras que identifican metadatos del establecimiento o del pie. Se
+     * buscan en cualquier posición porque un producto no suele contenerlas.
+     */
+    private const METADATA_REGEX = '/\b(?:rfc|regimen|razon social|telefono|tel|celular|whatsapp|correo|email|www|http|factura|ticket|folio|recibo|caja|cajero|turno|sucursal|terminal|autorizacion|operacion|referencia|cliente|vendedor|direccion|calle|avenida|blvd|boulevard|colonia|cp|municipio|pais|gracias|bienvenido|aviso|puntos|monedero|ahorro|descuento|subtotal|total|iva|ieps|impuesto|efectivo|cambio|tarjeta|debito|credito|pago|importe|propina|redondeo|saldo|abono|recargo|comision|promocion|donativo|articulos|unidades)\b/iu';
+
+    private const PRECIO_REGEX = '/(?<![\d\-\/])(\$?\s?\d{1,3}(?:[.,]\d{3})*(?:[.,:]\d{1,2})?)(?![\d\-\/])/u';
 
     /**
      * @return array{
@@ -94,112 +109,51 @@ final class TicketParserService
     public function parsear(string $texto): array
     {
         $texto = str_replace(["\r\n", "\r"], "\n", $texto);
+        $lineas = $this->lineasDesdeTexto($texto);
         $fecha = $this->detectarFecha($texto);
-        $lineas = explode("\n", $texto);
         $total = $this->detectarTotal($lineas);
+        $items = $this->extraerItemsTexto($lineas);
 
-        $items = [];
-        $pendiente = '';
-        $tieneCabecera = preg_match(
-            '/\b(articulos?|descripcion|inicio\s+items)\b/u',
-            NormalizadorService::normalizar($texto)
-        ) === 1;
-        $enItems = !$tieneCabecera;
+        return $this->resultado($fecha, $total, $items);
+    }
 
-        foreach ($lineas as $lineaOriginal) {
-            foreach ($this->expandirLinea($lineaOriginal) as $segmento) {
-                $linea = $this->limpiarLinea($segmento);
+    /**
+     * Parser basado en layout: usa la columna de precios para delimitar el
+     * bloque de artículos y descarta encabezado y pie por posición.
+     *
+     * @param array<string, mixed> $estructura Salida de TicketOcrService::extraerEstructura().
+     * @return array{
+     *     fecha: string|null,
+     *     total: float|null,
+     *     total_suma: float,
+     *     items: array<int, array{
+     *         nombre: string,
+     *         cantidad: float,
+     *         cantidad_explicita: bool,
+     *         medida: array{valor: float, unidad: string}|null,
+     *         precio_total: float
+     *     }>
+     * }
+     */
+    public function parsearEstructura(array $estructura): array
+    {
+        $lineas = $this->normalizarLineasEstructura($estructura['lineas'] ?? []);
+        $texto = (string) ($estructura['texto'] ?? implode("\n", array_map(
+            static fn (array $linea): string => $linea['texto'],
+            $lineas
+        )));
 
-                if ($linea === '') {
-                    continue;
-                }
+        $fecha = $this->detectarFecha($texto);
+        $total = $this->detectarTotal($lineas);
+        $ancho = (int) ($estructura['ancho'] ?? 0);
+        $items = $this->extraerItemsEstructura($lineas, $ancho);
 
-                if ($items !== [] && $this->esFinItems($linea)) {
-                    $enItems = false;
-                    $pendiente = '';
-
-                    continue;
-                }
-
-                if (!$enItems) {
-                    if ($this->esInicioItems($linea)) {
-                        $enItems = true;
-                    }
-
-                    continue;
-                }
-
-                if ($this->esInicioItems($linea)) {
-                    $enItems = true;
-                    $pendiente = '';
-
-                    continue;
-                }
-
-                if ($this->esRuido($linea)) {
-                    $pendiente = '';
-
-                    continue;
-                }
-
-                $monto = $this->detectarMontoFinal($linea);
-
-                if ($monto === null) {
-                    if ($this->pareceProducto($linea)) {
-                        $pendiente = $linea;
-                    }
-
-                    continue;
-                }
-
-                $nombre = $this->limpiarNombre(substr($linea, 0, $monto['inicio']));
-
-                if ($pendiente !== '' && $this->pareceProducto($pendiente)) {
-                    $nombre = trim($pendiente . ' ' . $nombre);
-                }
-
-                $pendiente = '';
-                $nombre = $this->limpiarNombre($nombre);
-
-                if (!$this->nombreValido($nombre)) {
-                    continue;
-                }
-
-                [$nombre, $cantidad, $explicita, $medida] = $this->extraerCantidad($nombre);
-                $nombre = $this->limpiarNombre($nombre);
-
-                if (!$this->nombreValido($nombre)) {
-                    continue;
-                }
-
-                $items[] = [
-                    'nombre' => $nombre,
-                    'cantidad' => $cantidad,
-                    'cantidad_explicita' => $explicita,
-                    'medida' => $medida,
-                    'precio_total' => $monto['valor'],
-                ];
-
-                if (count($items) >= self::MAX_ITEMS) {
-                    break 2;
-                }
-            }
+        // Si el layout no encontró un bloque fiable, se intenta el modo texto.
+        if ($items === []) {
+            $items = $this->extraerItemsTexto($lineas);
         }
 
-        $items = $this->fusionarDuplicados($items);
-
-        $suma = 0.0;
-
-        foreach ($items as $item) {
-            $suma += $item['precio_total'];
-        }
-
-        return [
-            'fecha' => $fecha,
-            'total' => $total,
-            'total_suma' => round($suma, 2),
-            'items' => $items,
-        ];
+        return $this->resultado($fecha, $total, $items);
     }
 
     /**
@@ -247,6 +201,413 @@ final class TicketParserService
         return 'Ticket de compra';
     }
 
+    /**
+     * @param array<int, array{
+     *     nombre: string,
+     *     cantidad: float,
+     *     cantidad_explicita: bool,
+     *     medida: array{valor: float, unidad: string}|null,
+     *     precio_total: float
+     * }> $items
+     * @return array<string, mixed>
+     */
+    private function resultado(?string $fecha, ?float $total, array $items): array
+    {
+        $items = $this->fusionarDuplicados($items);
+        $suma = 0.0;
+
+        foreach ($items as $item) {
+            $suma += $item['precio_total'];
+        }
+
+        return [
+            'fecha' => $fecha,
+            'total' => $total,
+            'total_suma' => round($suma, 2),
+            'items' => $items,
+        ];
+    }
+
+    /**
+     * @return array<int, array{texto: string}>
+     */
+    private function lineasDesdeTexto(string $texto): array
+    {
+        $lineas = [];
+
+        foreach (explode("\n", $texto) as $lineaOriginal) {
+            foreach ($this->expandirLinea($lineaOriginal) as $segmento) {
+                $linea = $this->limpiarLinea($segmento);
+
+                if ($linea !== '') {
+                    $lineas[] = ['texto' => $linea];
+                }
+            }
+        }
+
+        return $lineas;
+    }
+
+    /**
+     * @param mixed $crudas
+     * @return array<int, array{
+     *     texto: string,
+     *     left: int,
+     *     top: int,
+     *     right: int,
+     *     bottom: int,
+     *     height: int,
+     *     palabras: array<int, array{texto: string, left: int, top: int, right: int, bottom: int, height: int, confianza: float}>
+     * }>
+     */
+    private function normalizarLineasEstructura(mixed $crudas): array
+    {
+        if (!is_array($crudas)) {
+            return [];
+        }
+
+        $lineas = [];
+
+        foreach ($crudas as $cruda) {
+            if (!is_array($cruda)) {
+                continue;
+            }
+
+            $palabras = [];
+
+            foreach (($cruda['palabras'] ?? []) as $palabra) {
+                if (!is_array($palabra)) {
+                    continue;
+                }
+
+                $texto = $this->limpiarLinea((string) ($palabra['texto'] ?? ''));
+
+                if ($texto === '') {
+                    continue;
+                }
+
+                $left = (int) ($palabra['left'] ?? 0);
+                $top = (int) ($palabra['top'] ?? 0);
+                $right = (int) ($palabra['right'] ?? $left);
+                $height = max(1, (int) ($palabra['height'] ?? 1));
+
+                $palabras[] = [
+                    'texto' => $texto,
+                    'left' => $left,
+                    'top' => $top,
+                    'right' => $right,
+                    'bottom' => (int) ($palabra['bottom'] ?? ($top + $height)),
+                    'height' => $height,
+                    'confianza' => (float) ($palabra['confianza'] ?? 0),
+                ];
+            }
+
+            if ($palabras === []) {
+                $texto = $this->limpiarLinea((string) ($cruda['texto'] ?? ''));
+
+                if ($texto === '') {
+                    continue;
+                }
+
+                $lineas[] = [
+                    'texto' => $texto,
+                    'left' => 0,
+                    'top' => 0,
+                    'right' => 0,
+                    'bottom' => 0,
+                    'height' => 1,
+                    'palabras' => [],
+                ];
+
+                continue;
+            }
+
+            usort(
+                $palabras,
+                static fn (array $a, array $b): int => $a['left'] <=> $b['left']
+            );
+
+            $lineas[] = [
+                'texto' => trim(implode(' ', array_map(
+                    static fn (array $palabra): string => $palabra['texto'],
+                    $palabras
+                ))),
+                'left' => min(array_column($palabras, 'left')),
+                'top' => min(array_column($palabras, 'top')),
+                'right' => max(array_column($palabras, 'right')),
+                'bottom' => max(array_column($palabras, 'bottom')),
+                'height' => max(1, max(array_column($palabras, 'height'))),
+                'palabras' => $palabras,
+            ];
+        }
+
+        return $lineas;
+    }
+
+    /**
+     * @param array<int, array{texto: string, left?: int, top?: int, right?: int, bottom?: int, height?: int, palabras?: array<int, array<string, mixed>>}> $lineas
+     * @return array<int, array{
+     *     nombre: string,
+     *     cantidad: float,
+     *     cantidad_explicita: bool,
+     *     medida: array{valor: float, unidad: string}|null,
+     *     precio_total: float
+     * }>
+     */
+    private function extraerItemsTexto(array $lineas): array
+    {
+        $candidatos = [];
+
+        foreach ($lineas as $indice => $linea) {
+            $texto = (string) ($linea['texto'] ?? '');
+
+            if ($this->esRuido($texto)) {
+                continue;
+            }
+
+            $precio = $this->detectarImporteTexto($texto, true);
+
+            if ($precio === null) {
+                continue;
+            }
+
+            $nombre = substr($texto, 0, $precio['inicio']);
+
+            if (!$this->pareceProducto($nombre)) {
+                continue;
+            }
+
+            $candidatos[$indice] = $precio;
+        }
+
+        if ($candidatos === []) {
+            return [];
+        }
+
+        $racha = $this->mejorRacha(array_keys($candidatos));
+        $items = [];
+
+        foreach ($racha as $indice) {
+            $precio = $candidatos[$indice];
+            $texto = (string) $lineas[$indice]['texto'];
+            $nombre = substr($texto, 0, $precio['inicio']);
+
+            // Nombre partido en dos líneas: se recupera la anterior si no
+            // tenía precio y parece un producto.
+            if ($indice > 0 && !isset($candidatos[$indice - 1])) {
+                $anterior = (string) ($lineas[$indice - 1]['texto'] ?? '');
+
+                if ($this->pareceProducto($anterior)) {
+                    $nombre = trim($anterior . ' ' . $nombre);
+                }
+            }
+
+            $item = $this->construirItem($nombre, $precio['valor']);
+
+            if ($item !== null) {
+                $items[] = $item;
+            }
+
+            if (count($items) >= self::MAX_ITEMS) {
+                break;
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param array<int, array{texto: string, left: int, top: int, right: int, bottom: int, height: int, palabras: array<int, array{texto: string, left: int, top: int, right: int, bottom: int, height: int, confianza: float}>}> $lineas
+     * @return array<int, array{
+     *     nombre: string,
+     *     cantidad: float,
+     *     cantidad_explicita: bool,
+     *     medida: array{valor: float, unidad: string}|null,
+     *     precio_total: float
+     * }>
+     */
+    private function extraerItemsEstructura(array $lineas, int $ancho): array
+    {
+        if ($lineas === [] || $ancho <= 0) {
+            return [];
+        }
+
+        $candidatos = [];
+
+        foreach ($lineas as $indice => $linea) {
+            if ($this->esRuido($linea['texto'])) {
+                continue;
+            }
+
+            $precio = $this->detectarImportePalabras($linea['palabras'], true);
+
+            if ($precio === null) {
+                continue;
+            }
+
+            $nombre = trim(implode(' ', array_map(
+                static fn (array $palabra): string => $palabra['texto'],
+                array_slice($linea['palabras'], 0, $precio['indice'])
+            )));
+
+            if (!$this->pareceProducto($nombre)) {
+                continue;
+            }
+
+            $candidatos[$indice] = $precio;
+        }
+
+        if ($candidatos === []) {
+            return [];
+        }
+
+        // Columna de precios: agrupar por borde derecho en franjas del 5 %.
+        $franjas = [];
+
+        foreach ($candidatos as $indice => $precio) {
+            $franja = (int) floor(($precio['right'] / $ancho) * 20);
+
+            if ($franja < 9) {
+                // Un precio de artículo debe estar en la mitad derecha.
+                continue;
+            }
+
+            $franjas[$franja][] = $indice;
+        }
+
+        if ($franjas === []) {
+            return [];
+        }
+
+        uksort($franjas, static fn (int $a, int $b): int => $b <=> $a);
+        $mejorFranja = null;
+        $mejorTotal = 0;
+
+        foreach ($franjas as $franja => $indices) {
+            if (count($indices) > $mejorTotal) {
+                $mejorTotal = count($indices);
+                $mejorFranja = $franja;
+            }
+        }
+
+        if ($mejorFranja === null) {
+            return [];
+        }
+
+        $indices = $franjas[$mejorFranja];
+        sort($indices);
+        $racha = $this->mejorRacha($indices);
+        $items = [];
+
+        foreach ($racha as $indice) {
+            $linea = $lineas[$indice];
+            $precio = $candidatos[$indice];
+            $nombre = trim(implode(' ', array_map(
+                static fn (array $palabra): string => $palabra['texto'],
+                array_slice($linea['palabras'], 0, $precio['indice'])
+            )));
+
+            if ($indice > 0 && !isset($candidatos[$indice - 1])) {
+                $anterior = $lineas[$indice - 1];
+                $distancia = $linea['top'] - $anterior['bottom'];
+
+                if (
+                    $distancia >= -2
+                    && $distancia <= max(12, $linea['height'] * 1.6)
+                    && $this->pareceProducto($anterior['texto'])
+                ) {
+                    $nombre = trim($anterior['texto'] . ' ' . $nombre);
+                }
+            }
+
+            $item = $this->construirItem($nombre, $precio['valor']);
+
+            if ($item !== null) {
+                $items[] = $item;
+            }
+
+            if (count($items) >= self::MAX_ITEMS) {
+                break;
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param string $nombre
+     * @param float $precio
+     * @return array{
+     *     nombre: string,
+     *     cantidad: float,
+     *     cantidad_explicita: bool,
+     *     medida: array{valor: float, unidad: string}|null,
+     *     precio_total: float
+     * }|null
+     */
+    private function construirItem(string $nombre, float $precio): ?array
+    {
+        $nombre = $this->limpiarNombre($nombre);
+        // Columna de precio unitario que quedó pegada al nombre:
+        // "2 LECHE 1L 25.50" + total 51.00 → "2 LECHE 1L".
+        $nombre = preg_replace('/\s+\$?\d{1,4}(?:[.,]\d{2})\s*$/u', '', $nombre) ?? $nombre;
+        $nombre = $this->limpiarNombre($nombre);
+
+        if (!$this->nombreValido($nombre)) {
+            return null;
+        }
+
+        [$nombre, $cantidad, $explicita, $medida] = $this->extraerCantidad($nombre);
+        $nombre = $this->limpiarNombre($nombre);
+
+        if (!$this->nombreValido($nombre)) {
+            return null;
+        }
+
+        return [
+            'nombre' => $nombre,
+            'cantidad' => $cantidad,
+            'cantidad_explicita' => $explicita,
+            'medida' => $medida,
+            'precio_total' => round($precio, 2),
+        ];
+    }
+
+    /**
+     * Devuelve la racha de índices consecutivos más larga. Se permite un
+     * hueco de una línea para nombres partidos o una línea omitida por OCR.
+     *
+     * @param array<int, int> $indices
+     * @return array<int, int>
+     */
+    private function mejorRacha(array $indices): array
+    {
+        sort($indices);
+        $mejor = [];
+        $actual = [];
+        $anterior = null;
+
+        foreach ($indices as $indice) {
+            if ($anterior === null || $indice - $anterior <= 2) {
+                $actual[] = $indice;
+            } else {
+                if (count($actual) > count($mejor)) {
+                    $mejor = $actual;
+                }
+
+                $actual = [$indice];
+            }
+
+            $anterior = $indice;
+        }
+
+        if (count($actual) > count($mejor)) {
+            $mejor = $actual;
+        }
+
+        return $mejor;
+    }
+
     private function limpiarLinea(string $linea): string
     {
         $linea = str_replace(["\t", "\u{00A0}"], ' ', $linea);
@@ -275,11 +636,7 @@ final class TicketParserService
             return true;
         }
 
-        if (str_contains($normalizado, 'item')) {
-            return true;
-        }
-
-        if (str_contains($normalizado, 'cupon') || str_contains($normalizado, 'descuento')) {
+        if (preg_match(self::METADATA_REGEX, $linea) === 1) {
             return true;
         }
 
@@ -325,24 +682,17 @@ final class TicketParserService
     }
 
     /**
-     * Devuelve el importe al final de la línea y dónde empieza, para separar
-     * el nombre del producto. Ejemplos: "LECHE 1L $25.00", "ARROZ 24.50".
+     * Devuelve el importe al final de la línea y dónde empieza.
      *
      * @return array{valor: float, inicio: int}|null
      */
-    private function detectarMontoFinal(string $linea): ?array
+    private function detectarImporteTexto(string $linea, bool $soloDecimales): ?array
     {
-        // Los tickets reales suelen traer ruido después del precio: una letra
-        // de impuesto, dos puntos del OCR, una comilla o un dígito suelto.
-        // Se buscan todos los números y se toma el último que parezca importe.
-        $patron = '/(\d{1,3}(?:[.,]\d{3})*(?:[.,:]\d{1,3})|\d+(?:[.,:]\d{1,3})?)/u';
-
-        if (preg_match_all($patron, $linea, $matches, PREG_OFFSET_CAPTURE) === false) {
+        if (preg_match_all(self::PRECIO_REGEX, $linea, $matches, PREG_OFFSET_CAPTURE) === false) {
             return null;
         }
 
         $candidatos = $matches[0] ?? [];
-        $respaldo = null;
 
         for ($i = count($candidatos) - 1; $i >= 0; $i--) {
             [$token, $offset] = $candidatos[$i];
@@ -351,41 +701,80 @@ final class TicketParserService
             $sufijo = trim(substr($linea, $offset + strlen($token)));
 
             if (preg_match('/\p{L}/u', $prefijo) !== 1) {
-                // Evita códigos de barras/PLU al inicio de la línea.
                 continue;
             }
 
-            if (strlen($token) > 9) {
+            if (strlen($token) > 10) {
                 continue;
             }
 
-            if (preg_match('/\d/u', $sufijo) === 1 && strlen(preg_replace('/\D/u', '', $sufijo) ?? '') > 1) {
+            if (preg_match('/\d/u', $sufijo) === 1) {
                 continue;
             }
 
-            if (strlen($sufijo) > 8) {
+            if (strlen($sufijo) > 6) {
+                continue;
+            }
+
+            if ($soloDecimales && preg_match('/[.,:]\d{1,2}$/u', $token) !== 1) {
                 continue;
             }
 
             $valor = $this->parsearMonto($token);
 
-            if ($valor === null) {
+            if ($valor === null || $valor <= 0) {
                 continue;
             }
 
-            $candidato = [
-                'valor' => $valor,
-                'inicio' => $offset,
-            ];
-
-            if (preg_match('/[.,:]\d{1,3}/u', $token) === 1) {
-                return $candidato;
-            }
-
-            $respaldo ??= $candidato;
+            return ['valor' => $valor, 'inicio' => $offset];
         }
 
-        return $respaldo;
+        return null;
+    }
+
+    /**
+     * Busca el importe dentro de las palabras TSV. Se toma el token de precio
+     * más a la derecha que no sea una cantidad ni un código.
+     *
+     * @param array<int, array{texto: string, right: int}> $palabras
+     * @return array{valor: float, indice: int, right: int}|null
+     */
+    private function detectarImportePalabras(array $palabras, bool $soloDecimales): ?array
+    {
+        for ($i = count($palabras) - 1; $i >= 0; $i--) {
+            $token = trim($palabras[$i]['texto']);
+
+            if (!preg_match('/^(?:\$)?\d{1,3}(?:[.,]\d{3})*(?:[.,:]\d{1,2})?$/u', $token)) {
+                continue;
+            }
+
+            $nombre = trim(implode(' ', array_map(
+                static fn (array $palabra): string => $palabra['texto'],
+                array_slice($palabras, 0, $i)
+            )));
+
+            if (preg_match('/\p{L}/u', $nombre) !== 1) {
+                continue;
+            }
+
+            if ($soloDecimales && preg_match('/[.,:]\d{1,2}$/u', $token) !== 1) {
+                continue;
+            }
+
+            $valor = $this->parsearMonto($token);
+
+            if ($valor === null || $valor <= 0) {
+                continue;
+            }
+
+            return [
+                'valor' => $valor,
+                'indice' => $i,
+                'right' => (int) $palabras[$i]['right'],
+            ];
+        }
+
+        return null;
     }
 
     private function parsearMonto(string $monto): ?float
@@ -397,7 +786,7 @@ final class TicketParserService
         }
 
         // El OCR confunde a veces el punto decimal con dos puntos.
-        $monto = preg_replace('/(?<=\d):(?=\d{1,3}$)/u', '.', $monto) ?? $monto;
+        $monto = preg_replace('/(?<=\d):(?=\d{1,2}$)/u', '.', $monto) ?? $monto;
 
         if (str_contains($monto, ',') && str_contains($monto, '.')) {
             $ultimoComa = strrpos($monto, ',');
@@ -461,6 +850,22 @@ final class TicketParserService
             $resto = ltrim(mb_substr($resto, strlen($m[0])));
         }
 
+        // Cantidad embebida en el nombre: "HUEVO 12 PZAS", "BOLSA 1 PZA".
+        if (
+            !$explicita
+            && $medida === null
+            && preg_match(
+                '/\b(\d{1,3})\s*(?:pza|pzas|pieza|piezas|unidad|unidades)\b\.?/iu',
+                $resto,
+                $m,
+                PREG_OFFSET_CAPTURE
+            ) === 1
+        ) {
+            $cantidad = (float) $m[1][0];
+            $explicita = true;
+            $resto = trim(substr_replace($resto, '', (int) $m[0][1], strlen($m[0][0])));
+        }
+
         if ($medida === null && preg_match('/\b(\d+(?:[.,]\d+)?)\s*(kg|kgs|g|gr|grs|ml|l|lt|lts)\b/iu', $resto, $m) === 1) {
             $medida = [
                 'valor' => (float) str_replace(',', '.', $m[1]),
@@ -506,6 +911,26 @@ final class TicketParserService
             return false;
         }
 
+        if (preg_match(self::METADATA_REGEX, $nombre) === 1) {
+            return false;
+        }
+
+        if (preg_match('/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/u', $nombre) === 1) {
+            return false;
+        }
+
+        if (preg_match('/\b\d{1,2}:\d{2}(?::\d{2})?\b/u', $nombre) === 1) {
+            return false;
+        }
+
+        if (preg_match('/\b[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}\b/u', $nombre) === 1) {
+            return false;
+        }
+
+        if (preg_match('/\b(?:\+?52[\s.\-]?)?(?:\(?\d{2,4}\)?[\s.\-]+){2,4}\d{2,4}\b/u', $nombre) === 1) {
+            return false;
+        }
+
         $letras = preg_replace('/[^\p{L}]/u', '', $nombre) ?? '';
         $digitos = preg_replace('/[^\d]/u', '', $nombre) ?? '';
 
@@ -513,7 +938,7 @@ final class TicketParserService
             return false;
         }
 
-        if (mb_strlen($digitos) > mb_strlen($letras) * 2) {
+        if (mb_strlen($digitos) > mb_strlen($letras)) {
             return false;
         }
 
@@ -577,32 +1002,6 @@ final class TicketParserService
         return array_values($resultado);
     }
 
-    private function esInicioItems(string $linea): bool
-    {
-        $normalizado = NormalizadorService::normalizar($linea);
-
-        return preg_match('/\b(articulos?|descripcion|inicio\s+items)\b/u', $normalizado) === 1;
-    }
-
-    private function esFinItems(string $linea): bool
-    {
-        // Un artículo suele traer un código PLU de 5+ dígitos; los encabezados
-        // de totales/pagos no. Así se evita cortar por una palabra del nombre.
-        if (preg_match('/(?<!\d)\d{5,}(?!\d)/u', $linea) === 1) {
-            return false;
-        }
-
-        $normalizado = NormalizadorService::normalizar($linea);
-
-        foreach (['sub', 'total', 'fotal', 'pagos', 'efectivo', 'cambio', 'cambid', 'iva', 'cajero', 'articulos'] as $palabra) {
-            if (str_contains($normalizado, $palabra)) {
-                return true;
-            }
-        }
-
-        return preg_match('/^(\(dos mil|pesos\s+\d)/u', $normalizado) === 1;
-    }
-
     /**
      * Separa una línea que el OCR pegó con el código PLU de otro artículo.
      * Ejemplo: "CUPON ... 644290 REXONA SPRAY" se divide en dos segmentos.
@@ -626,22 +1025,28 @@ final class TicketParserService
     }
 
     /**
-     * @param array<int, string> $lineas
+     * @param array<int, array{texto: string}> $lineas
      */
     private function detectarTotal(array $lineas): ?float
     {
         $total = null;
 
         foreach ($lineas as $linea) {
-            $linea = $this->limpiarLinea($linea);
-            $normalizado = NormalizadorService::normalizar($linea);
+            $texto = $this->limpiarLinea((string) ($linea['texto'] ?? ''));
+            $normalizado = NormalizadorService::normalizar($texto);
 
-            if (str_contains($normalizado, 'total') && !str_contains($normalizado, 'sub')) {
-                $monto = $this->detectarMontoFinal($linea);
+            if (preg_match('/\btotal\b/u', $normalizado) !== 1) {
+                continue;
+            }
 
-                if ($monto !== null) {
-                    $total = $monto['valor'];
-                }
+            if (preg_match('/\b(sub\s*total|subtotal|total\s+articulos?|total\s+unidades|puntos|ahorro|descuento)\b/u', $normalizado) === 1) {
+                continue;
+            }
+
+            $monto = $this->detectarImporteTexto($texto, false);
+
+            if ($monto !== null) {
+                $total = $monto['valor'];
             }
         }
 

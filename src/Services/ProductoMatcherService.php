@@ -12,7 +12,7 @@ namespace App\Services;
  */
 final class ProductoMatcherService
 {
-    private const MIN_SUGERENCIA = 0.56;
+    private const MIN_COINCIDENCIA = 0.56;
     private const MIN_PRESELECCION = 0.72;
 
     private const STOPWORDS = [
@@ -29,8 +29,7 @@ final class ProductoMatcherService
      *     producto_nombre: string|null,
      *     unidad_base: string|null,
      *     cantidad: float,
-     *     confianza: float,
-     *     sugerencias: array<int, array{producto_id: int, nombre: string, unidad_base: string, puntaje: float}>
+     *     confianza: float
      * }
      */
     public function coincidir(string $nombre, array $productos, float $cantidad, ?array $medida = null, bool $cantidadExplicita = false): array
@@ -42,7 +41,7 @@ final class ProductoMatcherService
         foreach ($productos as $producto) {
             $puntaje = $this->puntaje($normalizado, $tokens, $producto['nombre']);
 
-            if ($puntaje < self::MIN_SUGERENCIA) {
+            if ($puntaje < self::MIN_COINCIDENCIA) {
                 continue;
             }
 
@@ -60,8 +59,7 @@ final class ProductoMatcherService
                 ?: strcmp($a['nombre'], $b['nombre'])
         );
 
-        $sugerencias = array_slice($ranking, 0, 3);
-        $mejor = $sugerencias[0] ?? null;
+        $mejor = $ranking[0] ?? null;
         $seleccionado = $mejor !== null && $mejor['puntaje'] >= self::MIN_PRESELECCION
             ? $mejor
             : null;
@@ -79,7 +77,6 @@ final class ProductoMatcherService
             'unidad_base' => $seleccionado['unidad_base'] ?? null,
             'cantidad' => round($cantidadFinal, 3),
             'confianza' => $seleccionado['puntaje'] ?? 0.0,
-            'sugerencias' => $sugerencias,
         ];
     }
 

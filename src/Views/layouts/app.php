@@ -117,10 +117,6 @@ if ($avatarEsPreset) {
                             <i class="bi bi-people-fill" aria-hidden="true"></i>
                             <span>Usuarios</span>
                         </a>
-                        <a class="app-nav__link<?= $active === 'admin-sugerencias' ? ' is-active' : '' ?>" href="/admin/sugerencias">
-                            <i class="bi bi-lightbulb-fill" aria-hidden="true"></i>
-                            <span>Sugerencias</span>
-                        </a>
                     <?php endif; ?>
                 </nav>
             <?php endif; ?>
@@ -262,11 +258,6 @@ if ($avatarEsPreset) {
                         <a class="dock-menu__link<?= $active === 'admin-usuarios' ? ' is-active' : '' ?>" href="/admin/usuarios">
                             <span class="dock-menu__icon"><i class="bi bi-people-fill" aria-hidden="true"></i></span>
                             <span class="dock-menu__text">Usuarios</span>
-                            <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                        </a>
-                        <a class="dock-menu__link<?= $active === 'admin-sugerencias' ? ' is-active' : '' ?>" href="/admin/sugerencias">
-                            <span class="dock-menu__icon"><i class="bi bi-lightbulb-fill" aria-hidden="true"></i></span>
-                            <span class="dock-menu__text">Sugerencias</span>
                             <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
                         </a>
                     <?php endif; ?>

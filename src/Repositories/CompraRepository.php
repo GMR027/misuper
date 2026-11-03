@@ -228,14 +228,21 @@ final class CompraRepository
     /**
      * @return array{id: int, nombre: string, unidad_base: string}|null
      */
-    public function productoActivo(int $id): ?array
+    public function productoActivo(int $id, ?int $usuarioId = null): ?array
     {
-        $statement = $this->pdo->prepare(
-            "SELECT id, nombre, unidad_base FROM productos
-             WHERE id = ? AND estado = 'activo'
-             LIMIT 1"
-        );
-        $statement->execute([$id]);
+        $sql = "SELECT id, nombre, unidad_base FROM productos
+                WHERE id = ? AND estado = 'activo'";
+        $params = [$id];
+
+        if ($usuarioId !== null) {
+            $sql .= ' AND (usuario_id IS NULL OR usuario_id = ?)';
+            $params[] = $usuarioId;
+        }
+
+        $sql .= ' LIMIT 1';
+
+        $statement = $this->pdo->prepare($sql);
+        $statement->execute($params);
 
         $row = $statement->fetch();
 
@@ -293,10 +300,17 @@ final class CompraRepository
      *
      * @return array<int, array<string, mixed>>
      */
-    public function buscarActivos(string $q, ?int $categoriaId, int $limit): array
+    public function buscarActivos(string $q, ?int $categoriaId, int $limit, ?int $usuarioId = null): array
     {
         $where = ["p.estado = 'activo'"];
         $params = [];
+
+        if ($usuarioId !== null) {
+            $where[] = '(p.usuario_id IS NULL OR p.usuario_id = ?)';
+            $params[] = $usuarioId;
+        } else {
+            $where[] = 'p.usuario_id IS NULL';
+        }
 
         if ($q !== '') {
             // La collation general_ci es insensible a mayúsculas y acentos.

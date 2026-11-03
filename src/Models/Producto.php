@@ -15,6 +15,7 @@ final class Producto
     public function __construct(
         public readonly int $id,
         public readonly string $nombre,
+        public readonly ?int $usuarioId,
         public readonly int $categoriaId,
         public readonly ?string $categoriaNombre,
         public readonly string $unidadBase,
@@ -33,6 +34,7 @@ final class Producto
         return new self(
             id: (int) $row['id'],
             nombre: (string) $row['nombre'],
+            usuarioId: isset($row['usuario_id']) ? (int) $row['usuario_id'] : null,
             categoriaId: (int) $row['categoria_id'],
             categoriaNombre: isset($row['categoria_nombre']) ? (string) $row['categoria_nombre'] : null,
             unidadBase: (string) $row['unidad_base'],

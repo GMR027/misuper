@@ -46,8 +46,6 @@ final class TicketService
 
     private readonly ProductoRepository $productos;
 
-    private readonly SugerenciaService $sugerencias;
-
     private readonly TicketImagePreprocessor $preprocesador;
 
     public function __construct(
@@ -57,7 +55,6 @@ final class TicketService
         ?TicketParserService $parser = null,
         ?ProductoMatcherService $matcher = null,
         ?ProductoRepository $productos = null,
-        ?SugerenciaService $sugerencias = null,
         ?TicketImagePreprocessor $preprocesador = null
     ) {
         $this->tickets = $tickets ?? new TicketRepository();
@@ -66,7 +63,6 @@ final class TicketService
         $this->parser = $parser ?? new TicketParserService();
         $this->matcher = $matcher ?? new ProductoMatcherService();
         $this->productos = $productos ?? new ProductoRepository();
-        $this->sugerencias = $sugerencias ?? new SugerenciaService();
         $this->preprocesador = $preprocesador ?? new TicketImagePreprocessor();
     }
 
@@ -104,21 +100,33 @@ final class TicketService
         $archivoOcr = $procesado ?? $destino;
 
         try {
-            $texto = $this->ocr->extraerTexto($archivoOcr, 6);
-            $propuesta = $this->parser->parsear($texto);
+            // Modo principal: Tesseract en TSV para conocer la posición de la
+            // columna de precios y delimitar el bloque de artículos.
+            $estructura = $this->ocr->extraerEstructura($archivoOcr, 6);
+            $texto = $estructura['texto'];
+            $propuesta = $this->parser->parsearEstructura($estructura);
 
-            // Si la segmentación por bloques no encontró artículos, se
-            // reintenta con el modo de columnas típico de los tickets.
+            // El parser de texto endurecido suele ayudar cuando el layout
+            // quedó partido por el OCR.
+            $propuestaTexto = $this->parser->parsear($texto);
+
+            if ($this->puntuarPropuesta($propuestaTexto) > $this->puntuarPropuesta($propuesta)) {
+                $propuesta = $propuestaTexto;
+            }
+
+            // Segundo intento con segmentación por columnas si no hubo nada.
             if ($propuesta['items'] === []) {
-                $textoAlternativo = $this->ocr->extraerTexto($archivoOcr, 4);
+                $alternativaEstructura = $this->ocr->extraerEstructura($archivoOcr, 4);
+                $alternativa = $this->parser->parsearEstructura($alternativaEstructura);
+                $alternativaTexto = $this->parser->parsear($alternativaEstructura['texto']);
 
-                if (trim($textoAlternativo) !== '' && $textoAlternativo !== $texto) {
-                    $alternativa = $this->parser->parsear($textoAlternativo);
+                if ($this->puntuarPropuesta($alternativaTexto) > $this->puntuarPropuesta($alternativa)) {
+                    $alternativa = $alternativaTexto;
+                }
 
-                    if ($alternativa['items'] !== []) {
-                        $texto = $textoAlternativo;
-                        $propuesta = $alternativa;
-                    }
+                if ($this->puntuarPropuesta($alternativa) > $this->puntuarPropuesta($propuesta)) {
+                    $texto = $alternativaEstructura['texto'];
+                    $propuesta = $alternativa;
                 }
             }
 
@@ -137,7 +145,7 @@ final class TicketService
                 $totalDetectado
             );
             $ticketCreado = $ticket;
-            $catalogo = $this->productos->activosParaMatch();
+            $catalogo = $this->productos->activosParaMatch($usuarioId);
             $items = [];
 
             foreach ($propuesta['items'] as $item) {
@@ -157,7 +165,6 @@ final class TicketService
                     'producto_nombre' => $coincidencia['producto_nombre'],
                     'unidad_base' => $coincidencia['unidad_base'],
                     'confianza' => $coincidencia['confianza'],
-                    'sugerencias' => $coincidencia['sugerencias'],
                 ];
             }
 
@@ -196,7 +203,7 @@ final class TicketService
      * @param array<string, mixed> $data
      * @return array<string, string>
      */
-    public function validarConfirmacion(array $data): array
+    public function validarConfirmacion(int $usuarioId, array $data): array
     {
         // Los ítems libres de un ticket no piden unidad al usuario porque el
         // esquema de compra_items no la persiste. Se usa 'pza' solo para
@@ -219,7 +226,7 @@ final class TicketService
             }
         }
 
-        $errors = $this->compras->validarCreacion($data);
+        $errors = $this->compras->validarCreacion($data, $usuarioId);
 
         if (isset($data['titulo']) && is_string($data['titulo']) && trim($data['titulo']) !== '') {
             $titulo = trim($data['titulo']);
@@ -253,11 +260,7 @@ final class TicketService
             ? $this->tituloValido($data['titulo'])
             : null;
 
-        $compra = $this->compras->crearDesdeTicket($usuarioId, $data, $ticketId, $titulo);
-
-        $this->registrarSugerencias($usuarioId, $data);
-
-        return $compra;
+        return $this->compras->crearDesdeTicket($usuarioId, $data, $ticketId, $titulo);
     }
 
     public function obtener(int $usuarioId, int $ticketId): ?Ticket
@@ -318,6 +321,29 @@ final class TicketService
         }
     }
 
+    /**
+     * Puntúa una propuesta para elegir entre dos lecturas del mismo ticket.
+     * Prioriza tener artículos y que la suma cuadre con el total detectado.
+     *
+     * @param array<string, mixed> $propuesta
+     */
+    private function puntuarPropuesta(array $propuesta): float
+    {
+        $items = is_array($propuesta['items'] ?? null) ? count($propuesta['items']) : 0;
+        $puntaje = $items * 10.0;
+
+        if ($items > 0 && ($propuesta['total'] ?? null) !== null) {
+            $diferencia = abs((float) $propuesta['total'] - (float) ($propuesta['total_suma'] ?? 0));
+            $puntaje += max(0.0, 5.0 - $diferencia);
+
+            if ($diferencia <= 0.05) {
+                $puntaje += 5.0;
+            }
+        }
+
+        return $puntaje;
+    }
+
     private function tituloValido(?string $titulo): ?string
     {
         if ($titulo === null) {
@@ -332,41 +358,6 @@ final class TicketService
         }
 
         return $titulo;
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    private function registrarSugerencias(int $usuarioId, array $data): void
-    {
-        $nombres = [];
-
-        foreach (($data['items'] ?? []) as $item) {
-            if (!is_array($item)) {
-                continue;
-            }
-
-            if (!empty($item['producto_id'])) {
-                continue;
-            }
-
-            $nombre = trim((string) ($item['nombre_libre'] ?? ''));
-
-            if ($nombre === '') {
-                continue;
-            }
-
-            $nombres[NormalizadorService::normalizar($nombre)] = $nombre;
-        }
-
-        foreach ($nombres as $nombre) {
-            try {
-                $this->sugerencias->registrar($usuarioId, ['nombre' => $nombre]);
-            } catch (Throwable $error) {
-                // La sugerencia es secundaria: no debe romper la compra.
-                error_log('[ticket] No se pudo registrar la sugerencia: ' . $error->getMessage());
-            }
-        }
     }
 
     /**

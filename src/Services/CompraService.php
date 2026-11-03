@@ -54,7 +54,7 @@ final class CompraService
      * @param array<string, mixed> $data
      * @return array<string, string>
      */
-    public function validarCreacion(array $data): array
+    public function validarCreacion(array $data, ?int $usuarioId = null): array
     {
         $errors = CompraValidator::crear($data);
         $items = $data['items'] ?? null;
@@ -76,7 +76,7 @@ final class CompraService
 
             $productoId = $this->productoId($item);
 
-            if ($productoId !== null && $this->compras->productoActivo($productoId) === null) {
+            if ($productoId !== null && $this->compras->productoActivo($productoId, $usuarioId) === null) {
                 $errors[$prefix . 'producto_id'] = 'El producto no existe o está inactivo.';
             }
         }
@@ -90,7 +90,7 @@ final class CompraService
      * @param array<string, mixed> $data
      * @return array<string, string>
      */
-    public function validarItem(array $data): array
+    public function validarItem(array $data, ?int $usuarioId = null): array
     {
         $errors = CompraValidator::item($data);
 
@@ -100,7 +100,7 @@ final class CompraService
 
         $productoId = $this->productoId($data);
 
-        if ($productoId !== null && $this->compras->productoActivo($productoId) === null) {
+        if ($productoId !== null && $this->compras->productoActivo($productoId, $usuarioId) === null) {
             $errors['producto_id'] = 'El producto no existe o está inactivo.';
         }
 
@@ -152,7 +152,7 @@ final class CompraService
                     throw new InvalidArgumentException('Ítem inválido.');
                 }
 
-                $this->persistirItem($compraId, $item);
+                $this->persistirItem($compraId, $item, $usuarioId);
             }
 
             $this->totales->recalcular($compraId);
@@ -263,7 +263,7 @@ final class CompraService
                 return null;
             }
 
-            $itemId = $this->persistirItem($compraId, $data);
+            $itemId = $this->persistirItem($compraId, $data, $usuarioId);
             $this->totales->recalcular($compraId);
 
             $item = $this->compras->findItemWithProduct($itemId);
@@ -368,25 +368,26 @@ final class CompraService
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function buscarProductos(string $q, ?int $categoriaId): array
+    public function buscarProductos(int $usuarioId, string $q, ?int $categoriaId): array
     {
         return $this->compras->buscarActivos(
             NormalizadorService::normalizar($q),
             $categoriaId,
-            self::MAX_BUSQUEDA
+            self::MAX_BUSQUEDA,
+            $usuarioId
         );
     }
 
     /**
      * @param array<string, mixed> $item
      */
-    private function persistirItem(int $compraId, array $item): int
+    private function persistirItem(int $compraId, array $item, ?int $usuarioId = null): int
     {
         $productoId = $this->productoId($item);
         $nombreLibre = null;
 
         if ($productoId !== null) {
-            if ($this->compras->productoActivo($productoId) === null) {
+            if ($this->compras->productoActivo($productoId, $usuarioId) === null) {
                 throw new InvalidArgumentException('El producto no existe o está inactivo.');
             }
         } else {

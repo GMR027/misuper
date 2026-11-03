@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Controllers\AdminProductoController;
-use App\Controllers\AdminSugerenciaController;
 use App\Controllers\AdminUsuarioController;
 use App\Controllers\AuthController;
 use App\Controllers\CategoriaController;
@@ -12,7 +11,6 @@ use App\Controllers\MeController;
 use App\Controllers\MetricaController;
 use App\Controllers\NotaController;
 use App\Controllers\ProductoController;
-use App\Controllers\SugerenciaController;
 use App\Controllers\TicketController;
 use App\Middleware\AdminMiddleware;
 use App\Support\Response;
@@ -77,6 +75,11 @@ return static function (string $method, string $path): void {
 
                 return;
 
+            case 'POST /api/productos':
+                (new ProductoController())->store();
+
+                return;
+
             case 'GET /api/productos/frecuentes':
                 (new CompraController())->frecuentes();
 
@@ -122,11 +125,6 @@ return static function (string $method, string $path): void {
 
                 return;
 
-            case 'POST /api/sugerencias':
-                (new SugerenciaController())->store();
-
-                return;
-
             case 'GET /api/admin/productos':
                 (new AdminProductoController())->index();
 
@@ -134,11 +132,6 @@ return static function (string $method, string $path): void {
 
             case 'POST /api/admin/productos':
                 (new AdminProductoController())->store();
-
-                return;
-
-            case 'GET /api/admin/sugerencias':
-                (new AdminSugerenciaController())->index();
 
                 return;
 
@@ -280,27 +273,6 @@ return static function (string $method, string $path): void {
 
             AdminMiddleware::require();
             Response::fail('NOT_FOUND', 'Recurso no encontrado.', 404);
-        }
-
-        // Rutas con identificador: /api/admin/sugerencias/{id}/aprobar|ignorar
-        if (
-            preg_match(
-                '#^/api/admin/sugerencias/([1-9][0-9]*)/(aprobar|ignorar)$#',
-                $path,
-                $matches
-            ) === 1
-        ) {
-            $id = (int) $matches[1];
-
-            if ($method === 'PUT') {
-                if ($matches[2] === 'aprobar') {
-                    (new AdminSugerenciaController())->aprobar($id);
-                } else {
-                    (new AdminSugerenciaController())->ignorar($id);
-                }
-
-                return;
-            }
         }
 
         // Rutas con identificador: /api/admin/usuarios/{id}

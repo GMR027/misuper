@@ -23,7 +23,7 @@ ob_start();
             <div class="hero-actions">
                 <button class="btn btn-light" type="button" id="btn-add-custom" data-libre-open>
                     <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                    Producto no catalogado
+                    Nuevo producto
                 </button>
             </div>
         </div>
@@ -175,9 +175,9 @@ ob_start();
     <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content" data-form-libre novalidate>
             <div class="modal-body p-4">
-                <h5 class="modal-title mb-2" id="libre-title">Producto no catalogado</h5>
+                <h5 class="modal-title mb-2" id="libre-title">Nuevo producto</h5>
                 <p class="text-muted small">
-                    Se guardará como ítem libre dentro de la compra.
+                    Se guardará como producto propio y se agregará a tu carrito.
                 </p>
 
                 <div class="mb-3">
@@ -195,8 +195,15 @@ ob_start();
                     >
                 </div>
 
-                <div class="row g-2">
-                    <div class="col-12 col-sm-4">
+                <div class="row g-2 mb-2">
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label" for="libre-categoria">Categoría</label>
+                        <select class="form-select" id="libre-categoria" name="categoria_id" required data-libre-categoria>
+                            <option value="">Selecciona una categoría</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-sm-6">
                         <label class="form-label" for="libre-unidad">Unidad base</label>
                         <select class="form-select" id="libre-unidad" name="unidad_base" data-libre-unidad>
                             <option value="kg">kg — kilogramo</option>
@@ -206,8 +213,10 @@ ob_start();
                             <option value="pza" selected>pza — pieza</option>
                         </select>
                     </div>
+                </div>
 
-                    <div class="col-6 col-sm-4">
+                <div class="row g-2">
+                    <div class="col-6">
                         <label class="form-label" for="libre-cantidad">Cantidad</label>
                         <input
                             class="form-control"
@@ -223,7 +232,7 @@ ob_start();
                         >
                     </div>
 
-                    <div class="col-6 col-sm-4">
+                    <div class="col-6">
                         <label class="form-label" for="libre-precio">Precio total</label>
                         <input
                             class="form-control"
@@ -245,7 +254,7 @@ ob_start();
 
             <div class="modal-footer">
                 <button class="btn btn-outline-secondary" type="button" data-close-libre>Cancelar</button>
-                <button class="btn btn-primary" type="submit">Agregar al carrito</button>
+                <button class="btn btn-primary" type="submit">Registrar y agregar</button>
             </div>
         </form>
     </div>

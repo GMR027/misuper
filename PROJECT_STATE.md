@@ -531,3 +531,15 @@ STATE_HANDOFF — Fase 12.9 (Tickets de compra con OCR) — 2026-11-02
 - `DELETE /api/tickets/{id}` descarta un ticket no confirmado y borra su imagen; la UI lo usa al elegir otra imagen.
 - Docker instala `tesseract-ocr` y `tesseract-ocr-spa`, sube uploads a 12M/14M y crea `/uploads/tickets`; Helm crea la carpeta en el initContainer. README y `.env.example` documentan `TESSERACT_BIN`.
 - Verificado con `php -l` y `node --check`, parser y matcher con tickets de ejemplo, OCR real con Tesseract local, y flujo HTTP completo (login, subida 201, revisión, confirmación 201, duplicado 409, foto 200 JPEG, historial con badge). Datos de prueba eliminados.
+
+STATE_HANDOFF — Fase 13 (Productos propios y fin de sugerencias) — 2026-11-02
+- Migración 013: `productos.usuario_id` (NULL = catálogo global). Los productos creados manualmente quedan ligados al usuario y no los ven otros usuarios ni el Admin. FK a usuarios con cascada y `compra_items.producto_id` en cascada para no romper la baja de cuenta.
+- Migración 014: se elimina la tabla `sugerencias_producto` y todo el sistema de sugerencias (controladores, servicio, repositorio, modelo, validador, vista, JS, CSS, rutas y enlaces del menú). `/admin/sugerencias` ya no existe.
+- `POST /api/productos` crea un producto propio con Auth + CSRF. `GET /api/productos/buscar` ahora exige sesión y devuelve catálogo global + productos del usuario.
+- Pantalla rápida: al no haber resultados aparece «Registrar nuevo producto»; el modal pide nombre, categoría, unidad, cantidad y precio, crea el producto y lo agrega al carrito. El botón «Producto no catalogado» se unificó con este alta.
+
+STATE_HANDOFF — Fase 14 (Lectura de tickets por layout) — 2026-11-02
+- `TicketOcrService::extraerEstructura()` ejecuta Tesseract en TSV y devuelve palabras con coordenadas, líneas reconstruidas por posición vertical y tamaño de página. Se usa `--psm 6` y se reintenta con `--psm 4` solo si no hay artículos.
+- `TicketParserService::parsearEstructura()` detecta la columna de precios por borde derecho, delimita el bloque de artículos y descarta encabezado (dirección, teléfono, RFC, folio, cajero, saldo) y pie (subtotal, IVA, total, pago, cambio). El parser de texto queda como respaldo endurecido.
+- Se añadieron fixtures en `database/fixtures/tickets/` y `scripts/test_ticket_parser.php` (6 casos; 0 fallos). También se probó el flujo HTTP completo con una imagen de ticket simulada: 3 artículos correctos, fecha y total detectados.
+- Regla conservadora: ante una línea dudosa se omite; el usuario la agrega en la revisión.

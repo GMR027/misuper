@@ -1,0 +1,8 @@
+{
+    "fecha": null,
+    "total": 30.50,
+    "items": [
+        {"nombre": "AGUA 600ML", "cantidad": 1, "precio_total": 12.00},
+        {"nombre": "SABRITAS", "cantidad": 1, "precio_total": 18.50}
+    ]
+}

@@ -146,30 +146,6 @@ export function addProduct(product, extra = {}) {
 }
 
 /**
- * Agrega un ítem no catalogado.
- *
- * @param {{nombre: string, unidad_base: string, cantidad: number, precio_total: number}} item
- * @returns {boolean}
- */
-export function addFree(item) {
-    if (items.length >= MAX_ITEMS) {
-        return false;
-    }
-
-    items.push({
-        producto_id: null,
-        nombre: String(item.nombre),
-        unidad_base: UNIDADES.includes(item.unidad_base) ? item.unidad_base : 'pza',
-        categoria_nombre: null,
-        cantidad: round(item.cantidad, 3),
-        precio_total: round(item.precio_total, 2),
-    });
-    persist();
-
-    return true;
-}
-
-/**
  * @param {number} index
  * @param {{cantidad?: number, precio_total?: number}} patch
  * @returns {boolean}

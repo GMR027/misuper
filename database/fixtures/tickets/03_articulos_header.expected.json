@@ -1,0 +1,8 @@
+{
+    "fecha": null,
+    "total": 49.50,
+    "items": [
+        {"nombre": "LECHE 1L", "cantidad": 1, "precio_total": 25.50},
+        {"nombre": "PAN", "cantidad": 1, "precio_total": 24.00}
+    ]
+}

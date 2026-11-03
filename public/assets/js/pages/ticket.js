@@ -342,7 +342,6 @@ function init(root) {
         const quantityInput = row.querySelector('[data-ticket-cantidad]');
         const priceInput = row.querySelector('[data-ticket-precio]');
         const confidence = row.querySelector('[data-ticket-confianza]');
-        const suggestions = row.querySelector('[data-ticket-sugerencias]');
 
         if (index instanceof HTMLElement) {
             index.textContent = String(itemsList.children.length + 1);
@@ -395,15 +394,6 @@ function init(root) {
                             ? 'text-bg-warning'
                             : 'text-bg-secondary',
                 );
-            }
-        }
-
-        if (suggestions instanceof HTMLElement) {
-            const lista = Array.isArray(item?.sugerencias) ? item.sugerencias : [];
-
-            if (lista.length > 0 && !item?.producto_id) {
-                suggestions.hidden = false;
-                suggestions.textContent = `Sugerencias: ${lista.map((s) => s.nombre).join(', ')}`;
             }
         }
 

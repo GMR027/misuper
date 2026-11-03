@@ -1,0 +1,9 @@
+{
+    "fecha": "2026-11-02",
+    "total": 101.00,
+    "items": [
+        {"nombre": "LECHE ENTERA 1L", "cantidad": 1, "precio_total": 25.50},
+        {"nombre": "PAN BLANCO", "cantidad": 1, "precio_total": 24.00},
+        {"nombre": "HUEVO", "cantidad": 12, "precio_total": 45.90}
+    ]
+}

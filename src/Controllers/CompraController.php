@@ -58,7 +58,7 @@ final class CompraController
         CsrfMiddleware::enforce();
 
         $data = $this->jsonBody();
-        $errors = $this->compras->validarCreacion($data);
+        $errors = $this->compras->validarCreacion($data, $usuario['id']);
 
         if ($errors !== []) {
             Response::fail('VALIDATION_ERROR', 'Revisa los datos enviados.', 422, $errors);
@@ -115,7 +115,7 @@ final class CompraController
         CsrfMiddleware::enforce();
 
         $data = $this->jsonBody();
-        $errors = $this->compras->validarItem($data);
+        $errors = $this->compras->validarItem($data, $usuario['id']);
 
         if ($errors !== []) {
             Response::fail('VALIDATION_ERROR', 'Revisa los datos enviados.', 422, $errors);
@@ -184,6 +184,7 @@ final class CompraController
      */
     public function buscar(): void
     {
+        $usuario = AuthMiddleware::require();
         $q = $_GET['q'] ?? '';
         $categoriaRaw = $_GET['categoria_id'] ?? null;
 
@@ -207,7 +208,7 @@ final class CompraController
             Response::fail('VALIDATION_ERROR', 'La categoría no es válida.', 422);
         }
 
-        Response::ok($this->compras->buscarProductos($q, $categoriaId));
+        Response::ok($this->compras->buscarProductos($usuario['id'], $q, $categoriaId));
     }
 
     /**

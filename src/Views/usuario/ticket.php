@@ -207,7 +207,6 @@ ob_start();
                 <select class="form-select" data-ticket-producto>
                     <option value="">Sin catalogar (usar nombre del ticket)</option>
                 </select>
-                <span class="ticket-item__hint text-muted" data-ticket-sugerencias hidden></span>
             </label>
 
             <label class="ticket-item__field">

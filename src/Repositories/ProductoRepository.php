@@ -16,7 +16,7 @@ use PDO;
  */
 final class ProductoRepository
 {
-    private const COLUMNS = 'p.id, p.nombre, p.categoria_id, c.nombre AS categoria_nombre,
+    private const COLUMNS = 'p.id, p.nombre, p.usuario_id, p.categoria_id, c.nombre AS categoria_nombre,
         p.unidad_base, p.imagen_url, p.estado, p.created_at, p.updated_at';
 
     private const FROM = ' FROM productos p INNER JOIN categorias c ON c.id = p.categoria_id';
@@ -58,7 +58,7 @@ final class ProductoRepository
         int $page,
         int $perPage
     ): array {
-        $where = [];
+        $where = ['p.usuario_id IS NULL'];
         $params = [];
 
         if ($q !== '') {
@@ -125,17 +125,34 @@ final class ProductoRepository
         return $row === false ? null : Producto::fromRow($row);
     }
 
+    /**
+     * Producto del catálogo global (usuario_id NULL). El panel Admin no
+     * administra productos personales.
+     */
+    public function findGlobalById(int $id): ?Producto
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::COLUMNS . self::FROM . ' WHERE p.id = ? AND p.usuario_id IS NULL LIMIT 1'
+        );
+        $statement->execute([$id]);
+
+        $row = $statement->fetch();
+
+        return $row === false ? null : Producto::fromRow($row);
+    }
+
     public function create(
         string $nombre,
         int $categoriaId,
         string $unidadBase,
-        ?string $imagenUrl
+        ?string $imagenUrl,
+        ?int $usuarioId = null
     ): Producto {
         $statement = $this->pdo->prepare(
-            'INSERT INTO productos (nombre, categoria_id, unidad_base, imagen_url)
-             VALUES (?, ?, ?, ?)'
+            'INSERT INTO productos (nombre, usuario_id, categoria_id, unidad_base, imagen_url)
+             VALUES (?, ?, ?, ?, ?)'
         );
-        $statement->execute([$nombre, $categoriaId, $unidadBase, $imagenUrl]);
+        $statement->execute([$nombre, $usuarioId, $categoriaId, $unidadBase, $imagenUrl]);
 
         $producto = $this->findById((int) $this->pdo->lastInsertId());
 
@@ -186,18 +203,30 @@ final class ProductoRepository
     }
 
     /**
-     * Catálogo mínimo de productos activos para relacionar tickets.
+     * Catálogo mínimo de productos activos para relacionar tickets:
+     * productos globales más los propios del usuario.
      *
      * @return array<int, array{id: int, nombre: string, unidad_base: string}>
      */
-    public function activosParaMatch(): array
+    public function activosParaMatch(?int $usuarioId = null): array
     {
-        $statement = $this->pdo->query(
-            "SELECT id, nombre, unidad_base
-             FROM productos
-             WHERE estado = 'activo'
-             ORDER BY nombre ASC, id ASC"
-        );
+        if ($usuarioId === null) {
+            $statement = $this->pdo->prepare(
+                "SELECT id, nombre, unidad_base
+                 FROM productos
+                 WHERE estado = 'activo' AND usuario_id IS NULL
+                 ORDER BY nombre ASC, id ASC"
+            );
+            $statement->execute();
+        } else {
+            $statement = $this->pdo->prepare(
+                "SELECT id, nombre, unidad_base
+                 FROM productos
+                 WHERE estado = 'activo' AND (usuario_id IS NULL OR usuario_id = ?)
+                 ORDER BY nombre ASC, id ASC"
+            );
+            $statement->execute([$usuarioId]);
+        }
 
         $productos = [];
 

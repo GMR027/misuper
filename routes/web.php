@@ -155,16 +155,6 @@ HTML;
 
             return;
 
-        case 'GET /admin/sugerencias':
-            if ($exigirAdmin() === null) {
-                return;
-            }
-
-            header('Content-Type: text/html; charset=utf-8');
-            require BASE_PATH . '/src/Views/admin/sugerencias/lista.php';
-
-            return;
-
         case 'GET /admin/usuarios':
             if ($exigirAdmin() === null) {
                 return;
