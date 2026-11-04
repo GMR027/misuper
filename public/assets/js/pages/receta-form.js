@@ -22,14 +22,81 @@ function init(form) {
     const addIngrediente = form.querySelector('[data-add-ingrediente]');
     const mensaje = form.querySelector('[data-receta-mensaje]');
     const guardar = form.querySelector('[data-receta-guardar]');
+    const modalIngrediente = document.querySelector('[data-ingrediente-modal]');
+    const ingBuscar = modalIngrediente?.querySelector('[data-ing-buscar]');
+    const ingStatus = modalIngrediente?.querySelector('[data-ing-status]');
+    const ingResultados = modalIngrediente?.querySelector('[data-ing-resultados]');
+    const ingNuevoNombre = modalIngrediente?.querySelector('[data-ing-nuevo-nombre]');
+    const ingNuevoCategoria = modalIngrediente?.querySelector('[data-ing-nuevo-categoria]');
+    const ingNuevoUnidad = modalIngrediente?.querySelector('[data-ing-nuevo-unidad]');
+    const ingNuevoMensaje = modalIngrediente?.querySelector('[data-ing-nuevo-mensaje]');
+    const ingNuevoCrear = modalIngrediente?.querySelector('[data-ing-nuevo-crear]');
+    const imagen = form.querySelector('[data-receta-imagen]');
+    const imagenArchivo = form.querySelector('[data-receta-imagen-archivo]');
+    const imagenQuitar = form.querySelector('[data-receta-imagen-quitar]');
+    const imagenEstado = form.querySelector('[data-receta-imagen-estado]');
+    const imagenPreview = form.querySelector('[data-receta-imagen-preview]');
+    const imagenPreviewImg = form.querySelector('[data-receta-imagen-preview-img]');
 
     if (!(ingredientes instanceof HTMLElement)) {
         return;
     }
 
+    let categoriasCargadas = false;
+    let searchTimer = null;
+
     addIngrediente?.addEventListener('click', () => {
-        agregarFila({ nombre: '', cantidad: 1, unidad: 'g', principal: false, basico: false });
+        abrirModalIngrediente();
     });
+
+    form.querySelectorAll('[data-receta-tipo]').forEach((input) => {
+        input.addEventListener('change', () => {
+            input.closest('.receta-form__tipo-card')?.classList.toggle('is-active', input.checked);
+        });
+    });
+
+    modalIngrediente?.querySelectorAll('[data-ing-cerrar]').forEach((button) => {
+        button.addEventListener('click', cerrarModalIngrediente);
+    });
+
+    modalIngrediente?.addEventListener('click', (event) => {
+        if (event.target === modalIngrediente) {
+            cerrarModalIngrediente();
+        }
+    });
+
+    ingBuscar?.addEventListener('input', () => {
+        window.clearTimeout(searchTimer);
+        searchTimer = window.setTimeout(buscarProductos, 250);
+    });
+
+    ingNuevoCrear?.addEventListener('click', crearProducto);
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && modalIngrediente instanceof HTMLElement && !modalIngrediente.hidden) {
+            cerrarModalIngrediente();
+        }
+    });
+
+    imagen?.addEventListener('input', actualizarPreview);
+    imagenArchivo?.addEventListener('change', subirImagen);
+    imagenQuitar?.addEventListener('click', () => {
+        if (imagen instanceof HTMLInputElement) {
+            imagen.value = '';
+        }
+
+        if (imagenArchivo instanceof HTMLInputElement) {
+            imagenArchivo.value = '';
+        }
+
+        actualizarPreview();
+
+        if (imagenEstado instanceof HTMLElement) {
+            imagenEstado.textContent = 'Puedes subir un JPG, PNG o WebP de hasta 5 MB, o pegar una URL.';
+        }
+    });
+
+    actualizarPreview();
 
     const iniciales = Array.isArray(inicial?.ingredientes) ? inicial.ingredientes : [];
 
@@ -47,12 +114,19 @@ function init(form) {
         }
 
         const nombre = String(form.querySelector('[data-receta-nombre]')?.value ?? '').trim();
+        const categoria = String(form.querySelector('[data-receta-categoria]')?.value ?? '').trim();
         const tipos = Array.from(form.querySelectorAll('[data-receta-tipo]:checked')).map((input) => input.value);
         const pasos = String(form.querySelector('[data-receta-pasos]')?.value ?? '').trim();
         const lista = recolectarIngredientes();
 
         if (nombre.length < 2) {
             mostrarMensaje('El nombre debe tener al menos 2 caracteres.');
+
+            return;
+        }
+
+        if (categoria === '') {
+            mostrarMensaje('Selecciona una categoría de platillo.');
 
             return;
         }
@@ -78,6 +152,7 @@ function init(form) {
         const body = {
             nombre,
             descripcion: String(form.querySelector('[data-receta-descripcion]')?.value ?? '').trim(),
+            categoria,
             tipos,
             porciones_base: Number(form.querySelector('[data-receta-porciones]')?.value ?? 4),
             tiempo_min: Number(form.querySelector('[data-receta-tiempo]')?.value ?? 30),
@@ -85,6 +160,8 @@ function init(form) {
             ingredientes: lista,
             pasos,
         };
+
+        body.imagen_url = String(form.querySelector('[data-receta-imagen]')?.value ?? '').trim();
 
         if (modo === 'admin') {
             body.estado = String(form.querySelector('[data-receta-estado]')?.value ?? 'publicada');
@@ -133,6 +210,354 @@ function init(form) {
 
         return null;
     });
+
+    function actualizarPreview() {
+        if (!(imagen instanceof HTMLInputElement)) {
+            return;
+        }
+
+        const url = imagen.value.trim();
+
+        if (!(imagenPreview instanceof HTMLElement) || !(imagenPreviewImg instanceof HTMLImageElement)) {
+            return;
+        }
+
+        if (url === '') {
+            imagenPreview.hidden = true;
+            imagenPreviewImg.removeAttribute('src');
+
+            return;
+        }
+
+        imagenPreviewImg.onerror = () => {
+            imagenPreview.hidden = true;
+        };
+        imagenPreviewImg.onload = () => {
+            imagenPreview.hidden = false;
+        };
+        imagenPreviewImg.src = url;
+    }
+
+    async function subirImagen() {
+        if (!(imagenArchivo instanceof HTMLInputElement) || !(imagen instanceof HTMLInputElement)) {
+            return;
+        }
+
+        const archivo = imagenArchivo.files?.[0];
+
+        if (!(archivo instanceof File)) {
+            return;
+        }
+
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(archivo.type)) {
+            if (imagenEstado instanceof HTMLElement) {
+                imagenEstado.textContent = 'Usa una imagen JPG, PNG o WebP.';
+            }
+
+            imagenArchivo.value = '';
+
+            return;
+        }
+
+        if (archivo.size > 5 * 1024 * 1024) {
+            if (imagenEstado instanceof HTMLElement) {
+                imagenEstado.textContent = 'La imagen supera el tamaño máximo de 5 MB.';
+            }
+
+            imagenArchivo.value = '';
+
+            return;
+        }
+
+        if (imagenEstado instanceof HTMLElement) {
+            imagenEstado.textContent = 'Subiendo imagen…';
+        }
+
+        const datos = new FormData();
+        datos.append('imagen', archivo);
+
+        try {
+            const endpoint = modo === 'admin'
+                ? '/api/admin/recetas/imagen'
+                : '/api/recetas/imagen';
+            const data = await fetchApi(endpoint, { method: 'POST', body: datos });
+            imagen.value = String(data?.imagen_url ?? '');
+            actualizarPreview();
+
+            if (imagenEstado instanceof HTMLElement) {
+                imagenEstado.textContent = 'Imagen subida. Se guardará al enviar la receta.';
+            }
+
+            showToast('Imagen subida.', 'success');
+        } catch (error) {
+            if (imagenEstado instanceof HTMLElement) {
+                imagenEstado.textContent = error?.message ?? 'No se pudo subir la imagen.';
+            }
+        } finally {
+            imagenArchivo.value = '';
+        }
+    }
+
+    async function abrirModalIngrediente() {
+        if (!(modalIngrediente instanceof HTMLElement)) {
+            agregarFila({ nombre: '', cantidad: 1, unidad: 'g', principal: true, basico: false });
+
+            return;
+        }
+
+        modalIngrediente.hidden = false;
+        document.body.classList.add('modal-open');
+
+        if (ingBuscar instanceof HTMLInputElement) {
+            ingBuscar.value = '';
+            window.setTimeout(() => ingBuscar.focus(), 50);
+        }
+
+        if (ingResultados instanceof HTMLElement) {
+            ingResultados.replaceChildren();
+        }
+
+        if (ingStatus instanceof HTMLElement) {
+            ingStatus.textContent = 'Escribe al menos 2 letras para buscar.';
+        }
+
+        if (ingNuevoNombre instanceof HTMLInputElement) {
+            ingNuevoNombre.value = '';
+        }
+
+        if (ingNuevoCategoria instanceof HTMLSelectElement) {
+            ingNuevoCategoria.value = '';
+        }
+
+        if (ingNuevoUnidad instanceof HTMLSelectElement) {
+            ingNuevoUnidad.value = 'pza';
+        }
+
+        ocultarMensajeIngrediente();
+
+        if (!categoriasCargadas) {
+            await cargarCategorias();
+        }
+    }
+
+    function cerrarModalIngrediente() {
+        if (modalIngrediente instanceof HTMLElement) {
+            modalIngrediente.hidden = true;
+
+            if (!document.querySelector('.app-modal:not([hidden])')) {
+                document.body.classList.remove('modal-open');
+            }
+        }
+    }
+
+    async function cargarCategorias() {
+        if (!(ingNuevoCategoria instanceof HTMLSelectElement)) {
+            return;
+        }
+
+        try {
+            const data = await fetchApi('/api/categorias');
+            const categorias = Array.isArray(data) ? data : [];
+
+            for (const categoria of categorias) {
+                const option = document.createElement('option');
+                option.value = String(categoria.id);
+                option.textContent = String(categoria.nombre);
+                ingNuevoCategoria.append(option);
+            }
+
+            categoriasCargadas = true;
+        } catch (error) {
+            if (error?.status !== 401) {
+                mostrarMensajeIngrediente('No se pudieron cargar las categorías.');
+            }
+        }
+    }
+
+    async function buscarProductos() {
+        if (!(ingBuscar instanceof HTMLInputElement)) {
+            return;
+        }
+
+        const q = ingBuscar.value.trim();
+
+        if (q.length < 2) {
+            if (ingResultados instanceof HTMLElement) {
+                ingResultados.replaceChildren();
+            }
+
+            if (ingStatus instanceof HTMLElement) {
+                ingStatus.textContent = 'Escribe al menos 2 letras para buscar.';
+            }
+
+            return;
+        }
+
+        if (ingNuevoNombre instanceof HTMLInputElement && ingNuevoNombre.value.trim() === '') {
+            ingNuevoNombre.value = q;
+        }
+
+        if (ingStatus instanceof HTMLElement) {
+            ingStatus.textContent = 'Buscando…';
+        }
+
+        try {
+            const endpoint = modo === 'admin'
+                ? `/api/admin/productos?q=${encodeURIComponent(q)}&estado=activo`
+                : `/api/productos/buscar?q=${encodeURIComponent(q)}`;
+            const data = await fetchApi(endpoint);
+            const items = Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : []);
+
+            renderResultadosIngrediente(items);
+
+            if (ingStatus instanceof HTMLElement) {
+                ingStatus.textContent = items.length === 0
+                    ? 'No encontramos coincidencias. Puedes registrarlo abajo.'
+                    : `${items.length} ${items.length === 1 ? 'producto' : 'productos'} encontrados.`;
+            }
+        } catch (error) {
+            if (ingResultados instanceof HTMLElement) {
+                ingResultados.replaceChildren();
+            }
+
+            if (ingStatus instanceof HTMLElement) {
+                ingStatus.textContent = 'No se pudo buscar en el catálogo.';
+            }
+        }
+    }
+
+    /**
+     * @param {Array<any>} items
+     */
+    function renderResultadosIngrediente(items) {
+        if (!(ingResultados instanceof HTMLElement)) {
+            return;
+        }
+
+        ingResultados.replaceChildren();
+
+        for (const producto of items) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'receta-ing-modal__resultado';
+
+            const icon = document.createElement('span');
+            icon.className = 'receta-ing-modal__resultado-icon';
+            icon.innerHTML = '<i class="bi bi-basket2-fill" aria-hidden="true"></i>';
+
+            const texto = document.createElement('span');
+            texto.className = 'receta-ing-modal__resultado-texto';
+            const nombre = document.createElement('strong');
+            nombre.textContent = String(producto.nombre ?? '');
+            const meta = document.createElement('small');
+            meta.textContent = `${String(producto.categoria_nombre ?? 'Sin categoría')} · ${String(producto.unidad_base ?? 'pza')}`;
+            texto.append(nombre, meta);
+
+            const add = document.createElement('i');
+            add.className = 'bi bi-plus-circle';
+            add.setAttribute('aria-hidden', 'true');
+
+            button.append(icon, texto, add);
+            button.addEventListener('click', () => {
+                usarProducto(producto);
+            });
+            ingResultados.append(button);
+        }
+    }
+
+    /**
+     * @param {any} producto
+     */
+    function usarProducto(producto) {
+        const unidadProducto = String(producto.unidad_base ?? 'pza');
+        const unidadReceta = unidadProducto === 'kg' ? 'g'
+            : unidadProducto === 'L' ? 'ml'
+                : unidadProducto;
+        const cantidad = unidadReceta === 'g' || unidadReceta === 'ml' ? 100 : 1;
+
+        agregarFila({
+            nombre: String(producto.nombre ?? ''),
+            producto: String(producto.nombre ?? ''),
+            cantidad,
+            unidad: unidadReceta,
+            principal: true,
+            basico: false,
+        });
+        cerrarModalIngrediente();
+        showToast(`${producto.nombre} agregado a los ingredientes.`, 'success');
+    }
+
+    async function crearProducto() {
+        if (
+            !(ingNuevoNombre instanceof HTMLInputElement)
+            || !(ingNuevoCategoria instanceof HTMLSelectElement)
+            || !(ingNuevoUnidad instanceof HTMLSelectElement)
+            || !(ingNuevoCrear instanceof HTMLButtonElement)
+        ) {
+            return;
+        }
+
+        const nombre = ingNuevoNombre.value.trim();
+        const categoriaId = Number(ingNuevoCategoria.value);
+        const unidad = ingNuevoUnidad.value;
+
+        if (nombre.length < 2) {
+            mostrarMensajeIngrediente('Escribe un nombre de al menos 2 caracteres.');
+
+            return;
+        }
+
+        if (!Number.isInteger(categoriaId) || categoriaId <= 0) {
+            mostrarMensajeIngrediente('Selecciona una categoría.');
+
+            return;
+        }
+
+        ingNuevoCrear.disabled = true;
+        const texto = ingNuevoCrear.innerHTML;
+        ingNuevoCrear.textContent = 'Registrando…';
+        ocultarMensajeIngrediente();
+
+        try {
+            const endpoint = modo === 'admin' ? '/api/admin/productos' : '/api/productos';
+            const producto = await fetchApi(endpoint, {
+                method: 'POST',
+                body: {
+                    nombre,
+                    categoria_id: categoriaId,
+                    unidad_base: unidad,
+                    imagen_url: null,
+                },
+            });
+
+            usarProducto(producto);
+        } catch (error) {
+            if (error?.status === 401) {
+                window.location.replace('/login');
+
+                return;
+            }
+
+            mostrarMensajeIngrediente(error?.message ?? 'No se pudo registrar el producto.');
+        } finally {
+            ingNuevoCrear.disabled = false;
+            ingNuevoCrear.innerHTML = texto;
+        }
+    }
+
+    function mostrarMensajeIngrediente(texto) {
+        if (ingNuevoMensaje instanceof HTMLElement) {
+            ingNuevoMensaje.textContent = texto;
+            ingNuevoMensaje.hidden = false;
+        }
+    }
+
+    function ocultarMensajeIngrediente() {
+        if (ingNuevoMensaje instanceof HTMLElement) {
+            ingNuevoMensaje.textContent = '';
+            ingNuevoMensaje.hidden = true;
+        }
+    }
 
     /**
      * @param {any} ingrediente

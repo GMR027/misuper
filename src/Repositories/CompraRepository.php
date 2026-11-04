@@ -260,23 +260,38 @@ final class CompraRepository
     /**
      * Productos que el usuario ha comprado con más frecuencia.
      *
-     * @return array<int, array{id: int, nombre: string, categoria_id: int, unidad_base: string, imagen_url: string|null, veces_comprado: int}>
+     * @return array<int, array{id: int, nombre: string, categoria_id: int, unidad_base: string, imagen_url: string|null, veces_comprado: int, ultimo_precio: float|null}>
      */
     public function frecuentes(int $usuarioId, int $limit): array
     {
         $statement = $this->pdo->prepare(
             "SELECT p.id, p.nombre, p.categoria_id, p.unidad_base, p.imagen_url,
-                    COUNT(*) AS veces_comprado
+                    COUNT(*) AS veces_comprado,
+                    MAX(ult.precio_unidad) AS ultimo_precio
              FROM compra_items ci
              INNER JOIN compras c ON c.id = ci.compra_id
              INNER JOIN productos p ON p.id = ci.producto_id
+             LEFT JOIN (
+                 SELECT ci2.producto_id,
+                        ci2.precio_total / NULLIF(ci2.cantidad, 0) AS precio_unidad,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY ci2.producto_id
+                            ORDER BY c2.fecha DESC, ci2.id DESC
+                        ) AS rn
+                 FROM compra_items ci2
+                 INNER JOIN compras c2 ON c2.id = ci2.compra_id
+                 WHERE c2.usuario_id = ?
+                   AND ci2.producto_id IS NOT NULL
+                   AND ci2.cantidad > 0
+             ) ult ON ult.producto_id = p.id AND ult.rn = 1
              WHERE c.usuario_id = ? AND p.estado = 'activo'
              GROUP BY p.id, p.nombre, p.categoria_id, p.unidad_base, p.imagen_url
              ORDER BY veces_comprado DESC, p.nombre ASC
              LIMIT ?"
         );
         $statement->bindValue(1, $usuarioId, PDO::PARAM_INT);
-        $statement->bindValue(2, $limit, PDO::PARAM_INT);
+        $statement->bindValue(2, $usuarioId, PDO::PARAM_INT);
+        $statement->bindValue(3, $limit, PDO::PARAM_INT);
         $statement->execute();
 
         $items = [];
@@ -289,6 +304,7 @@ final class CompraRepository
                 'unidad_base' => (string) $row['unidad_base'],
                 'imagen_url' => isset($row['imagen_url']) ? (string) $row['imagen_url'] : null,
                 'veces_comprado' => (int) $row['veces_comprado'],
+                'ultimo_precio' => isset($row['ultimo_precio']) ? (float) $row['ultimo_precio'] : null,
             ];
         }
 
@@ -301,10 +317,15 @@ final class CompraRepository
      *
      * @return array<int, array{producto_id: int|null, nombre: string, unidad_base: string|null, categoria_nombre: string|null, veces: int, ultima_compra: string}>
      */
-    public function despensa(int $usuarioId, ?int $dias = null): array
+    public function despensa(int $usuarioId, ?int $dias = null, ?int $compraId = null): array
     {
         $where = ['c.usuario_id = ?'];
         $params = [$usuarioId];
+
+        if ($compraId !== null && $compraId > 0) {
+            $where[] = 'c.id = ?';
+            $params[] = $compraId;
+        }
 
         if ($dias !== null && $dias > 0) {
             $where[] = 'c.fecha >= DATE_SUB(CURDATE(), INTERVAL ? DAY)';
@@ -358,6 +379,34 @@ final class CompraRepository
     }
 
     /**
+     * Compra más reciente del usuario, según la fecha de compra.
+     *
+     * @return array{id: int, fecha: string}|null
+     */
+    public function ultimaCompra(int $usuarioId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT id, fecha
+             FROM compras
+             WHERE usuario_id = ?
+             ORDER BY fecha DESC, id DESC
+             LIMIT 1'
+        );
+        $statement->execute([$usuarioId]);
+
+        $row = $statement->fetch();
+
+        if ($row === false) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $row['id'],
+            'fecha' => (string) $row['fecha'],
+        ];
+    }
+
+    /**
      * Búsqueda de productos activos sin paginación (máximo 10 por defecto).
      *
      * @return array<int, array<string, mixed>>
@@ -366,10 +415,27 @@ final class CompraRepository
     {
         $where = ["p.estado = 'activo'"];
         $params = [];
+        $join = '';
+        $joinParams = [];
 
         if ($usuarioId !== null) {
             $where[] = '(p.usuario_id IS NULL OR p.usuario_id = ?)';
             $params[] = $usuarioId;
+
+            $join = " LEFT JOIN (
+                SELECT ci2.producto_id,
+                       ci2.precio_total / NULLIF(ci2.cantidad, 0) AS precio_unidad,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY ci2.producto_id
+                           ORDER BY c2.fecha DESC, ci2.id DESC
+                       ) AS rn
+                FROM compra_items ci2
+                INNER JOIN compras c2 ON c2.id = ci2.compra_id
+                WHERE c2.usuario_id = ?
+                  AND ci2.producto_id IS NOT NULL
+                  AND ci2.cantidad > 0
+            ) ult ON ult.producto_id = p.id AND ult.rn = 1";
+            $joinParams[] = $usuarioId;
         } else {
             $where[] = 'p.usuario_id IS NULL';
         }
@@ -385,11 +451,16 @@ final class CompraRepository
             $params[] = $categoriaId;
         }
 
+        $selectPrecio = $usuarioId !== null
+            ? 'ROUND(ult.precio_unidad, 4) AS ultimo_precio'
+            : 'NULL AS ultimo_precio';
+
         $statement = $this->pdo->prepare(
             'SELECT p.id, p.nombre, p.categoria_id, c.nombre AS categoria_nombre,
-                    p.unidad_base, p.imagen_url, p.estado, p.created_at, p.updated_at
+                    p.unidad_base, p.imagen_url, p.estado, p.created_at, p.updated_at,
+                    ' . $selectPrecio . '
              FROM productos p
-             INNER JOIN categorias c ON c.id = p.categoria_id
+             INNER JOIN categorias c ON c.id = p.categoria_id' . $join . '
              WHERE ' . implode(' AND ', $where) . '
              ORDER BY p.nombre ASC, p.id ASC
              LIMIT ?'
@@ -397,7 +468,7 @@ final class CompraRepository
 
         $index = 1;
 
-        foreach ($params as $param) {
+        foreach (array_merge($joinParams, $params) as $param) {
             $statement->bindValue(
                 $index++,
                 $param,
@@ -409,7 +480,14 @@ final class CompraRepository
         $statement->execute();
 
         return array_map(
-            static fn (array $row): array => Producto::fromRow($row)->toPublicArray(),
+            static function (array $row): array {
+                $producto = Producto::fromRow($row)->toPublicArray();
+                $producto['ultimo_precio'] = isset($row['ultimo_precio'])
+                    ? (float) $row['ultimo_precio']
+                    : null;
+
+                return $producto;
+            },
             $statement->fetchAll()
         );
     }

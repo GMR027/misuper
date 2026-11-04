@@ -173,6 +173,16 @@ HTML;
 
             return;
 
+        case 'GET /admin/recetas/tipos':
+            (new AdminRecetaController())->tiposVista();
+
+            return;
+
+        case 'GET /admin/recetas/categorias':
+            (new AdminRecetaController())->categoriasVista();
+
+            return;
+
         case 'GET /admin/productos':
             if ($exigirAdmin() === null) {
                 return;

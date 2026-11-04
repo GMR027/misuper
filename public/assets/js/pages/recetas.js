@@ -19,9 +19,9 @@ function init(root) {
     const el = {
         buscar: root.querySelector('[data-receta-buscar]'),
         tiempo: root.querySelector('[data-receta-tiempo]'),
-        periodo: root.querySelector('[data-receta-periodo]'),
         solo: root.querySelector('[data-receta-solo]'),
         favoritas: root.querySelector('[data-receta-favoritas]'),
+        categorias: root.querySelector('[data-receta-categorias]'),
         tipos: root.querySelector('[data-receta-tipos]'),
         tipoAviso: root.querySelector('[data-receta-tipo-aviso]'),
         despensa: root.querySelector('[data-recetas-despensa]'),
@@ -43,18 +43,23 @@ function init(root) {
         previewStatus: document.querySelector('[data-preview-status]'),
         previewItems: document.querySelector('[data-preview-items]'),
         previewGuardar: document.querySelector('[data-preview-guardar]'),
+        previewLista: document.querySelector('[data-preview-lista]'),
+        previewNueva: document.querySelector('[data-preview-nueva]'),
     };
 
     /** @type {Array<any>} */
     let recetas = [];
     /** @type {Array<any>} */
     let tipos = [];
+    /** @type {Array<any>} */
+    let categorias = [];
     /** @type {Map<string, {slug: string, nombre: string, porciones: number, porciones_base: number}>} */
     const seleccion = new Map();
     /** @type {any|null} */
     let detalleActual = null;
     let detallePorciones = 4;
     let tipoActivo = '';
+    let categoriaActiva = '';
     let soloFavoritas = false;
     let chipsListos = false;
     let searchTimer = null;
@@ -73,7 +78,6 @@ function init(root) {
         });
 
         el.tiempo?.addEventListener('change', cargar);
-        el.periodo?.addEventListener('change', cargar);
         el.solo?.addEventListener('change', cargar);
         el.favoritas?.addEventListener('change', () => {
             soloFavoritas = el.favoritas instanceof HTMLInputElement ? el.favoritas.checked : false;
@@ -97,6 +101,7 @@ function init(root) {
         });
 
         el.previewGuardar?.addEventListener('click', guardarPreview);
+        el.previewLista?.addEventListener('change', actualizarNuevaLista);
 
         document.querySelectorAll('[data-receta-modal], [data-preview-modal]').forEach((modal) => {
             modal.addEventListener('click', (event) => {
@@ -130,16 +135,16 @@ function init(root) {
             params.set('q', el.buscar.value.trim());
         }
 
+        if (categoriaActiva !== '') {
+            params.set('categoria', categoriaActiva);
+        }
+
         if (tipoActivo !== '') {
             params.set('tipo', tipoActivo);
         }
 
         if (el.tiempo instanceof HTMLSelectElement && el.tiempo.value !== '') {
             params.set('tiempo', el.tiempo.value);
-        }
-
-        if (el.periodo instanceof HTMLSelectElement) {
-            params.set('periodo', el.periodo.value);
         }
 
         if (el.solo instanceof HTMLInputElement && el.solo.checked) {
@@ -158,8 +163,10 @@ function init(root) {
             const data = await fetchApi(`/api/recetas?${params.toString()}`);
             recetas = Array.isArray(data?.items) ? data.items : [];
             tipos = Array.isArray(data?.tipos) ? data.tipos : [];
+            categorias = Array.isArray(data?.categorias) ? data.categorias : [];
 
             if (!chipsListos) {
+                renderCategorias();
                 renderChips();
                 chipsListos = true;
             }
@@ -169,11 +176,15 @@ function init(root) {
 
             if (el.despensa instanceof HTMLElement) {
                 const total = Number(data?.despensa?.total_productos ?? 0);
-                const periodo = data?.despensa?.periodo === '90' ? 'últimos 90 días' : 'todo tu historial';
+                const fecha = formatearFecha(data?.despensa?.fecha);
 
-                el.despensa.textContent = total > 0
-                    ? `Basado en ${total} productos comprados (${periodo}).`
-                    : 'Aún no tienes compras registradas; las sugerencias no están personalizadas.';
+                if (total > 0) {
+                    el.despensa.textContent = `Basado en tu última compra${fecha !== '' ? ` del ${fecha}` : ''} (${total} ${total === 1 ? 'producto' : 'productos'}).`;
+                } else if (fecha !== '') {
+                    el.despensa.textContent = `Tu última compra${fecha !== '' ? ` del ${fecha}` : ''} no tiene productos de despensa.`;
+                } else {
+                    el.despensa.textContent = 'Aún no tienes compras registradas; guarda una compra para usar este filtro.';
+                }
             }
 
             if (el.status instanceof HTMLElement) {
@@ -192,17 +203,65 @@ function init(root) {
         }
     }
 
+    function renderCategorias() {
+        if (!(el.categorias instanceof HTMLElement)) {
+            return;
+        }
+
+        el.categorias.replaceChildren();
+        el.categorias.append(crearChipCategoria('Todas', '', 'bi-grid-3x3-gap'));
+
+        for (const categoria of categorias) {
+            el.categorias.append(crearChipCategoria(
+                String(categoria.nombre ?? categoria.slug),
+                String(categoria.slug),
+                String(categoria.icono ?? 'bi-tag')
+            ));
+        }
+    }
+
     function renderChips() {
         if (!(el.tipos instanceof HTMLElement)) {
             return;
         }
 
         el.tipos.replaceChildren();
-        el.tipos.append(crearChip('Todas', '', 'bi-grid-3x3-gap'));
+        el.tipos.append(crearChip('Todos', '', 'bi-grid-3x3-gap'));
 
         for (const tipo of tipos) {
             el.tipos.append(crearChip(String(tipo.nombre ?? tipo.slug), String(tipo.slug), String(tipo.icono ?? 'bi-tag')));
         }
+    }
+
+    /**
+     * @param {string} label
+     * @param {string} slug
+     * @param {string} icono
+     * @returns {HTMLButtonElement}
+     */
+    function crearChipCategoria(label, slug, icono) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'recipe-type-chip';
+        button.dataset.categoria = slug;
+
+        const icon = document.createElement('i');
+        icon.className = `bi ${icono}`;
+        icon.setAttribute('aria-hidden', 'true');
+
+        button.append(icon, document.createTextNode(label));
+
+        if (slug === categoriaActiva) {
+            button.classList.add('is-active');
+        }
+
+        button.addEventListener('click', () => {
+            categoriaActiva = slug;
+            renderCategorias();
+            cargar();
+        });
+
+        return button;
     }
 
     /**
@@ -268,7 +327,9 @@ function init(root) {
         if (recetas.length === 0) {
             if (el.empty instanceof HTMLElement) {
                 el.empty.hidden = false;
-                el.empty.textContent = 'No hay recetas que coincidan con los filtros. Prueba con otro tipo o limpia la búsqueda.';
+                el.empty.textContent = el.solo instanceof HTMLInputElement && el.solo.checked
+                    ? 'Ninguna receta se puede preparar solo con tu última compra. Desactiva el filtro para ver todas.'
+                    : 'No hay recetas que coincidan con los filtros. Prueba con otro tipo o limpia la búsqueda.';
             }
 
             return;
@@ -297,9 +358,11 @@ function init(root) {
         const media = document.createElement('div');
         media.className = 'recipe-card__media';
 
-        if (receta.video?.thumbnail_url) {
+        const portada = receta.imagen_url || receta.video?.thumbnail_url;
+
+        if (portada) {
             const img = document.createElement('img');
-            img.src = String(receta.video.thumbnail_url);
+            img.src = String(portada);
             img.alt = '';
             img.loading = 'lazy';
             media.append(img);
@@ -313,7 +376,16 @@ function init(root) {
         const badges = document.createElement('div');
         badges.className = 'recipe-card__badges';
 
-        for (const tipo of (Array.isArray(receta.tipos) ? receta.tipos : []).slice(0, 2)) {
+        if (receta.categoria) {
+            const badge = document.createElement('span');
+            badge.className = 'recipe-badge recipe-badge--categoria';
+            badge.textContent = String(receta.categoria.nombre ?? '');
+            badges.append(badge);
+        }
+
+        const maxTipos = receta.categoria ? 1 : 2;
+
+        for (const tipo of (Array.isArray(receta.tipos) ? receta.tipos : []).slice(0, maxTipos)) {
             const badge = document.createElement('span');
             badge.className = 'recipe-badge';
             badge.textContent = nombreTipo(String(tipo));
@@ -579,11 +651,29 @@ function init(root) {
         const types = document.createElement('div');
         types.className = 'recipe-detail__types';
 
+        if (receta.categoria) {
+            const badge = document.createElement('span');
+            badge.className = 'recipe-badge recipe-badge--categoria';
+            badge.textContent = String(receta.categoria.nombre ?? '');
+            types.append(badge);
+        }
+
         for (const tipo of (Array.isArray(receta.tipos) ? receta.tipos : [])) {
             const badge = document.createElement('span');
             badge.className = 'recipe-badge';
             badge.textContent = nombreTipo(String(tipo));
             types.append(badge);
+        }
+
+        if (receta.imagen_url) {
+            const cover = document.createElement('div');
+            cover.className = 'recipe-detail__cover';
+            const img = document.createElement('img');
+            img.src = String(receta.imagen_url);
+            img.alt = '';
+            img.loading = 'lazy';
+            cover.append(img);
+            el.detalleBody.append(cover);
         }
 
         const desc = document.createElement('p');
@@ -752,6 +842,7 @@ function init(root) {
 
         abrirModal(el.previewModal);
         previewItems = [];
+        await cargarListasPreview();
 
         if (el.previewResumen instanceof HTMLElement) {
             el.previewResumen.textContent = '';
@@ -800,6 +891,61 @@ function init(root) {
             }
 
             showToast(error?.message ?? 'No se pudo calcular la lista.', 'error');
+        }
+    }
+
+    async function cargarListasPreview() {
+        if (!(el.previewLista instanceof HTMLSelectElement)) {
+            return;
+        }
+
+        el.previewLista.replaceChildren();
+        const loading = document.createElement('option');
+        loading.value = '';
+        loading.textContent = 'Cargando listas…';
+        el.previewLista.append(loading);
+
+        try {
+            const data = await fetchApi('/api/listas-compra');
+            const listas = Array.isArray(data?.items) ? data.items : [];
+            el.previewLista.replaceChildren();
+
+            for (const lista of listas) {
+                const option = document.createElement('option');
+                option.value = String(lista.id);
+                option.textContent = `${lista.nombre} (${Number(lista.items_count ?? 0)} productos)`;
+                el.previewLista.append(option);
+            }
+
+            const nueva = document.createElement('option');
+            nueva.value = '__nueva__';
+            nueva.textContent = 'Nueva lista…';
+            el.previewLista.append(nueva);
+
+            if (listas.length === 0) {
+                el.previewLista.value = '__nueva__';
+            }
+        } catch {
+            el.previewLista.replaceChildren();
+            const option = document.createElement('option');
+            option.value = '__nueva__';
+            option.textContent = 'Nueva lista…';
+            el.previewLista.append(option);
+        }
+
+        actualizarNuevaLista();
+    }
+
+    function actualizarNuevaLista() {
+        if (!(el.previewLista instanceof HTMLSelectElement) || !(el.previewNueva instanceof HTMLInputElement)) {
+            return;
+        }
+
+        const nueva = el.previewLista.value === '__nueva__' || el.previewLista.value === '';
+        el.previewNueva.hidden = !nueva;
+
+        if (nueva && el.previewNueva.value.trim() === '') {
+            el.previewNueva.value = 'Lista de recetas';
         }
     }
 
@@ -879,8 +1025,36 @@ function init(root) {
         const texto = el.previewGuardar.innerHTML;
         el.previewGuardar.textContent = 'Guardando…';
 
+        let listId = 0;
+
         try {
-            await fetchApi('/api/lista-compras', {
+            if (!(el.previewLista instanceof HTMLSelectElement)) {
+                throw new Error('No se pudo cargar el selector de listas.');
+            }
+
+            if (el.previewLista.value === '__nueva__' || el.previewLista.value === '') {
+                const nombre = el.previewNueva instanceof HTMLInputElement
+                    ? el.previewNueva.value.trim()
+                    : '';
+
+                if (nombre === '') {
+                    throw new Error('Escribe un nombre para la nueva lista.');
+                }
+
+                const nueva = await fetchApi('/api/listas-compra', {
+                    method: 'POST',
+                    body: { nombre },
+                });
+                listId = Number(nueva?.id ?? 0);
+            } else {
+                listId = Number(el.previewLista.value);
+            }
+
+            if (!Number.isInteger(listId) || listId <= 0) {
+                throw new Error('Selecciona una lista válida.');
+            }
+
+            await fetchApi(`/api/listas-compra/${listId}/items`, {
                 method: 'POST',
                 body: {
                     items: incluidos.map((item) => ({
@@ -899,7 +1073,7 @@ function init(root) {
             cerrarModal(el.previewModal);
             showToast('Lista guardada. Revisa los productos por comprar.', 'success');
             window.setTimeout(() => {
-                window.location.assign('/lista-compras?ok=1');
+                window.location.assign(`/lista-compras?id=${listId}&ok=1`);
             }, 450);
         } catch (error) {
             if (redirectIfSessionLost(error)) {
@@ -981,6 +1155,26 @@ function init(root) {
     }
 
     /**
+     * Formatea una fecha ISO (YYYY-MM-DD) como dd/mm.
+     *
+     * @param {unknown} valor
+     * @returns {string}
+     */
+    function formatearFecha(valor) {
+        if (typeof valor !== 'string') {
+            return '';
+        }
+
+        const partes = valor.slice(0, 10).split('-');
+
+        if (partes.length !== 3) {
+            return '';
+        }
+
+        return `${partes[2]}/${partes[1]}`;
+    }
+
+    /**
      * @param {HTMLElement|null} element
      */
     function abrirModal(element) {
@@ -1020,7 +1214,7 @@ function init(root) {
 
 /* Badge de la lista de compras ---------------------------------------- */
 
-fetchApi('/api/lista-compras')
+fetchApi('/api/listas-compra')
     .then((data) => {
         const badge = document.querySelector('[data-lista-count]');
         const pendientes = Number(data?.pendientes ?? 0);

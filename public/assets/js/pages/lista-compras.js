@@ -1,5 +1,5 @@
 /**
- * Productos por comprar: CRUD, envío a la pantalla rápida y estados.
+ * Productos por comprar: varias listas, CRUD de ítems y envío al carrito.
  */
 
 import { fetchApi } from '../modules/api.js';
@@ -17,46 +17,166 @@ if (root instanceof HTMLElement) {
  */
 function init(root) {
     const el = {
+        select: root.querySelector('[data-listas-select]'),
+        nombre: root.querySelector('[data-lista-nombre]'),
         items: root.querySelector('[data-lista-items]'),
         empty: root.querySelector('[data-lista-empty]'),
+        sinListas: root.querySelector('[data-lista-sin-listas]'),
         status: root.querySelector('[data-lista-status]'),
         enviar: root.querySelector('[data-lista-enviar]'),
         vaciar: root.querySelector('[data-lista-vaciar]'),
+        nueva: root.querySelector('[data-lista-nueva]'),
+        renombrar: root.querySelector('[data-lista-renombrar]'),
+        eliminar: root.querySelector('[data-lista-eliminar]'),
         form: root.querySelector('[data-lista-form]'),
-        nombre: root.querySelector('[data-lista-nombre]'),
+        productName: root.querySelector('[data-lista-nombre-producto]'),
         cantidad: root.querySelector('[data-lista-cantidad]'),
         unidad: root.querySelector('[data-lista-unidad]'),
         mensaje: root.querySelector('[data-lista-mensaje]'),
         agregar: root.querySelector('[data-lista-agregar]'),
+        modal: document.querySelector('[data-lista-modal]'),
+        modalForm: document.querySelector('[data-lista-modal-form]'),
+        modalTitle: document.querySelector('[data-lista-modal-title]'),
+        modalId: document.querySelector('[data-lista-modal-id]'),
+        modalNombre: document.querySelector('[data-lista-modal-nombre]'),
+        modalMensaje: document.querySelector('[data-lista-modal-mensaje]'),
+        modalGuardar: document.querySelector('[data-lista-modal-guardar]'),
     };
 
+    const bootstrap = window.bootstrap;
+    const modal = bootstrap?.Modal && el.modal instanceof HTMLElement
+        ? bootstrap.Modal.getOrCreateInstance(el.modal)
+        : null;
+
+    /** @type {Array<any>} */
+    let listas = [];
     /** @type {Array<any>} */
     let items = [];
+    let listaActual = 0;
+
+    const initialId = Number(new URLSearchParams(window.location.search).get('id') ?? 0);
 
     bind();
-    load();
+    cargarListas(initialId > 0 ? initialId : null);
     showQueryToast();
 
     function bind() {
+        el.select?.addEventListener('change', () => {
+            const id = Number(el.select instanceof HTMLSelectElement ? el.select.value : 0);
+
+            if (id > 0 && id !== listaActual) {
+                listaActual = id;
+                cargarItems(id);
+            }
+        });
+
         el.form?.addEventListener('submit', agregarManual);
-        el.enviar?.addEventListener('click', enviar);
-        el.vaciar?.addEventListener('click', vaciar);
+        el.enviar?.addEventListener('click', enviarLista);
+        el.vaciar?.addEventListener('click', vaciarLista);
+        el.nueva?.addEventListener('click', () => abrirModalLista(null));
+        el.renombrar?.addEventListener('click', () => {
+            const lista = listas.find((fila) => Number(fila.id) === listaActual);
+
+            if (lista !== undefined) {
+                abrirModalLista(lista);
+            }
+        });
+        el.eliminar?.addEventListener('click', eliminarLista);
+        el.modalForm?.addEventListener('submit', guardarLista);
     }
 
-    async function load() {
+    async function cargarListas(preferida = null) {
+        if (el.status instanceof HTMLElement) {
+            el.status.textContent = 'Cargando listas…';
+        }
+
+        try {
+            const data = await fetchApi('/api/listas-compra');
+            listas = Array.isArray(data?.items) ? data.items : [];
+            renderSelect(preferida);
+
+            if (listas.length === 0) {
+                listaActual = 0;
+                items = [];
+                render();
+                return;
+            }
+
+            const objetivo = Number(preferida ?? 0);
+            const id = listas.some((fila) => Number(fila.id) === objetivo)
+                ? objetivo
+                : Number(listas[0].id);
+            listaActual = id;
+
+            if (el.select instanceof HTMLSelectElement) {
+                el.select.value = String(id);
+            }
+
+            await cargarItems(id);
+        } catch (error) {
+            if (redirectIfSessionLost(error)) {
+                return;
+            }
+
+            if (el.status instanceof HTMLElement) {
+                el.status.textContent = 'No se pudieron cargar las listas.';
+            }
+
+            showToast(error?.message ?? 'No se pudieron cargar las listas.', 'error');
+        }
+    }
+
+    function renderSelect(preferida = null) {
+        if (!(el.select instanceof HTMLSelectElement)) {
+            return;
+        }
+
+        el.select.replaceChildren();
+
+        for (const lista of listas) {
+            const option = document.createElement('option');
+            option.value = String(lista.id);
+            option.textContent = `${lista.nombre} · ${Number(lista.items_count ?? 0)} productos`;
+            option.selected = Number(lista.id) === Number(preferida ?? listaActual);
+            el.select.append(option);
+        }
+
+        const vacio = listas.length === 0;
+        el.select.disabled = vacio;
+
+        if (el.sinListas instanceof HTMLElement) {
+            el.sinListas.hidden = !vacio;
+        }
+
+        for (const button of [el.enviar, el.renombrar, el.eliminar, el.vaciar, el.agregar]) {
+            if (button instanceof HTMLButtonElement) {
+                button.disabled = vacio;
+            }
+        }
+
+        if (el.nombre instanceof HTMLElement) {
+            el.nombre.textContent = vacio ? 'Sin listas' : 'Lista seleccionada';
+        }
+    }
+
+    async function cargarItems(id) {
         if (el.status instanceof HTMLElement) {
             el.status.textContent = 'Cargando productos…';
         }
 
         try {
-            const data = await fetchApi('/api/lista-compras');
+            const data = await fetchApi(`/api/listas-compra/${id}`);
             items = Array.isArray(data?.items) ? data.items : [];
-            render();
 
-            if (el.status instanceof HTMLElement) {
-                const pendientes = Number(data?.pendientes ?? 0);
-                el.status.textContent = `${items.length} ${items.length === 1 ? 'producto' : 'productos'} · ${pendientes} pendientes de enviar`;
+            if (el.nombre instanceof HTMLElement) {
+                el.nombre.textContent = String(data?.lista?.nombre ?? 'Lista');
             }
+
+            const params = new URLSearchParams(window.location.search);
+            params.set('id', String(id));
+            window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+
+            render();
         } catch (error) {
             if (redirectIfSessionLost(error)) {
                 return;
@@ -82,12 +202,8 @@ function init(root) {
                 el.empty.hidden = false;
             }
 
-            if (el.enviar instanceof HTMLButtonElement) {
-                el.enviar.disabled = true;
-            }
-
-            if (el.vaciar instanceof HTMLButtonElement) {
-                el.vaciar.disabled = true;
+            if (el.status instanceof HTMLElement) {
+                el.status.textContent = 'Sin productos';
             }
 
             return;
@@ -97,16 +213,12 @@ function init(root) {
             el.empty.hidden = true;
         }
 
-        if (el.enviar instanceof HTMLButtonElement) {
-            el.enviar.disabled = false;
-        }
-
-        if (el.vaciar instanceof HTMLButtonElement) {
-            el.vaciar.disabled = false;
-        }
-
         for (const item of items) {
             el.items.append(crearItem(item));
+        }
+
+        if (el.status instanceof HTMLElement) {
+            el.status.textContent = `${items.length} ${items.length === 1 ? 'producto' : 'productos'}`;
         }
     }
 
@@ -138,7 +250,6 @@ function init(root) {
         const badge = document.createElement('span');
         badge.className = `lista-item__badge lista-item__badge--${String(item.estado ?? 'pendiente')}`;
         badge.textContent = etiquetaEstado(String(item.estado ?? 'pendiente'));
-
         meta.append(badge);
 
         if (item.origen) {
@@ -194,7 +305,7 @@ function init(root) {
             }
 
             try {
-                const actualizado = await fetchApi(`/api/lista-compras/${Number(item.id)}`, {
+                const actualizado = await fetchApi(`/api/listas-compra/items/${Number(item.id)}`, {
                     method: 'PUT',
                     body: { cantidad, unidad_base: unidadSelect.value },
                 });
@@ -212,7 +323,7 @@ function init(root) {
                 }
 
                 showToast(error?.message ?? 'No se pudo actualizar.', 'error');
-                load();
+                cargarItems(listaActual);
             }
         };
 
@@ -230,7 +341,7 @@ function init(root) {
             }
 
             try {
-                await fetchApi(`/api/lista-compras/${Number(item.id)}`, { method: 'DELETE' });
+                await fetchApi(`/api/listas-compra/items/${Number(item.id)}`, { method: 'DELETE' });
                 items = items.filter((fila) => Number(fila.id) !== Number(item.id));
                 render();
                 showToast('Producto eliminado.', 'info');
@@ -252,11 +363,17 @@ function init(root) {
     async function agregarManual(event) {
         event.preventDefault();
 
-        if (!(el.nombre instanceof HTMLInputElement) || !(el.cantidad instanceof HTMLInputElement) || !(el.unidad instanceof HTMLSelectElement)) {
+        if (listaActual <= 0) {
+            showToast('Crea o selecciona una lista primero.', 'error');
+
             return;
         }
 
-        const nombre = el.nombre.value.trim();
+        if (!(el.productName instanceof HTMLInputElement) || !(el.cantidad instanceof HTMLInputElement) || !(el.unidad instanceof HTMLSelectElement)) {
+            return;
+        }
+
+        const nombre = el.productName.value.trim();
         const cantidad = Number(el.cantidad.value);
 
         if (nombre === '') {
@@ -277,7 +394,7 @@ function init(root) {
         }
 
         try {
-            const data = await fetchApi('/api/lista-compras', {
+            const data = await fetchApi(`/api/listas-compra/${listaActual}/items`, {
                 method: 'POST',
                 body: {
                     nombre,
@@ -287,7 +404,7 @@ function init(root) {
             });
 
             items = Array.isArray(data?.items) ? data.items : items;
-            el.nombre.value = '';
+            el.productName.value = '';
             el.cantidad.value = '1';
             el.unidad.value = 'pza';
             ocultarMensaje();
@@ -307,8 +424,8 @@ function init(root) {
         }
     }
 
-    async function enviar() {
-        if (!(el.enviar instanceof HTMLButtonElement)) {
+    async function enviarLista() {
+        if (listaActual <= 0 || !(el.enviar instanceof HTMLButtonElement)) {
             return;
         }
 
@@ -317,11 +434,11 @@ function init(root) {
         el.enviar.textContent = 'Enviando…';
 
         try {
-            const data = await fetchApi('/api/lista-compras/enviar', { method: 'POST' });
+            const data = await fetchApi(`/api/listas-compra/${listaActual}/enviar`, { method: 'POST' });
             const enviados = Number(data?.enviados ?? 0);
 
             if (enviados === 0) {
-                showToast('No hay productos pendientes de enviar.', 'info');
+                showToast('No hay productos pendientes en esta lista.', 'info');
                 el.enviar.disabled = false;
                 el.enviar.innerHTML = texto;
 
@@ -340,13 +457,13 @@ function init(root) {
         }
     }
 
-    async function vaciar() {
-        if (!window.confirm('¿Vaciar toda la lista de productos por comprar?')) {
+    async function vaciarLista() {
+        if (listaActual <= 0 || !window.confirm('¿Vaciar todos los productos de esta lista?')) {
             return;
         }
 
         try {
-            await fetchApi('/api/lista-compras', { method: 'DELETE' });
+            await fetchApi(`/api/listas-compra/${listaActual}/items`, { method: 'DELETE' });
             items = [];
             render();
             showToast('Lista vaciada.', 'info');
@@ -356,6 +473,90 @@ function init(root) {
             }
 
             showToast(error?.message ?? 'No se pudo vaciar la lista.', 'error');
+        }
+    }
+
+    async function eliminarLista() {
+        const lista = listas.find((fila) => Number(fila.id) === listaActual);
+
+        if (lista === undefined || !window.confirm(`¿Eliminar la lista "${lista.nombre}" y todos sus productos?`)) {
+            return;
+        }
+
+        try {
+            await fetchApi(`/api/listas-compra/${listaActual}`, { method: 'DELETE' });
+            await cargarListas();
+            showToast('Lista eliminada.', 'info');
+        } catch (error) {
+            if (redirectIfSessionLost(error)) {
+                return;
+            }
+
+            showToast(error?.message ?? 'No se pudo eliminar la lista.', 'error');
+        }
+    }
+
+    function abrirModalLista(lista) {
+        if (!(el.modalId instanceof HTMLInputElement)
+            || !(el.modalNombre instanceof HTMLInputElement)) {
+            return;
+        }
+
+        el.modalId.value = lista ? String(lista.id) : '';
+        el.modalNombre.value = lista ? String(lista.nombre ?? '') : '';
+
+        if (el.modalTitle instanceof HTMLElement) {
+            el.modalTitle.textContent = lista ? 'Renombrar lista' : 'Nueva lista';
+        }
+
+        if (el.modalMensaje instanceof HTMLElement) {
+            el.modalMensaje.hidden = true;
+            el.modalMensaje.textContent = '';
+        }
+
+        modal?.show();
+    }
+
+    async function guardarLista(event) {
+        event.preventDefault();
+
+        if (!(el.modalId instanceof HTMLInputElement)
+            || !(el.modalNombre instanceof HTMLInputElement)
+            || !(el.modalGuardar instanceof HTMLButtonElement)) {
+            return;
+        }
+
+        const id = Number(el.modalId.value || 0);
+        const nombre = el.modalNombre.value.trim();
+
+        if (nombre === '') {
+            mostrarMensajeModal('Escribe un nombre para la lista.');
+
+            return;
+        }
+
+        el.modalGuardar.disabled = true;
+        const texto = el.modalGuardar.textContent;
+        el.modalGuardar.textContent = 'Guardando…';
+
+        try {
+            const data = await fetchApi(id > 0 ? `/api/listas-compra/${id}` : '/api/listas-compra', {
+                method: id > 0 ? 'PUT' : 'POST',
+                body: { nombre },
+            });
+
+            modal?.hide();
+            await cargarListas(Number(data?.id ?? id));
+            showToast(id > 0 ? 'Lista renombrada.' : 'Lista creada.', 'success');
+        } catch (error) {
+            if (redirectIfSessionLost(error)) {
+                return;
+            }
+
+            mostrarMensajeModal(error?.message ?? 'No se pudo guardar la lista.');
+        } finally {
+            el.modalGuardar.disabled = false;
+            el.modalGuardar.textContent = texto;
         }
     }
 
@@ -370,6 +571,13 @@ function init(root) {
         if (el.mensaje instanceof HTMLElement) {
             el.mensaje.textContent = '';
             el.mensaje.hidden = true;
+        }
+    }
+
+    function mostrarMensajeModal(texto) {
+        if (el.modalMensaje instanceof HTMLElement) {
+            el.modalMensaje.textContent = texto;
+            el.modalMensaje.hidden = false;
         }
     }
 
@@ -388,16 +596,12 @@ function init(root) {
             return;
         }
 
-        showToast('Lista guardada. Ajusta cantidades o envía los productos a la pantalla rápida.', 'success');
+        showToast('Lista guardada. Ajusta cantidades o envíala a la pantalla rápida.', 'success');
         params.delete('ok');
         const query = params.toString();
         window.history.replaceState({}, '', `${window.location.pathname}${query === '' ? '' : `?${query}`}`);
     }
 
-    /**
-     * @param {any} error
-     * @returns {boolean}
-     */
     function redirectIfSessionLost(error) {
         if (error?.status === 401) {
             window.location.replace('/login');

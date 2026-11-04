@@ -9,15 +9,16 @@ use PDO;
 use Throwable;
 
 /**
- * Ítems de la lista "Productos por comprar".
+ * Listas de compras por usuario y sus ítems.
  */
 final class ListaCompraRepository
 {
-    private const COLUMNS = 'li.id, li.usuario_id, li.producto_id, li.nombre, li.cantidad,
-        li.unidad_base, li.origen, li.estado, li.created_at, li.updated_at,
+    private const ITEM_COLUMNS = 'li.id, li.lista_id, li.usuario_id, li.producto_id, li.nombre,
+        li.cantidad, li.unidad_base, li.origen, li.estado, li.created_at, li.updated_at,
         p.imagen_url, c.nombre AS categoria_nombre';
 
-    private const FROM = ' FROM lista_compra_items li
+    private const ITEM_FROM = ' FROM lista_compra_items li
+        INNER JOIN listas_compra l ON l.id = li.lista_id
         LEFT JOIN productos p ON p.id = li.producto_id
         LEFT JOIN categorias c ON c.id = p.categoria_id';
 
@@ -31,49 +32,123 @@ final class ListaCompraRepository
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function listByUser(int $usuarioId): array
+    public function listsByUser(int $usuarioId): array
     {
         $statement = $this->pdo->prepare(
-            'SELECT ' . self::COLUMNS . self::FROM
-            . ' WHERE li.usuario_id = ?
-                ORDER BY FIELD(li.estado, \'pendiente\', \'enviado\', \'cargado\'), li.created_at ASC, li.id ASC'
+            'SELECT l.id, l.usuario_id, l.nombre, l.created_at, l.updated_at,
+                    COUNT(li.id) AS items_count,
+                    COALESCE(SUM(li.estado = \'pendiente\'), 0) AS pendientes
+             FROM listas_compra l
+             LEFT JOIN lista_compra_items li ON li.lista_id = l.id
+             WHERE l.usuario_id = ?
+             GROUP BY l.id, l.usuario_id, l.nombre, l.created_at, l.updated_at
+             ORDER BY l.created_at DESC, l.id DESC'
         );
         $statement->execute([$usuarioId]);
 
-        return array_map([$this, 'normalizarFila'], $statement->fetchAll());
+        return array_map([$this, 'normalizarLista'], $statement->fetchAll());
     }
 
-    public function findOwned(int $id, int $usuarioId): ?array
+    public function findListOwned(int $listId, int $usuarioId): ?array
     {
         $statement = $this->pdo->prepare(
-            'SELECT ' . self::COLUMNS . self::FROM
-            . ' WHERE li.id = ? AND li.usuario_id = ? LIMIT 1'
+            'SELECT l.id, l.usuario_id, l.nombre, l.created_at, l.updated_at,
+                    (SELECT COUNT(*) FROM lista_compra_items li WHERE li.lista_id = l.id) AS items_count,
+                    (SELECT COUNT(*) FROM lista_compra_items li WHERE li.lista_id = l.id AND li.estado = \'pendiente\') AS pendientes
+             FROM listas_compra l
+             WHERE l.id = ? AND l.usuario_id = ?
+             LIMIT 1'
         );
-        $statement->execute([$id, $usuarioId]);
+        $statement->execute([$listId, $usuarioId]);
 
         $row = $statement->fetch();
 
-        return $row === false ? null : $this->normalizarFila($row);
+        return $row === false ? null : $this->normalizarLista($row);
+    }
+
+    public function createList(int $usuarioId, string $nombre): array
+    {
+        $statement = $this->pdo->prepare(
+            'INSERT INTO listas_compra (usuario_id, nombre) VALUES (?, ?)'
+        );
+        $statement->execute([$usuarioId, $nombre]);
+
+        $lista = $this->findListOwned((int) $this->pdo->lastInsertId(), $usuarioId);
+
+        if ($lista === null) {
+            throw new \RuntimeException('No se pudo leer la lista recién creada.');
+        }
+
+        return $lista;
+    }
+
+    public function updateList(int $listId, int $usuarioId, string $nombre): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE listas_compra SET nombre = ? WHERE id = ? AND usuario_id = ?'
+        );
+        $statement->execute([$nombre, $listId, $usuarioId]);
+
+        return $this->findListOwned($listId, $usuarioId);
+    }
+
+    public function deleteList(int $listId, int $usuarioId): bool
+    {
+        $statement = $this->pdo->prepare(
+            'DELETE FROM listas_compra WHERE id = ? AND usuario_id = ?'
+        );
+        $statement->execute([$listId, $usuarioId]);
+
+        return $statement->rowCount() > 0;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function itemsByList(int $listId, int $usuarioId): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::ITEM_COLUMNS . self::ITEM_FROM
+            . ' WHERE li.lista_id = ? AND l.usuario_id = ?
+                ORDER BY FIELD(li.estado, \'pendiente\', \'enviado\', \'cargado\'), li.created_at ASC, li.id ASC'
+        );
+        $statement->execute([$listId, $usuarioId]);
+
+        return array_map([$this, 'normalizarItem'], $statement->fetchAll());
+    }
+
+    public function findItemOwned(int $itemId, int $usuarioId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::ITEM_COLUMNS . self::ITEM_FROM
+            . ' WHERE li.id = ? AND l.usuario_id = ? LIMIT 1'
+        );
+        $statement->execute([$itemId, $usuarioId]);
+
+        $row = $statement->fetch();
+
+        return $row === false ? null : $this->normalizarItem($row);
     }
 
     /**
      * @param array<int, array{producto_id: int|null, nombre: string, cantidad: float|int|string, unidad_base: string, origen: string|null}> $items
      * @return array<int, array<string, mixed>>
      */
-    public function createMany(int $usuarioId, array $items): array
+    public function createMany(int $usuarioId, int $listId, array $items): array
     {
         $this->pdo->beginTransaction();
 
         try {
             $statement = $this->pdo->prepare(
                 'INSERT INTO lista_compra_items
-                    (usuario_id, producto_id, nombre, cantidad, unidad_base, origen)
-                 VALUES (?, ?, ?, ?, ?, ?)'
+                    (usuario_id, lista_id, producto_id, nombre, cantidad, unidad_base, origen)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)'
             );
 
             foreach ($items as $item) {
                 $statement->execute([
                     $usuarioId,
+                    $listId,
                     $item['producto_id'],
                     $item['nombre'],
                     $item['cantidad'],
@@ -91,14 +166,20 @@ final class ListaCompraRepository
             throw $error;
         }
 
-        return $this->listByUser($usuarioId);
+        return $this->itemsByList($listId, $usuarioId);
     }
 
     /**
      * @param array<string, mixed> $campos
      */
-    public function update(int $id, int $usuarioId, array $campos): ?array
+    public function updateItem(int $itemId, int $usuarioId, array $campos): ?array
     {
+        $item = $this->findItemOwned($itemId, $usuarioId);
+
+        if ($item === null) {
+            return null;
+        }
+
         $sets = [];
         $params = [];
 
@@ -110,57 +191,63 @@ final class ListaCompraRepository
         }
 
         if ($sets === []) {
-            return $this->findOwned($id, $usuarioId);
+            return $item;
         }
 
-        $params[] = $id;
-        $params[] = $usuarioId;
-
+        $params[] = $itemId;
         $statement = $this->pdo->prepare(
-            'UPDATE lista_compra_items
-             SET ' . implode(', ', $sets) . '
-             WHERE id = ? AND usuario_id = ?'
+            'UPDATE lista_compra_items SET ' . implode(', ', $sets) . ' WHERE id = ?'
         );
         $statement->execute($params);
 
-        return $this->findOwned($id, $usuarioId);
+        return $this->findItemOwned($itemId, $usuarioId);
     }
 
-    public function delete(int $id, int $usuarioId): bool
+    public function deleteItem(int $itemId, int $usuarioId): bool
     {
         $statement = $this->pdo->prepare(
-            'DELETE FROM lista_compra_items WHERE id = ? AND usuario_id = ?'
+            'DELETE li FROM lista_compra_items li
+             INNER JOIN listas_compra l ON l.id = li.lista_id
+             WHERE li.id = ? AND l.usuario_id = ?'
         );
-        $statement->execute([$id, $usuarioId]);
+        $statement->execute([$itemId, $usuarioId]);
 
         return $statement->rowCount() > 0;
     }
 
-    public function clear(int $usuarioId): int
+    public function clearList(int $listId, int $usuarioId): int
     {
+        if ($this->findListOwned($listId, $usuarioId) === null) {
+            return 0;
+        }
+
         $statement = $this->pdo->prepare(
-            'DELETE FROM lista_compra_items WHERE usuario_id = ?'
+            'DELETE FROM lista_compra_items WHERE lista_id = ?'
         );
-        $statement->execute([$usuarioId]);
+        $statement->execute([$listId]);
 
         return $statement->rowCount();
     }
 
-    public function markEnviado(int $usuarioId): int
+    public function markEnviado(int $listId, int $usuarioId): int
     {
+        if ($this->findListOwned($listId, $usuarioId) === null) {
+            return 0;
+        }
+
         $statement = $this->pdo->prepare(
             "UPDATE lista_compra_items
              SET estado = 'enviado'
-             WHERE usuario_id = ? AND estado = 'pendiente'"
+             WHERE lista_id = ? AND estado = 'pendiente'"
         );
-        $statement->execute([$usuarioId]);
+        $statement->execute([$listId]);
 
         return $statement->rowCount();
     }
 
     /**
-     * Devuelve los ítems enviados y los marca como cargados en una sola
-     * transacción. La pantalla rápida los consume al llegar con ?lista=1.
+     * Devuelve los ítems enviados de todas las listas del usuario y los
+     * marca como cargados. La pantalla rápida los consume con ?lista=1.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -170,8 +257,8 @@ final class ListaCompraRepository
 
         try {
             $statement = $this->pdo->prepare(
-                'SELECT ' . self::COLUMNS . self::FROM
-                . " WHERE li.usuario_id = ? AND li.estado = 'enviado'
+                'SELECT ' . self::ITEM_COLUMNS . self::ITEM_FROM
+                . " WHERE l.usuario_id = ? AND li.estado = 'enviado'
                     ORDER BY li.created_at ASC, li.id ASC
                     FOR UPDATE"
             );
@@ -184,9 +271,9 @@ final class ListaCompraRepository
                 $update = $this->pdo->prepare(
                     "UPDATE lista_compra_items
                      SET estado = 'cargado'
-                     WHERE usuario_id = ? AND id IN ({$placeholders})"
+                     WHERE id IN ({$placeholders})"
                 );
-                $update->execute(array_merge([$usuarioId], $ids));
+                $update->execute($ids);
             }
 
             $this->pdo->commit();
@@ -197,7 +284,7 @@ final class ListaCompraRepository
 
             unset($row);
 
-            return array_map([$this, 'normalizarFila'], $rows);
+            return array_map([$this, 'normalizarItem'], $rows);
         } catch (Throwable $error) {
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
@@ -210,8 +297,9 @@ final class ListaCompraRepository
     public function countPendientes(int $usuarioId): int
     {
         $statement = $this->pdo->prepare(
-            "SELECT COUNT(*) FROM lista_compra_items
-             WHERE usuario_id = ? AND estado = 'pendiente'"
+            "SELECT COUNT(*) FROM lista_compra_items li
+             INNER JOIN listas_compra l ON l.id = li.lista_id
+             WHERE l.usuario_id = ? AND li.estado = 'pendiente'"
         );
         $statement->execute([$usuarioId]);
 
@@ -222,10 +310,28 @@ final class ListaCompraRepository
      * @param array<string, mixed> $row
      * @return array<string, mixed>
      */
-    private function normalizarFila(array $row): array
+    private function normalizarLista(array $row): array
     {
         return [
             'id' => (int) $row['id'],
+            'usuario_id' => (int) $row['usuario_id'],
+            'nombre' => (string) $row['nombre'],
+            'items_count' => (int) ($row['items_count'] ?? 0),
+            'pendientes' => (int) ($row['pendientes'] ?? 0),
+            'created_at' => (string) $row['created_at'],
+            'updated_at' => (string) $row['updated_at'],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     * @return array<string, mixed>
+     */
+    private function normalizarItem(array $row): array
+    {
+        return [
+            'id' => (int) $row['id'],
+            'lista_id' => (int) $row['lista_id'],
             'producto_id' => $row['producto_id'] === null ? null : (int) $row['producto_id'],
             'nombre' => (string) $row['nombre'],
             'cantidad' => (float) $row['cantidad'],

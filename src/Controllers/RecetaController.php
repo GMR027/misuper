@@ -8,6 +8,7 @@ use App\Middleware\AuthMiddleware;
 use App\Middleware\CsrfMiddleware;
 use App\Services\RecetaService;
 use App\Support\Response;
+use DomainException;
 use InvalidArgumentException;
 
 /**
@@ -46,11 +47,11 @@ final class RecetaController
 
         Response::ok($this->recetas->listar($usuario['id'], [
             'q' => isset($_GET['q']) && is_string($_GET['q']) ? $_GET['q'] : '',
+            'categoria' => isset($_GET['categoria']) && is_string($_GET['categoria']) ? $_GET['categoria'] : '',
             'tipo' => isset($_GET['tipo']) && is_string($_GET['tipo']) ? $_GET['tipo'] : '',
             'tiempo' => isset($_GET['tiempo']) && is_string($_GET['tiempo']) ? $_GET['tiempo'] : '',
             'solo_despensa' => isset($_GET['solo_despensa']) ? $_GET['solo_despensa'] : false,
             'favoritas' => isset($_GET['favoritas']) ? $_GET['favoritas'] : false,
-            'periodo' => isset($_GET['periodo']) && is_string($_GET['periodo']) ? $_GET['periodo'] : 'todo',
         ]));
     }
 
@@ -99,6 +100,25 @@ final class RecetaController
 
         header('Content-Type: text/html; charset=utf-8');
         require BASE_PATH . '/src/Views/usuario/receta-propuesta.php';
+    }
+
+    /**
+     * POST /api/recetas/imagen
+     */
+    public function subirImagen(): void
+    {
+        AuthMiddleware::require();
+        CsrfMiddleware::enforce();
+
+        try {
+            $url = $this->recetas->subirImagen(
+                is_array($_FILES['imagen'] ?? null) ? $_FILES['imagen'] : []
+            );
+        } catch (DomainException $error) {
+            Response::fail('IMAGEN_INVALIDA', $error->getMessage(), 422);
+        }
+
+        Response::ok(['imagen_url' => $url], 201);
     }
 
     /**

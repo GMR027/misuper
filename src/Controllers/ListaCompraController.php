@@ -11,7 +11,7 @@ use App\Support\Response;
 use InvalidArgumentException;
 
 /**
- * CRUD de la lista "Productos por comprar" y puente hacia la pantalla rápida.
+ * Varias listas de compras por usuario y puente hacia la pantalla rápida.
  */
 final class ListaCompraController
 {
@@ -38,22 +38,20 @@ final class ListaCompraController
     }
 
     /**
-     * GET /api/lista-compras
+     * GET /api/listas-compra
      */
     public function index(): void
     {
         $usuario = AuthMiddleware::require();
-        $items = $this->lista->listar($usuario['id']);
 
         Response::ok([
-            'items' => $items,
-            'total' => count($items),
+            'items' => $this->lista->listas($usuario['id']),
             'pendientes' => $this->lista->contarPendientes($usuario['id']),
         ]);
     }
 
     /**
-     * POST /api/lista-compras
+     * POST /api/listas-compra
      */
     public function store(): void
     {
@@ -61,20 +59,16 @@ final class ListaCompraController
         CsrfMiddleware::enforce();
 
         try {
-            $items = $this->lista->crear($usuario['id'], $this->jsonBody());
+            $lista = $this->lista->crearLista($usuario['id'], $this->jsonBody());
         } catch (InvalidArgumentException $error) {
             Response::fail('VALIDATION_ERROR', $error->getMessage(), 422);
         }
 
-        Response::ok([
-            'items' => $items,
-            'total' => count($items),
-            'pendientes' => $this->lista->contarPendientes($usuario['id']),
-        ], 201);
+        Response::ok($lista, 201);
     }
 
     /**
-     * PUT /api/lista-compras/{id}
+     * PUT /api/listas-compra/{id}
      */
     public function update(int $id): void
     {
@@ -82,7 +76,86 @@ final class ListaCompraController
         CsrfMiddleware::enforce();
 
         try {
-            $item = $this->lista->actualizar($usuario['id'], $id, $this->jsonBody());
+            $lista = $this->lista->renombrarLista($usuario['id'], $id, $this->jsonBody());
+        } catch (InvalidArgumentException $error) {
+            Response::fail('VALIDATION_ERROR', $error->getMessage(), 422);
+        }
+
+        if ($lista === null) {
+            Response::fail('NOT_FOUND', 'Lista no encontrada.', 404);
+        }
+
+        Response::ok($lista);
+    }
+
+    /**
+     * DELETE /api/listas-compra/{id}
+     */
+    public function destroy(int $id): void
+    {
+        $usuario = AuthMiddleware::require();
+        CsrfMiddleware::enforce();
+
+        if (!$this->lista->eliminarLista($usuario['id'], $id)) {
+            Response::fail('NOT_FOUND', 'Lista no encontrada.', 404);
+        }
+
+        Response::ok(['deleted' => true]);
+    }
+
+    /**
+     * GET /api/listas-compra/{id}
+     */
+    public function show(int $id): void
+    {
+        $usuario = AuthMiddleware::require();
+        $data = $this->lista->items($usuario['id'], $id);
+
+        if ($data === null) {
+            Response::fail('NOT_FOUND', 'Lista no encontrada.', 404);
+        }
+
+        Response::ok([
+            'lista' => $data['lista'],
+            'items' => $data['items'],
+            'total' => count($data['items']),
+        ]);
+    }
+
+    /**
+     * POST /api/listas-compra/{id}/items
+     */
+    public function storeItems(int $id): void
+    {
+        $usuario = AuthMiddleware::require();
+        CsrfMiddleware::enforce();
+
+        try {
+            $items = $this->lista->agregarItems($usuario['id'], $id, $this->jsonBody());
+        } catch (InvalidArgumentException $error) {
+            Response::fail('VALIDATION_ERROR', $error->getMessage(), 422);
+        }
+
+        if ($items === null) {
+            Response::fail('NOT_FOUND', 'Lista no encontrada.', 404);
+        }
+
+        Response::ok([
+            'items' => $items,
+            'total' => count($items),
+        ], 201);
+    }
+
+    /**
+     * PUT /api/listas-compra/items/{itemId}
+     */
+    public function updateItem(int $itemId): void
+    {
+        $usuario = AuthMiddleware::require();
+        CsrfMiddleware::enforce();
+
+        try {
+            $item = $this->lista->actualizarItem($usuario['id'], $itemId, $this->jsonBody());
         } catch (InvalidArgumentException $error) {
             Response::fail('VALIDATION_ERROR', $error->getMessage(), 422);
         }
@@ -95,14 +168,14 @@ final class ListaCompraController
     }
 
     /**
-     * DELETE /api/lista-compras/{id}
+     * DELETE /api/listas-compra/items/{itemId}
      */
-    public function destroy(int $id): void
+    public function destroyItem(int $itemId): void
     {
         $usuario = AuthMiddleware::require();
         CsrfMiddleware::enforce();
 
-        if (!$this->lista->eliminar($usuario['id'], $id)) {
+        if (!$this->lista->eliminarItem($usuario['id'], $itemId)) {
             Response::fail('NOT_FOUND', 'Producto de la lista no encontrado.', 404);
         }
 
@@ -110,26 +183,26 @@ final class ListaCompraController
     }
 
     /**
-     * DELETE /api/lista-compras
+     * DELETE /api/listas-compra/{id}/items
      */
-    public function clear(): void
+    public function clear(int $id): void
     {
         $usuario = AuthMiddleware::require();
         CsrfMiddleware::enforce();
 
-        Response::ok(['deleted' => $this->lista->vaciar($usuario['id'])]);
+        Response::ok(['deleted' => $this->lista->vaciarLista($usuario['id'], $id)]);
     }
 
     /**
-     * POST /api/lista-compras/enviar
+     * POST /api/listas-compra/{id}/enviar
      */
-    public function enviar(): void
+    public function enviar(int $id): void
     {
         $usuario = AuthMiddleware::require();
         CsrfMiddleware::enforce();
 
         Response::ok([
-            'enviados' => $this->lista->enviar($usuario['id']),
+            'enviados' => $this->lista->enviarLista($usuario['id'], $id),
         ]);
     }
 
@@ -184,7 +257,7 @@ final class ListaCompraController
         $data = json_decode($raw, true);
 
         if (!is_array($data)) {
-            Response::fail('INVALID_JSON', 'El cuerpo de la petición no es JSON válido.', 400);
+            Response::fail('INVALID_JSON', 'El cuerpo de la petición no es válido.', 400);
         }
 
         return $data;

@@ -358,7 +358,7 @@ final class CompraService
     }
 
     /**
-     * @return array<int, array{id: int, nombre: string, categoria_id: int, unidad_base: string, imagen_url: string|null, veces_comprado: int}>
+     * @return array<int, array{id: int, nombre: string, categoria_id: int, unidad_base: string, imagen_url: string|null, veces_comprado: int, ultimo_precio: float|null}>
      */
     public function frecuentes(int $usuarioId): array
     {

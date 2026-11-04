@@ -565,7 +565,7 @@ STATE_HANDOFF — Fase 15.1 (Vista de lista en Resultados) — 2026-11-03
 
 STATE_HANDOFF — Fase 16 (Recetas + lista de compras) — 2026-11-03
 - Nueva sección `/recetas` con 100 recetas locales en `data/recetas.json`, filtros por tipo, tiempo, búsqueda y «solo con lo que he comprado». Los tipos iniciales son general, diabético, kosher, vegetariano y sin gluten, con avisos orientativos para las etiquetas de salud/religión.
-- Cada receta tiene porciones base y el detalle permite escalar cantidades. La despensa se infiere del historial de compras (`CompraRepository::despensa`), excluyendo Limpieza y Hogar.
+- Cada receta tiene porciones base y el detalle permite escalar cantidades. La despensa se infiere de la última compra del usuario (`CompraRepository::despensa($usuarioId, null, $compraId)` sobre `ultimaCompra`), ordenada por fecha e id, excluyendo Limpieza y Hogar.
 - Selección múltiple de recetas con porciones editables, preview de ingredientes agrupados y guardado en la lista personal.
 - `/lista-compras` implementa el CRUD de «Productos por comprar»: agregar manual, editar cantidad/unidad, eliminar, vaciar y enviar a la pantalla rápida.
 - El botón «Enviar a pantalla rápida» marca los pendientes y redirige a `/?lista=1`; la pantalla rápida consume los ítems, los fusiona con el carrito (sumando cantidades) y deja precio pendiente para asignar costos.
@@ -582,3 +582,36 @@ STATE_HANDOFF — Fase 17 (Favoritos + CRUD de recetas) — 2026-11-03
 - Migración 018: tablas `recetas` y `receta_favoritos`. Migración 019: seed de las 100 recetas base y copia de videos existentes de `recetas_videos` a las columnas nuevas.
 - Endpoints nuevos: `POST /api/recetas/{slug}/favorito`, `POST /api/recetas/proponer`, `GET/POST /api/admin/recetas`, `GET/PUT/DELETE /api/admin/recetas/{id}` y `POST /api/admin/recetas/{id}/publicar`.
 - Verificado por HTTP con usuario temporal: listado, favorito on/off, filtro de favoritas, propuesta pendiente, publicación, edición, borrado, video, preview de lista y CRUD de productos por comprar. Datos temporales eliminados.
+
+STATE_HANDOFF — Fase 18 (Tipos editables, portada y slider de navegación) — 2026-11-04
+- Migración 020: tabla `tipos_recetas` (seed de los 5 tipos base) y columna `recetas.imagen_url` para la portada de la tarjeta.
+- Nuevo CRUD de tipos en `/admin/recetas/tipos` con name/descripción/icono/aviso. Los tipos en uso no se pueden eliminar (409).
+- `RecetaService::tipos()` ahora lee de MySQL; el formulario de recetas usa esos tipos y el CRUD de recetas valida contra ellos.
+- El Admin puede agregar una imagen de portada por receta. La tarjeta usa `imagen_url` > miniatura de YouTube > icono; el detalle también muestra la portada.
+- El botón «Agregar ingrediente» abre un modal para buscar en el catálogo existente o registrar un producto nuevo con categoría y unidad. En Admin el producto se crea global; en propuestas de usuario se crea como producto propio.
+- La navegación superior ahora es un slider horizontal arrastrable con ratón/dedo y rueda; en móvil se muestra también en la cabecera además del dock inferior.
+- Verificado: migración limpia de 20 pasos con 5 tipos y 100 recetas, CRUD de tipos (crear/editar/borrar/proteger en uso), alta de receta con imagen, búsqueda/alta de producto desde el formulario y render de las pantallas. Sin commit ni deploy todavía.
+
+STATE_HANDOFF — Fase 19 (Porciones arriba, listas múltiples y slider de navegación) — 2026-11-04
+- El panel de recetas seleccionadas se movió arriba de las tarjetas, es sticky y muestra por receta el número de porciones y el botón «Generar lista» accesible.
+- Productos por comprar admite varias listas por usuario (`listas_compra` + `lista_compra_items.lista_id`, migración 021). Se puede crear, renombrar, seleccionar, vaciar y eliminar cada lista; los ítems existentes se migraron a «Mi lista».
+- Al generar una lista desde recetas se elige una lista existente o se crea una nueva; luego se abre `/lista-compras?id=...`.
+- El envío a pantalla rápida trabaja por lista seleccionada y el carrito consume todos los ítems enviados.
+- El slider de navegación superior ya no captura el puntero al hacer clic normal; solo arrastra tras superar 6 px, por lo que los enlaces vuelven a funcionar. En móvil la barra superior es visible y arrastrable.
+- Verificado por HTTP: crear lista, agregar/editar/enviar/consumir ítems, renombrar, borrar, preview de recetas y migración limpia de 21 pasos. Sin commit ni deploy todavía.
+- Portadas de recetas: se buscaron fotos de los 100 platillos en la web, se optimizaron a JPEG de 1200 px en `public/assets/img/recetas/<slug>.jpg` y se guardó la ruta local en `recetas.imagen_url`. El archivo `database/recetas-imagenes-origen.json` conserva la URL de origen de cada foto para trazabilidad.
+
+STATE_HANDOFF — Fase 20 (Categorías de platillo, subida de portadas y menú Admin) — 2026-11-04
+- Migración 022: tabla `categorias_recetas` con 10 categorías y `recetas.categoria_id`. Las 100 recetas quedaron asignadas (0 sin categoría).
+- CRUD admin de categorías en `/admin/recetas/categorias` (API `/api/admin/categorias-recetas`), con protección `409 CATEGORIA_EN_USO`.
+- Filtro público por categoría (`?categoria=bebidas`) combinable con el de dieta; chips separados “Categoría” y “Tipo de dieta”, badges en tarjeta y detalle.
+- Formulario de receta con selector de categoría obligatorio.
+- Subida de portada en el CRUD (`POST /api/admin/recetas/imagen` y `POST /api/recetas/imagen`): JPG/PNG/WebP hasta 5 MB, re-codificada a JPEG 1600 px y guardada en `public/uploads/recetas`. El campo de URL se conserva y acepta rutas locales.
+- El nav superior agrupa las secciones de administración en un botón «Admin» con submenú desplegable (Catálogo, Categorías, Tipos, Productos, Usuarios). Validado también en el menú móvil.
+
+STATE_HANDOFF — Fase 21 (Último precio por usuario en la calculadora) — 2026-11-04
+- `CompraRepository::frecuentes()` y `buscarActivos()` ahora devuelven `ultimo_precio` (precio por unidad base) calculado del último `compra_items` del usuario por producto, con `ROW_NUMBER() OVER (PARTITION BY producto_id ORDER BY fecha DESC, id DESC)`.
+- El costo unitario se obtiene de `precio_total / cantidad`; se ignora `cantidad = 0` y solo aplica a productos del catálogo (`producto_id` no nulo).
+- `pantalla-rapida.js` precarga la calculadora con `product.ultimo_precio` (si es mayor que 0); si no existe cae al último precio guardado en localStorage y, si tampoco, deja el campo vacío.
+- El precio es por usuario, por lo que cada cuenta/región mantiene el suyo; al guardar o editar una compra el valor de referencia se actualiza solo.
+- Verificado con la BD local: la consulta devuelve el último precio correcto y `NULL` para productos nunca comprados. Sin migración nueva ni cambios en el guardado de compras.

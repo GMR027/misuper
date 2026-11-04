@@ -174,6 +174,11 @@
     backdrop-filter: blur(4px);
 }
 
+.recipe-badge--categoria {
+    color: #fff;
+    background: var(--p-700, #0f7a57);
+}
+
 .recipe-card__body {
     display: flex;
     flex-direction: column;
@@ -569,24 +574,83 @@
 /* Formulario de recetas (Admin y propuestas) -------------------------- */
 
 .receta-form__tipos {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem 0.8rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 0.6rem;
 }
 
-.receta-form__tipo {
-    margin: 0;
-    padding: 0.4rem 0.65rem;
+.receta-form__tipo-card {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    min-height: 5.2rem;
+    padding: 0.8rem;
+    cursor: pointer;
     background: var(--surface-2);
     border: 1px solid var(--border);
-    border-radius: 0.6rem;
+    border-radius: 0.8rem;
+    transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
-.receta-form__tipo .form-check-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.84rem;
+.receta-form__tipo-card:hover {
+    border-color: var(--p-300);
+    background: var(--p-50);
+    transform: translateY(-1px);
+}
+
+.receta-form__tipo-card.is-active,
+.receta-form__tipo-card:has(input:checked) {
+    border-color: var(--p-400);
+    background: linear-gradient(135deg, var(--p-50), var(--surface));
+    box-shadow: inset 0 0 0 1px rgba(var(--p-rgb), 0.12);
+}
+
+.receta-form__tipo-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 2.2rem;
+    width: 2.2rem;
+    height: 2.2rem;
+    color: var(--p-800);
+    background: var(--p-100);
+    border-radius: 0.65rem;
+}
+
+.receta-form__tipo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.receta-form__tipo-text strong {
+    font-size: 0.88rem;
+    line-height: 1.2;
+}
+
+.receta-form__tipo-text small {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 0.73rem;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.receta-form__tipo-check {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    color: var(--p-600);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.receta-form__tipo-card.is-active .receta-form__tipo-check,
+.receta-form__tipo-card:has(input:checked) .receta-form__tipo-check {
+    opacity: 1;
 }
 
 .receta-form__ingredientes {
@@ -627,4 +691,149 @@
     .receta-form__ingrediente > :first-child {
         grid-column: 1 / -1;
     }
+}
+
+/* Modal para buscar/crear ingredientes -------------------------------- */
+
+.receta-ing-modal__resultados {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 18rem;
+    overflow-y: auto;
+}
+
+.receta-ing-modal__resultado {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.55rem 0.65rem;
+    text-align: left;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 0.65rem;
+    transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+
+.receta-ing-modal__resultado:hover {
+    border-color: var(--p-300);
+    background: var(--p-50);
+    transform: translateX(2px);
+}
+
+.receta-ing-modal__resultado-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 2rem;
+    width: 2rem;
+    height: 2rem;
+    color: var(--p-800);
+    background: var(--p-100);
+    border-radius: 0.55rem;
+}
+
+.receta-ing-modal__resultado-texto {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.receta-ing-modal__resultado-texto strong {
+    font-size: 0.86rem;
+}
+
+.receta-ing-modal__resultado-texto small {
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.receta-ing-modal__resultado > .bi-plus-circle {
+    color: var(--p-600);
+    font-size: 1.1rem;
+}
+
+.receta-ing-modal__nuevo {
+    padding: 0.85rem;
+    background: var(--surface-2);
+    border: 1px dashed var(--border-strong);
+    border-radius: 0.75rem;
+}
+
+.recipe-detail__cover {
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    margin-bottom: 1rem;
+    background: var(--surface-3);
+    border-radius: 0.85rem;
+}
+
+.recipe-detail__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Panel de selección accesible arriba de las tarjetas ------------------ */
+
+.recipe-selection {
+    position: sticky;
+    top: 0.75rem;
+    z-index: 1020;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.75rem 0.85rem;
+    margin-bottom: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 0.9rem;
+    box-shadow: 0 14px 34px rgba(var(--shadow-rgb), 0.16);
+}
+
+.recipe-selection__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.recipe-selection .recipe-tray__items {
+    max-height: 13rem;
+    overflow-y: auto;
+    margin-bottom: 0;
+}
+
+@media (max-width: 575.98px) {
+    .recipe-selection {
+        position: static;
+        margin-top: 0.25rem;
+    }
+
+    .recipe-selection__head > div {
+        width: 100%;
+    }
+
+    .recipe-selection__head .btn {
+        flex: 1 1 auto;
+    }
+}
+
+/* Vista previa de la portada en el formulario --------------------------- */
+
+.receta-portada-preview {
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--surface-2, rgba(var(--ink-rgb), 0.04));
+    border: 1px dashed var(--border-strong);
+    border-radius: 0.75rem;
+}
+
+.receta-portada-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }

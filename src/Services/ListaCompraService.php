@@ -9,7 +9,7 @@ use App\Repositories\ProductoRepository;
 use InvalidArgumentException;
 
 /**
- * Reglas de la lista personal "Productos por comprar".
+ * Reglas de las listas personales «Productos por comprar».
  */
 final class ListaCompraService
 {
@@ -31,19 +31,75 @@ final class ListaCompraService
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function listar(int $usuarioId): array
+    public function listas(int $usuarioId): array
     {
-        return $this->lista->listByUser($usuarioId);
+        return $this->lista->listsByUser($usuarioId);
     }
 
     /**
-     * Acepta un ítem o un arreglo {items: [...]}. Devuelve la lista completa.
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    public function crearLista(int $usuarioId, array $data): array
+    {
+        $nombre = trim((string) ($data['nombre'] ?? ''));
+
+        if ($nombre === '' || mb_strlen($nombre) > 100) {
+            throw new InvalidArgumentException('El nombre de la lista debe tener entre 1 y 100 caracteres.');
+        }
+
+        return $this->lista->createList($usuarioId, $nombre);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>|null
+     */
+    public function renombrarLista(int $usuarioId, int $listId, array $data): ?array
+    {
+        $nombre = trim((string) ($data['nombre'] ?? ''));
+
+        if ($nombre === '' || mb_strlen($nombre) > 100) {
+            throw new InvalidArgumentException('El nombre de la lista debe tener entre 1 y 100 caracteres.');
+        }
+
+        return $this->lista->updateList($listId, $usuarioId, $nombre);
+    }
+
+    public function eliminarLista(int $usuarioId, int $listId): bool
+    {
+        return $this->lista->deleteList($listId, $usuarioId);
+    }
+
+    /**
+     * @return array{lista: array<string, mixed>, items: array<int, array<string, mixed>>}|null
+     */
+    public function items(int $usuarioId, int $listId): ?array
+    {
+        $lista = $this->lista->findListOwned($listId, $usuarioId);
+
+        if ($lista === null) {
+            return null;
+        }
+
+        return [
+            'lista' => $lista,
+            'items' => $this->lista->itemsByList($listId, $usuarioId),
+        ];
+    }
+
+    /**
+     * Acepta un ítem o un arreglo {items: [...]}. Devuelve los ítems de la lista.
      *
      * @param array<string, mixed> $data
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array<string, mixed>>|null
      */
-    public function crear(int $usuarioId, array $data): array
+    public function agregarItems(int $usuarioId, int $listId, array $data): ?array
     {
+        if ($this->lista->findListOwned($listId, $usuarioId) === null) {
+            return null;
+        }
+
         $items = isset($data['items']) && is_array($data['items'])
             ? $data['items']
             : [$data];
@@ -70,14 +126,14 @@ final class ListaCompraService
             throw new InvalidArgumentException('No hay productos válidos para agregar.');
         }
 
-        return $this->lista->createMany($usuarioId, $normalizados);
+        return $this->lista->createMany($usuarioId, $listId, $normalizados);
     }
 
     /**
      * @param array<string, mixed> $data
      * @return array<string, mixed>|null
      */
-    public function actualizar(int $usuarioId, int $id, array $data): ?array
+    public function actualizarItem(int $usuarioId, int $itemId, array $data): ?array
     {
         $campos = [];
 
@@ -92,8 +148,7 @@ final class ListaCompraService
         }
 
         if (array_key_exists('cantidad', $data)) {
-            $cantidad = $this->cantidad($data['cantidad']);
-            $campos['cantidad'] = $cantidad;
+            $campos['cantidad'] = $this->cantidad($data['cantidad']);
         }
 
         if (array_key_exists('unidad_base', $data)) {
@@ -106,22 +161,22 @@ final class ListaCompraService
             $campos['unidad_base'] = $unidad;
         }
 
-        return $this->lista->update($id, $usuarioId, $campos);
+        return $this->lista->updateItem($itemId, $usuarioId, $campos);
     }
 
-    public function eliminar(int $usuarioId, int $id): bool
+    public function eliminarItem(int $usuarioId, int $itemId): bool
     {
-        return $this->lista->delete($id, $usuarioId);
+        return $this->lista->deleteItem($itemId, $usuarioId);
     }
 
-    public function vaciar(int $usuarioId): int
+    public function vaciarLista(int $usuarioId, int $listId): int
     {
-        return $this->lista->clear($usuarioId);
+        return $this->lista->clearList($listId, $usuarioId);
     }
 
-    public function enviar(int $usuarioId): int
+    public function enviarLista(int $usuarioId, int $listId): int
     {
-        return $this->lista->markEnviado($usuarioId);
+        return $this->lista->markEnviado($listId, $usuarioId);
     }
 
     /**

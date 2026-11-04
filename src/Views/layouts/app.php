@@ -20,6 +20,7 @@ $styles ??= [];
 $active ??= '';
 $ocultarNav ??= false;
 $esAdmin = ($usuario['rol'] ?? '') === 'admin';
+$esAdminActivo = in_array($active, ['admin-recetas', 'admin-tipos', 'admin-categorias', 'admin-productos', 'admin-usuarios'], true);
 
 $partesNombre = preg_split('/\s+/u', trim((string) ($usuario['nombre'] ?? ''))) ?: [];
 $iniciales = '';
@@ -83,7 +84,7 @@ if ($avatarEsPreset) {
             </a>
 
             <?php if (!$ocultarNav): ?>
-                <nav class="app-nav" aria-label="Navegación principal">
+                <nav class="app-nav" data-nav-slider aria-label="Navegación principal">
                     <a class="app-nav__link<?= $active === 'inicio' ? ' is-active' : '' ?>" href="/">
                         <i class="bi bi-house-door-fill" aria-hidden="true"></i>
                         <span>Pantalla rápida</span>
@@ -117,20 +118,21 @@ if ($avatarEsPreset) {
                         <span>Ajustes</span>
                     </a>
                     <?php if ($esAdmin): ?>
-                        <a class="app-nav__link<?= $active === 'admin-recetas' ? ' is-active' : '' ?>" href="/admin/recetas">
-                            <i class="bi bi-egg-fried" aria-hidden="true"></i>
-                            <span>Recetas</span>
-                        </a>
-                        <a class="app-nav__link<?= $active === 'admin-productos' ? ' is-active' : '' ?>" href="/admin/productos">
-                            <i class="bi bi-box-seam" aria-hidden="true"></i>
-                            <span>Productos</span>
-                        </a>
-                        <a class="app-nav__link<?= $active === 'admin-usuarios' ? ' is-active' : '' ?>" href="/admin/usuarios">
-                            <i class="bi bi-people-fill" aria-hidden="true"></i>
-                            <span>Usuarios</span>
-                        </a>
+                        <button
+                            class="app-nav__link app-nav__admin-toggle<?= $esAdminActivo ? ' is-active' : '' ?>"
+                            type="button"
+                            data-admin-menu-toggle
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="admin-menu"
+                        >
+                            <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
+                            <span>Admin</span>
+                            <i class="bi bi-chevron-down app-nav__admin-chevron" aria-hidden="true"></i>
+                        </button>
                     <?php endif; ?>
                 </nav>
+
             <?php endif; ?>
 
             <div class="app-header__account">
@@ -153,6 +155,47 @@ if ($avatarEsPreset) {
             </div>
         </div>
     </header>
+
+    <?php if ($esAdmin): ?>
+        <div class="admin-menu" id="admin-menu" data-admin-menu hidden>
+            <p class="admin-menu__label">Administración</p>
+            <a class="admin-menu__link<?= $active === 'admin-recetas' ? ' is-active' : '' ?>" href="/admin/recetas">
+                <span class="admin-menu__icon"><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
+                <span>
+                    <strong>Catálogo de recetas</strong>
+                    <small>Crear, editar y publicar recetas</small>
+                </span>
+            </a>
+            <a class="admin-menu__link<?= $active === 'admin-categorias' ? ' is-active' : '' ?>" href="/admin/recetas/categorias">
+                <span class="admin-menu__icon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i></span>
+                <span>
+                    <strong>Categorías</strong>
+                    <small>Bebidas, guisados, ensaladas…</small>
+                </span>
+            </a>
+            <a class="admin-menu__link<?= $active === 'admin-tipos' ? ' is-active' : '' ?>" href="/admin/recetas/tipos">
+                <span class="admin-menu__icon"><i class="bi bi-tags-fill" aria-hidden="true"></i></span>
+                <span>
+                    <strong>Tipos de dieta</strong>
+                    <small>Vegetariano, sin gluten, kosher…</small>
+                </span>
+            </a>
+            <a class="admin-menu__link<?= $active === 'admin-productos' ? ' is-active' : '' ?>" href="/admin/productos">
+                <span class="admin-menu__icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                <span>
+                    <strong>Productos</strong>
+                    <small>Catálogo y fotografías</small>
+                </span>
+            </a>
+            <a class="admin-menu__link<?= $active === 'admin-usuarios' ? ' is-active' : '' ?>" href="/admin/usuarios">
+                <span class="admin-menu__icon"><i class="bi bi-people-fill" aria-hidden="true"></i></span>
+                <span>
+                    <strong>Usuarios</strong>
+                    <small>Cuentas y roles</small>
+                </span>
+            </a>
+        </div>
+    <?php endif; ?>
 
     <?php if (!$ocultarNav): ?>
         <nav class="app-dock" data-dock aria-label="Navegación rápida">
@@ -274,7 +317,12 @@ if ($avatarEsPreset) {
                         <p class="dock-menu__label">Administración</p>
                         <a class="dock-menu__link<?= $active === 'admin-recetas' ? ' is-active' : '' ?>" href="/admin/recetas">
                             <span class="dock-menu__icon"><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
-                            <span class="dock-menu__text">Recetas</span>
+                            <span class="dock-menu__text">Catálogo de recetas</span>
+                            <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
+                        </a>
+                        <a class="dock-menu__link<?= $active === 'admin-categorias' ? ' is-active' : '' ?>" href="/admin/recetas/categorias">
+                            <span class="dock-menu__icon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i></span>
+                            <span class="dock-menu__text">Categorías de recetas</span>
                             <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
                         </a>
                         <a class="dock-menu__link<?= $active === 'admin-productos' ? ' is-active' : '' ?>" href="/admin/productos">
@@ -302,6 +350,8 @@ if ($avatarEsPreset) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <?php if (!$ocultarNav): ?>
         <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/dock.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+        <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/nav-slider.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+        <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/admin-menu.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
     <?php endif; ?>
     <?php foreach ($scripts as $script): ?>
         <script type="module" src="<?= htmlspecialchars(Asset::url($script), ENT_QUOTES, 'UTF-8') ?>"></script>

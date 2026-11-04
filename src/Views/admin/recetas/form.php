@@ -13,7 +13,9 @@ if ($usuario === null) {
 
 $receta = $receta ?? null;
 $recetaId = isset($recetaId) ? (int) $recetaId : null;
-$tipos = (new RecetaService())->tipos();
+$servicioRecetas = new RecetaService();
+$tipos = $servicioRecetas->tipos();
+$categorias = $servicioRecetas->categorias();
 $modo = 'admin';
 
 ob_start();
@@ -48,7 +50,7 @@ ob_start();
 $content = (string) ob_get_clean();
 $title = ($recetaId === null ? 'Nueva receta' : 'Editar receta') . ' · Admin';
 $scripts = ['/assets/js/pages/receta-form.js'];
-$styles = ['/assets/css/admin.css', '/assets/css/recetas.css'];
+$styles = ['/assets/css/pantalla-rapida.css', '/assets/css/admin.css', '/assets/css/recetas.css'];
 $active = 'admin-recetas';
 
 require __DIR__ . '/../../layouts/app.php';

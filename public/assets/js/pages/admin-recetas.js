@@ -109,6 +109,14 @@ function init(root) {
         slug.textContent = String(item.slug ?? '');
         nombre.append(titulo, slug);
 
+        const categoria = document.createElement('td');
+        const categoriaBadge = document.createElement('span');
+        categoriaBadge.className = 'badge text-bg-success';
+        categoriaBadge.textContent = item.categoria
+            ? String(item.categoria.nombre ?? '')
+            : 'Sin categoría';
+        categoria.append(categoriaBadge);
+
         const tipos = document.createElement('td');
         const badges = document.createElement('div');
         badges.className = 'd-flex flex-wrap gap-1';
@@ -173,7 +181,7 @@ function init(root) {
         grupo.append(editar, eliminar);
         acciones.append(grupo);
 
-        row.append(nombre, tipos, estadoCell, autor, video, acciones);
+        row.append(nombre, categoria, tipos, estadoCell, autor, video, acciones);
 
         return row;
     }

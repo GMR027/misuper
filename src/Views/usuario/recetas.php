@@ -54,7 +54,7 @@ ob_start();
     <section class="card recipe-filters mb-4" aria-label="Filtros de recetas">
         <div class="card-body">
             <div class="row g-3 align-items-end">
-                <div class="col-12 col-lg-4">
+                <div class="col-12 col-lg-5">
                     <label class="form-label" for="receta-q">Buscar</label>
                     <div class="recipe-search">
                         <i class="bi bi-search" aria-hidden="true"></i>
@@ -79,21 +79,14 @@ ob_start();
                     </select>
                 </div>
 
-                <div class="col-6 col-lg-3">
-                    <label class="form-label" for="receta-periodo">Historial</label>
-                    <select class="form-select" id="receta-periodo" data-receta-periodo>
-                        <option value="todo">Todas mis compras</option>
-                        <option value="90">Últimos 90 días</option>
-                    </select>
-                </div>
-
-                <div class="col-12 col-lg-3">
+                <div class="col-12 col-lg-5">
                     <div class="d-flex flex-column gap-2">
                         <div class="form-check form-switch recipe-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="receta-solo-despensa" data-receta-solo>
                             <label class="form-check-label" for="receta-solo-despensa">
                                 Solo con lo que he comprado
                             </label>
+                            <span class="form-text d-block">Usa los productos de tu última compra.</span>
                         </div>
                         <div class="form-check form-switch recipe-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="receta-favoritas" data-receta-favoritas>
@@ -105,13 +98,42 @@ ob_start();
                 </div>
             </div>
 
-            <div class="recipe-type-chips mt-3" data-receta-tipos role="group" aria-label="Filtrar por tipo de receta">
-                <span class="text-muted small">Cargando tipos…</span>
+            <div class="mt-3">
+                <p class="form-label mb-2">Categoría</p>
+                <div class="recipe-type-chips" data-receta-categorias role="group" aria-label="Filtrar por categoría de platillo">
+                    <span class="text-muted small">Cargando categorías…</span>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <p class="form-label mb-2">Tipo de dieta</p>
+                <div class="recipe-type-chips" data-receta-tipos role="group" aria-label="Filtrar por tipo de receta">
+                    <span class="text-muted small">Cargando tipos…</span>
+                </div>
             </div>
 
             <p class="recipe-type-note mt-2 mb-0" data-receta-tipo-aviso hidden></p>
         </div>
     </section>
+
+    <div class="recipe-selection" data-seleccion hidden>
+        <div class="recipe-selection__head">
+            <span class="recipe-tray__title">
+                <i class="bi bi-basket2-fill" aria-hidden="true"></i>
+                <span data-seleccion-count>0 recetas seleccionadas</span>
+            </span>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-seleccion-limpiar>
+                    Limpiar
+                </button>
+                <button class="btn btn-sm btn-primary" type="button" data-preview>
+                    <i class="bi bi-list-check" aria-hidden="true"></i>
+                    Generar lista
+                </button>
+            </div>
+        </div>
+        <div class="recipe-tray__items" data-seleccion-items></div>
+    </div>
 
     <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-2">
         <p class="text-muted small mb-0" data-recetas-despensa></p>
@@ -122,24 +144,6 @@ ob_start();
 
     <div class="recipe-empty alert alert-info mt-3" data-recetas-empty hidden></div>
 
-    <div class="recipe-tray" data-seleccion hidden>
-        <div class="recipe-tray__inner">
-            <div class="recipe-tray__head">
-                <span class="recipe-tray__title">
-                    <i class="bi bi-basket2-fill" aria-hidden="true"></i>
-                    <span data-seleccion-count>0 recetas seleccionadas</span>
-                </span>
-                <button class="btn btn-sm btn-outline-secondary" type="button" data-seleccion-limpiar>
-                    Limpiar
-                </button>
-            </div>
-            <div class="recipe-tray__items" data-seleccion-items></div>
-            <button class="btn btn-primary w-100" type="button" data-preview>
-                <i class="bi bi-list-check" aria-hidden="true"></i>
-                Generar lista de compras
-            </button>
-        </div>
-    </div>
 </div>
 
 <div class="app-modal" data-receta-modal hidden role="dialog" aria-modal="true" aria-labelledby="receta-detalle-title">
@@ -165,6 +169,20 @@ ob_start();
                 <button class="btn-close" type="button" aria-label="Cerrar" data-preview-cerrar></button>
             </div>
             <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label" for="preview-lista-select">Guardar en</label>
+                    <select class="form-select" id="preview-lista-select" data-preview-lista>
+                        <option value="">Cargando listas…</option>
+                    </select>
+                    <input
+                        class="form-control mt-2"
+                        type="text"
+                        maxlength="100"
+                        placeholder="Nombre de la nueva lista"
+                        data-preview-nueva
+                        hidden
+                    >
+                </div>
                 <p class="text-muted small" data-preview-resumen></p>
                 <p class="text-muted small" data-preview-status></p>
                 <div class="recipe-preview-list" data-preview-items></div>

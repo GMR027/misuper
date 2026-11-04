@@ -19,10 +19,10 @@ ob_start();
         <div>
             <h2 class="mb-1">
                 <span class="title-icon"><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
-                Recetas
+                Catálogo de recetas
             </h2>
             <p class="text-muted mb-0">
-                Crea, edita, publica o elimina recetas. Las propuestas de usuarios llegan como pendientes.
+                Administra el recetario: crea, edita, publica o elimina recetas. Las propuestas de usuarios llegan como pendientes.
             </p>
         </div>
 
@@ -30,6 +30,14 @@ ob_start();
             <a class="btn btn-outline-secondary" href="/recetas" target="_blank" rel="noopener">
                 <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
                 Ver recetario
+            </a>
+            <a class="btn btn-outline-primary" href="/admin/recetas/categorias">
+                <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+                Categorías
+            </a>
+            <a class="btn btn-outline-primary" href="/admin/recetas/tipos">
+                <i class="bi bi-tags" aria-hidden="true"></i>
+                Tipos
             </a>
             <a class="btn btn-primary" href="/admin/recetas/nuevo">
                 <i class="bi bi-plus-lg" aria-hidden="true"></i>
@@ -79,6 +87,7 @@ ob_start();
             <thead class="table-light">
                 <tr>
                     <th scope="col">Receta</th>
+                    <th scope="col">Categoría</th>
                     <th scope="col">Tipos</th>
                     <th scope="col">Estado</th>
                     <th scope="col">Autor</th>
@@ -88,7 +97,7 @@ ob_start();
             </thead>
             <tbody data-admin-recetas-body>
                 <tr>
-                    <td class="text-center text-muted py-4" colspan="6">Cargando recetas…</td>
+                    <td class="text-center text-muted py-4" colspan="7">Cargando recetas…</td>
                 </tr>
             </tbody>
         </table>

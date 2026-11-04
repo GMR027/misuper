@@ -22,7 +22,7 @@ import {
     todayISO,
 } from '../modules/format.js';
 import { iconoCategoria } from '../modules/categorias.js';
-import { guardarPrecioUnidad, leerPrecioUnidad } from '../modules/precios.js';
+import { guardarPrecioUnidad, leerPrecioUnidad, redondearImporte } from '../modules/precios.js';
 import { registerRenderer, render, setState, state } from '../modules/state.js';
 import { showToast } from '../modules/toast.js';
 
@@ -572,7 +572,13 @@ async function init(root) {
         }
 
         if (precioInput instanceof HTMLInputElement) {
-            const precioGuardado = leerPrecioUnidad(product.id);
+            const precioServidor = product?.ultimo_precio;
+            const precioGuardado = typeof precioServidor === 'number'
+                && Number.isFinite(precioServidor)
+                && precioServidor > 0
+                ? redondearImporte(precioServidor)
+                : leerPrecioUnidad(product.id);
+
             precioInput.value = precioGuardado === null ? '' : String(precioGuardado);
         }
 

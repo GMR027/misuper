@@ -13,8 +13,8 @@ use PDO;
  */
 final class RecetaRepository
 {
-    private const COLUMNS = 'r.id, r.slug, r.nombre, r.descripcion, r.tipos,
-        r.porciones_base, r.tiempo_min, r.dificultad, r.ingredientes, r.pasos,
+    private const COLUMNS = 'r.id, r.slug, r.nombre, r.descripcion, r.tipos, r.categoria_id,
+        r.porciones_base, r.tiempo_min, r.dificultad, r.ingredientes, r.pasos, r.imagen_url,
         r.video_youtube_id, r.video_titulo, r.estado, r.creada_por,
         (SELECT u.nombre FROM usuarios u WHERE u.id = r.creada_por) AS creador_nombre,
         r.created_at, r.updated_at';
@@ -101,21 +101,23 @@ final class RecetaRepository
 
         $statement = $this->pdo->prepare(
             'INSERT INTO recetas
-                (slug, nombre, descripcion, tipos, porciones_base, tiempo_min,
-                 dificultad, ingredientes, pasos, video_youtube_id, video_titulo,
+                (slug, nombre, descripcion, tipos, categoria_id, porciones_base, tiempo_min,
+                 dificultad, ingredientes, pasos, imagen_url, video_youtube_id, video_titulo,
                  estado, creada_por)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $statement->execute([
             $slug,
             $data['nombre'],
             $data['descripcion'],
             json_encode($data['tipos'], JSON_UNESCAPED_UNICODE),
+            $data['categoria_id'],
             $data['porciones_base'],
             $data['tiempo_min'],
             $data['dificultad'],
             json_encode($data['ingredientes'], JSON_UNESCAPED_UNICODE),
             json_encode($data['pasos'], JSON_UNESCAPED_UNICODE),
+            $data['imagen_url'],
             $data['video_youtube_id'],
             $data['video_titulo'],
             $estado,
@@ -142,6 +144,7 @@ final class RecetaRepository
             'tipos' => function (mixed $value): string {
                 return json_encode($value, JSON_UNESCAPED_UNICODE);
             },
+            'categoria_id' => null,
             'porciones_base' => null,
             'tiempo_min' => null,
             'dificultad' => null,
@@ -151,6 +154,7 @@ final class RecetaRepository
             'pasos' => function (mixed $value): string {
                 return json_encode($value, JSON_UNESCAPED_UNICODE);
             },
+            'imagen_url' => null,
             'video_youtube_id' => null,
             'video_titulo' => null,
             'estado' => null,
@@ -271,11 +275,15 @@ final class RecetaRepository
             'nombre' => (string) $row['nombre'],
             'descripcion' => (string) $row['descripcion'],
             'tipos' => $this->decodificar($row['tipos']),
+            'categoria_id' => isset($row['categoria_id']) && $row['categoria_id'] !== null
+                ? (int) $row['categoria_id']
+                : null,
             'porciones_base' => (int) $row['porciones_base'],
             'tiempo_min' => (int) $row['tiempo_min'],
             'dificultad' => (string) $row['dificultad'],
             'ingredientes' => $this->decodificar($row['ingredientes']),
             'pasos' => $this->decodificar($row['pasos']),
+            'imagen_url' => isset($row['imagen_url']) ? (string) $row['imagen_url'] : null,
             'video_youtube_id' => isset($row['video_youtube_id']) ? (string) $row['video_youtube_id'] : null,
             'video_titulo' => isset($row['video_titulo']) ? (string) $row['video_titulo'] : null,
             'estado' => (string) $row['estado'],

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Repositories\CategoriaRecetaRepository;
 use App\Repositories\CompraRepository;
 use App\Repositories\ProductoRepository;
 use App\Repositories\RecetaRepository;
+use App\Repositories\TipoRecetaRepository;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -25,20 +27,30 @@ final class RecetaService
     private const DIFICULTADES = ['facil', 'media', 'dificil'];
     private const ESTADOS = ['publicada', 'pendiente', 'borrador'];
 
-    private static ?array $tipos = null;
+    private ?array $tiposCache = null;
+    private ?array $categoriasCache = null;
 
     private readonly CompraRepository $compras;
     private readonly ProductoRepository $productos;
     private readonly RecetaRepository $recetas;
+    private readonly TipoRecetaRepository $tiposRepo;
+    private readonly CategoriaRecetaRepository $categoriasRepo;
+    private readonly RecetaImagenService $imagenes;
 
     public function __construct(
         ?CompraRepository $compras = null,
         ?ProductoRepository $productos = null,
-        ?RecetaRepository $recetas = null
+        ?RecetaRepository $recetas = null,
+        ?TipoRecetaRepository $tiposRepo = null,
+        ?CategoriaRecetaRepository $categoriasRepo = null,
+        ?RecetaImagenService $imagenes = null
     ) {
         $this->compras = $compras ?? new CompraRepository();
         $this->productos = $productos ?? new ProductoRepository();
         $this->recetas = $recetas ?? new RecetaRepository();
+        $this->tiposRepo = $tiposRepo ?? new TipoRecetaRepository();
+        $this->categoriasRepo = $categoriasRepo ?? new CategoriaRecetaRepository();
+        $this->imagenes = $imagenes ?? new RecetaImagenService();
     }
 
     /**
@@ -46,49 +58,93 @@ final class RecetaService
      */
     public function tipos(): array
     {
-        if (self::$tipos !== null) {
-            return self::$tipos;
+        if ($this->tiposCache !== null) {
+            return $this->tiposCache;
         }
 
-        $path = BASE_PATH . '/data/tipos_recetas.json';
-        $raw = is_file($path) ? file_get_contents($path) : false;
-        $data = $raw === false ? [] : json_decode($raw, true);
         $tipos = [];
 
-        if (is_array($data)) {
-            foreach ($data as $tipo) {
-                if (is_array($tipo) && isset($tipo['slug'])) {
-                    $tipos[(string) $tipo['slug']] = $tipo;
-                }
-            }
+        foreach ($this->tiposRepo->all() as $tipo) {
+            $tipos[(string) $tipo['slug']] = $tipo;
         }
 
-        self::$tipos = $tipos;
+        $this->tiposCache = $tipos;
 
         return $tipos;
     }
 
     /**
-     * @param array{q?: string, tipo?: string, tiempo?: string, solo_despensa?: bool|int|string, periodo?: string, favoritas?: bool|int|string} $filtros
+     * @return array<int, array<string, mixed>>
+     */
+    public function categorias(): array
+    {
+        if ($this->categoriasCache !== null) {
+            return $this->categoriasCache;
+        }
+
+        $this->categoriasCache = array_map(
+            static fn (array $categoria): array => $categoria,
+            $this->categoriasRepo->all()
+        );
+
+        return $this->categoriasCache;
+    }
+
+    /**
+     * @param array<string, mixed> $receta
+     * @return array<string, mixed>|null
+     */
+    private function categoriaDe(array $receta): ?array
+    {
+        $id = $receta['categoria_id'] ?? null;
+
+        if ($id === null) {
+            return null;
+        }
+
+        foreach ($this->categorias() as $categoria) {
+            if ((int) $categoria['id'] === (int) $id) {
+                return $categoria;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array{q?: string, categoria?: string, tipo?: string, tiempo?: string, solo_despensa?: bool|int|string, favoritas?: bool|int|string} $filtros
      * @return array{items: array<int, array<string, mixed>>, total: int, despensa: array<string, mixed>, tipos: array<int, array<string, mixed>>}
      */
     public function listar(int $usuarioId, array $filtros): array
     {
         $q = NormalizadorService::normalizar((string) ($filtros['q'] ?? ''));
+        $categoria = (string) ($filtros['categoria'] ?? '');
         $tipo = (string) ($filtros['tipo'] ?? '');
         $tiempo = (int) ($filtros['tiempo'] ?? 0);
         $soloDespensa = filter_var($filtros['solo_despensa'] ?? false, FILTER_VALIDATE_BOOL);
         $soloFavoritas = filter_var($filtros['favoritas'] ?? false, FILTER_VALIDATE_BOOL);
-        $periodo = (string) ($filtros['periodo'] ?? 'todo');
-        $dias = $periodo === '90' ? 90 : null;
 
-        $despensa = $this->compras->despensa($usuarioId, $dias);
+        $ultimaCompra = $this->compras->ultimaCompra($usuarioId);
+        $despensa = $ultimaCompra === null
+            ? []
+            : $this->compras->despensa($usuarioId, null, $ultimaCompra['id']);
         $pantry = $this->indiceDespensa($despensa);
+        $sinCompras = $soloDespensa && $ultimaCompra === null;
         $favoritos = array_flip($this->recetas->favoritos($usuarioId));
         $items = [];
 
         foreach ($this->recetas->allPublic() as $receta) {
+            if ($sinCompras) {
+                break;
+            }
+
             if ($soloFavoritas && !isset($favoritos[$receta['id']])) {
+                continue;
+            }
+
+            $categoriaReceta = $this->categoriaDe($receta);
+
+            if ($categoria !== '' && ($categoriaReceta['slug'] ?? '') !== $categoria) {
                 continue;
             }
 
@@ -127,10 +183,13 @@ final class RecetaService
                 'slug' => (string) $receta['slug'],
                 'nombre' => (string) $receta['nombre'],
                 'descripcion' => (string) ($receta['descripcion'] ?? ''),
+                'imagen_url' => $receta['imagen_url'] ?? null,
+                'categoria' => $categoriaReceta,
                 'tipos' => array_values($receta['tipos'] ?? []),
                 'porciones_base' => (int) ($receta['porciones_base'] ?? 4),
                 'tiempo_min' => (int) ($receta['tiempo_min'] ?? 0),
                 'dificultad' => (string) ($receta['dificultad'] ?? 'facil'),
+                'imagen_url' => $receta['imagen_url'] ?? null,
                 'coincidencia' => $match['coincidencia'],
                 'tiene_count' => $match['tiene_count'],
                 'total_ingredientes' => $match['total'],
@@ -158,10 +217,13 @@ final class RecetaService
             'items' => $items,
             'total' => count($items),
             'despensa' => [
+                'modo' => 'ultima',
                 'total_productos' => count($despensa),
-                'periodo' => $periodo === '90' ? '90' : 'todo',
+                'compra_id' => $ultimaCompra['id'] ?? null,
+                'fecha' => $ultimaCompra['fecha'] ?? null,
             ],
             'tipos' => array_values($this->tipos()),
+            'categorias' => array_values($this->categorias()),
         ];
     }
 
@@ -176,7 +238,10 @@ final class RecetaService
             return null;
         }
 
-        $despensa = $this->compras->despensa($usuarioId);
+        $ultimaCompra = $this->compras->ultimaCompra($usuarioId);
+        $despensa = $ultimaCompra === null
+            ? []
+            : $this->compras->despensa($usuarioId, null, $ultimaCompra['id']);
         $pantry = $this->indiceDespensa($despensa);
         $match = $this->matchReceta($receta, $pantry);
 
@@ -186,6 +251,7 @@ final class RecetaService
         $receta['faltan'] = $match['faltan'];
         $receta['faltan_principales'] = $match['faltan_principales'];
         $receta['video'] = $this->videoPublico($receta);
+        $receta['categoria'] = $this->categoriaDe($receta);
         $receta['favorita'] = $this->recetas->esFavorito($usuarioId, (int) $receta['id']);
         $receta['tipos_detalle'] = array_values(array_filter(
             array_map(
@@ -355,6 +421,8 @@ final class RecetaService
                 'slug' => (string) $receta['slug'],
                 'nombre' => (string) $receta['nombre'],
                 'descripcion' => (string) ($receta['descripcion'] ?? ''),
+                'imagen_url' => $receta['imagen_url'] ?? null,
+                'categoria' => $this->categoriaDe($receta),
                 'tipos' => array_values($receta['tipos'] ?? []),
                 'tipos_nombres' => array_values(array_filter(array_map(
                     static fn (string $tipo): ?string => $tipos[$tipo]['nombre'] ?? null,
@@ -384,6 +452,7 @@ final class RecetaService
         }
 
         $receta['video'] = $this->videoPublico($receta);
+        $receta['categoria'] = $this->categoriaDe($receta);
         $receta['tipos_detalle'] = array_values(array_filter(
             array_map(
                 fn (string $tipo): ?array => $this->tipos()[$tipo] ?? null,
@@ -418,7 +487,9 @@ final class RecetaService
             ? (string) $normalizada['estado']
             : 'publicada';
 
-        return $this->recetas->create($normalizada, $usuarioId, $estado);
+        $receta = $this->recetas->create($normalizada, $usuarioId, $estado);
+
+        return $this->obtenerAdmin((int) $receta['id']) ?? $receta;
     }
 
     /**
@@ -427,18 +498,48 @@ final class RecetaService
      */
     public function actualizarAdmin(int $id, array $data): ?array
     {
-        if ($this->recetas->findById($id) === null) {
+        $anterior = $this->recetas->findById($id);
+
+        if ($anterior === null) {
             return null;
         }
 
         $normalizada = $this->normalizarReceta($data, true);
+        $actualizada = $this->recetas->update($id, $normalizada);
 
-        return $this->recetas->update($id, $normalizada);
+        if (
+            $actualizada !== null
+            && ($anterior['imagen_url'] ?? null) !== ($normalizada['imagen_url'] ?? null)
+        ) {
+            $this->imagenes->eliminar($anterior['imagen_url'] ?? null);
+        }
+
+        return $actualizada === null ? null : ($this->obtenerAdmin($id) ?? $actualizada);
     }
 
     public function eliminarAdmin(int $id): bool
     {
-        return $this->recetas->delete($id);
+        $receta = $this->recetas->findById($id);
+
+        if ($receta === null) {
+            return false;
+        }
+
+        $eliminada = $this->recetas->delete($id);
+
+        if ($eliminada) {
+            $this->imagenes->eliminar($receta['imagen_url'] ?? null);
+        }
+
+        return $eliminada;
+    }
+
+    /**
+     * @param array<string, mixed> $file Entrada de $_FILES['imagen'].
+     */
+    public function subirImagen(array $file): string
+    {
+        return $this->imagenes->guardar($file);
     }
 
     /**
@@ -669,6 +770,55 @@ final class RecetaService
             throw new InvalidArgumentException('Agrega al menos un paso de preparación.');
         }
 
+        $imagenUrl = null;
+        $imagen = trim((string) ($data['imagen_url'] ?? ''));
+
+        if ($imagen !== '') {
+            if (mb_strlen($imagen) > 500) {
+                throw new InvalidArgumentException('La imagen no puede superar 500 caracteres.');
+            }
+
+            $esUrl = filter_var($imagen, FILTER_VALIDATE_URL) !== false
+                && in_array(
+                    strtolower((string) parse_url($imagen, PHP_URL_SCHEME)),
+                    ['http', 'https'],
+                    true
+                );
+            $esRutaLocal = preg_match(
+                '#^/[A-Za-z0-9/_.\-]+\.(?:jpe?g|png|webp)$#i',
+                $imagen
+            ) === 1;
+
+            if (!$esUrl && !$esRutaLocal) {
+                throw new InvalidArgumentException('La imagen debe ser una URL http/https o una ruta interna válida.');
+            }
+
+            $imagenUrl = $imagen;
+        }
+
+        $categoriaId = null;
+        $categoriaSlug = trim((string) ($data['categoria'] ?? ''));
+        $categoriaIdBruto = $data['categoria_id'] ?? null;
+
+        if ($categoriaSlug !== '' || ($categoriaIdBruto !== null && $categoriaIdBruto !== '')) {
+            foreach ($this->categorias() as $categoria) {
+                $coincideSlug = $categoriaSlug !== '' && (string) $categoria['slug'] === $categoriaSlug;
+                $coincideId = $categoriaIdBruto !== null
+                    && $categoriaIdBruto !== ''
+                    && (int) $categoria['id'] === (int) $categoriaIdBruto;
+
+                if ($coincideSlug || $coincideId) {
+                    $categoriaId = (int) $categoria['id'];
+
+                    break;
+                }
+            }
+        }
+
+        if ($categoriaId === null) {
+            throw new InvalidArgumentException('Selecciona una categoría de platillo.');
+        }
+
         $videoId = null;
         $videoTitulo = null;
 
@@ -694,11 +844,13 @@ final class RecetaService
             'nombre' => $nombre,
             'descripcion' => $descripcion,
             'tipos' => $tipos,
+            'categoria_id' => $categoriaId,
             'porciones_base' => $porciones,
             'tiempo_min' => $tiempo,
             'dificultad' => $dificultad,
             'ingredientes' => $ingredientesNormalizados,
             'pasos' => $pasosNormalizados,
+            'imagen_url' => $imagenUrl,
             'video_youtube_id' => $videoId,
             'video_titulo' => $videoTitulo,
             'estado' => $estado,

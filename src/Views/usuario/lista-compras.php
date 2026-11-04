@@ -28,7 +28,7 @@ ob_start();
                 Productos por comprar
             </h2>
             <p class="text-muted mb-0">
-                Revisa, ajusta y envía tus productos a la pantalla rápida para asignar precios.
+                Guarda varias listas, edítalas y envía la que necesites a la pantalla rápida.
             </p>
         </div>
 
@@ -39,27 +39,59 @@ ob_start();
             </a>
             <button class="btn btn-primary" type="button" data-lista-enviar>
                 <i class="bi bi-send" aria-hidden="true"></i>
-                Enviar a pantalla rápida
+                Enviar lista a pantalla rápida
             </button>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-lg-6">
+                    <label class="form-label" for="lista-select">Lista de compras</label>
+                    <select class="form-select" id="lista-select" data-listas-select>
+                        <option value="">Cargando listas…</option>
+                    </select>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-outline-primary" type="button" data-lista-nueva>
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                            Nueva lista
+                        </button>
+                        <button class="btn btn-outline-secondary" type="button" data-lista-renombrar>
+                            <i class="bi bi-pencil" aria-hidden="true"></i>
+                            Renombrar
+                        </button>
+                        <button class="btn btn-outline-danger" type="button" data-lista-eliminar>
+                            <i class="bi bi-trash3" aria-hidden="true"></i>
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="row g-4">
         <div class="col-12 col-lg-8">
             <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-2">
-                <h5 class="mb-0" id="lista-title">Tu lista</h5>
+                <h5 class="mb-0" id="lista-title" data-lista-nombre>Tu lista</h5>
                 <p class="text-muted small mb-0" data-lista-status aria-live="polite">Cargando…</p>
             </div>
 
             <div class="lista-items" data-lista-items></div>
             <div class="alert alert-info" data-lista-empty hidden>
-                Tu lista está vacía. Agrega productos manualmente o genera una lista desde Recetas.
+                No hay productos en esta lista. Agrega uno manualmente o genera una lista desde Recetas.
+            </div>
+            <div class="alert alert-secondary" data-lista-sin-listas hidden>
+                Aún no tienes listas guardadas. Crea la primera con «Nueva lista».
             </div>
 
             <div class="d-flex flex-wrap gap-2 mt-3">
                 <button class="btn btn-outline-danger" type="button" data-lista-vaciar>
                     <i class="bi bi-trash3" aria-hidden="true"></i>
-                    Vaciar lista
+                    Vaciar esta lista
                 </button>
             </div>
         </div>
@@ -72,13 +104,13 @@ ob_start();
                         Agregar producto
                     </h5>
                     <p class="text-muted small">
-                        Añade algo que no venga de una receta.
+                        Añade algo a la lista seleccionada.
                     </p>
 
                     <form data-lista-form novalidate>
                         <div class="mb-2">
                             <label class="form-label" for="lista-nombre">Nombre</label>
-                            <input class="form-control" type="text" id="lista-nombre" maxlength="150" required data-lista-nombre>
+                            <input class="form-control" type="text" id="lista-nombre" maxlength="150" required data-lista-nombre-producto>
                         </div>
 
                         <div class="row g-2 mb-2">
@@ -122,6 +154,29 @@ ob_start();
                 Los productos enviados se cargan en el carrito con precio pendiente. Ahí puedes ajustar
                 cantidades y costos antes de guardar la compra.
             </p>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="lista-modal" tabindex="-1" aria-labelledby="lista-modal-title" aria-hidden="true" data-lista-modal>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form data-lista-modal-form novalidate>
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="lista-modal-title" data-lista-modal-title>Nueva lista</h2>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" data-lista-modal-id>
+                    <label class="form-label" for="lista-modal-nombre">Nombre de la lista</label>
+                    <input class="form-control" type="text" id="lista-modal-nombre" maxlength="100" required data-lista-modal-nombre>
+                    <p class="form__message mt-2" data-lista-modal-mensaje hidden></p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary" type="submit" data-lista-modal-guardar>Guardar lista</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

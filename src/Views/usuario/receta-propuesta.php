@@ -19,7 +19,9 @@ if (($usuario['debe_cambiar_password'] ?? false) === true) {
     return;
 }
 
-$tipos = (new RecetaService())->tipos();
+$servicioRecetas = new RecetaService();
+$tipos = $servicioRecetas->tipos();
+$categorias = $servicioRecetas->categorias();
 $modo = 'propuesta';
 $receta = null;
 
@@ -55,7 +57,7 @@ ob_start();
 $content = (string) ob_get_clean();
 $title = 'Proponer receta';
 $scripts = ['/assets/js/pages/receta-form.js'];
-$styles = ['/assets/css/recetas.css'];
+$styles = ['/assets/css/pantalla-rapida.css', '/assets/css/recetas.css'];
 $active = 'recetas';
 
 require __DIR__ . '/../layouts/app.php';
