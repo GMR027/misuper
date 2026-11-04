@@ -118,8 +118,8 @@ if ($avatarEsPreset) {
                     </a>
                     <?php if ($esAdmin): ?>
                         <a class="app-nav__link<?= $active === 'admin-recetas' ? ' is-active' : '' ?>" href="/admin/recetas">
-                            <i class="bi bi-play-btn" aria-hidden="true"></i>
-                            <span>Videos</span>
+                            <i class="bi bi-egg-fried" aria-hidden="true"></i>
+                            <span>Recetas</span>
                         </a>
                         <a class="app-nav__link<?= $active === 'admin-productos' ? ' is-active' : '' ?>" href="/admin/productos">
                             <i class="bi bi-box-seam" aria-hidden="true"></i>
@@ -273,8 +273,8 @@ if ($avatarEsPreset) {
                     <?php if ($esAdmin): ?>
                         <p class="dock-menu__label">Administración</p>
                         <a class="dock-menu__link<?= $active === 'admin-recetas' ? ' is-active' : '' ?>" href="/admin/recetas">
-                            <span class="dock-menu__icon"><i class="bi bi-play-btn" aria-hidden="true"></i></span>
-                            <span class="dock-menu__text">Videos de recetas</span>
+                            <span class="dock-menu__icon"><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
+                            <span class="dock-menu__text">Recetas</span>
                             <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
                         </a>
                         <a class="dock-menu__link<?= $active === 'admin-productos' ? ' is-active' : '' ?>" href="/admin/productos">
