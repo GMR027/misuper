@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Middleware\AdminMiddleware;
 use App\Middleware\CsrfMiddleware;
+use App\Services\ProductoImagenService;
 use App\Services\ProductoService;
 use App\Support\Response;
 
@@ -33,9 +34,23 @@ final class AdminProductoController
         $q = isset($_GET['q']) && is_string($_GET['q']) ? trim($_GET['q']) : '';
         $categoriaId = ProductoService::enteroPositivo($_GET['categoria_id'] ?? null);
         $estado = isset($_GET['estado']) && is_string($_GET['estado']) ? $_GET['estado'] : null;
+        $imagen = isset($_GET['imagen']) && is_string($_GET['imagen']) ? $_GET['imagen'] : null;
         $page = ProductoService::enteroPositivo($_GET['page'] ?? null) ?? 1;
 
-        Response::ok($this->productos->listarAdmin($q, $categoriaId, $estado, $page));
+        Response::ok($this->productos->listarAdmin($q, $categoriaId, $estado, $page, $imagen));
+    }
+
+    /**
+     * POST /api/admin/productos/verificar-fotos
+     */
+    public function verificarFotos(): void
+    {
+        AdminMiddleware::require();
+        CsrfMiddleware::enforce();
+
+        $resumen = (new ProductoImagenService())->verificarTodas();
+
+        Response::ok($resumen);
     }
 
     /**

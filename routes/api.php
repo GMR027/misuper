@@ -2,15 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Controllers\AdminCategoriaController;
 use App\Controllers\AdminProductoController;
+use App\Controllers\AdminRecetaController;
 use App\Controllers\AdminUsuarioController;
 use App\Controllers\AuthController;
 use App\Controllers\CategoriaController;
 use App\Controllers\CompraController;
+use App\Controllers\ListaCompraController;
 use App\Controllers\MeController;
 use App\Controllers\MetricaController;
 use App\Controllers\NotaController;
 use App\Controllers\ProductoController;
+use App\Controllers\RecetaController;
 use App\Controllers\TicketController;
 use App\Middleware\AdminMiddleware;
 use App\Support\Response;
@@ -120,8 +124,63 @@ return static function (string $method, string $path): void {
 
                 return;
 
+            case 'GET /api/metricas/gasto-anual':
+                (new MetricaController())->gastoAnual();
+
+                return;
+
             case 'GET /api/metricas/top-productos':
                 (new MetricaController())->topProductos();
+
+                return;
+
+            case 'GET /api/recetas':
+                (new RecetaController())->index();
+
+                return;
+
+            case 'POST /api/recetas/proponer':
+                (new RecetaController())->storePropuesta();
+
+                return;
+
+            case 'POST /api/recetas/preview-lista':
+                (new RecetaController())->previewLista();
+
+                return;
+
+            case 'GET /api/lista-compras':
+                (new ListaCompraController())->index();
+
+                return;
+
+            case 'POST /api/lista-compras':
+                (new ListaCompraController())->store();
+
+                return;
+
+            case 'DELETE /api/lista-compras':
+                (new ListaCompraController())->clear();
+
+                return;
+
+            case 'POST /api/lista-compras/enviar':
+                (new ListaCompraController())->enviar();
+
+                return;
+
+            case 'POST /api/lista-compras/consumir':
+                (new ListaCompraController())->consumir();
+
+                return;
+
+            case 'GET /api/admin/recetas':
+                (new AdminRecetaController())->index();
+
+                return;
+
+            case 'POST /api/admin/recetas':
+                (new AdminRecetaController())->store();
 
                 return;
 
@@ -135,6 +194,16 @@ return static function (string $method, string $path): void {
 
                 return;
 
+            case 'POST /api/admin/productos/verificar-fotos':
+                (new AdminProductoController())->verificarFotos();
+
+                return;
+
+            case 'POST /api/admin/categorias':
+                (new AdminCategoriaController())->store();
+
+                return;
+
             case 'GET /api/admin/usuarios':
                 (new AdminUsuarioController())->index();
 
@@ -144,6 +213,73 @@ return static function (string $method, string $path): void {
                 (new AdminUsuarioController())->store();
 
                 return;
+        }
+
+        // Favoritos: /api/recetas/{slug}/favorito
+        if (preg_match('#^/api/recetas/([a-z0-9-]+)/favorito$#', $path, $matches) === 1) {
+            if ($method === 'POST') {
+                (new RecetaController())->favorito((string) $matches[1]);
+
+                return;
+            }
+        }
+
+        // Rutas con identificador: /api/recetas/{slug}
+        if (preg_match('#^/api/recetas/([a-z0-9-]+)$#', $path, $matches) === 1) {
+            if ($method === 'GET') {
+                (new RecetaController())->show((string) $matches[1]);
+
+                return;
+            }
+        }
+
+        // Rutas con identificador: /api/lista-compras/{id}
+        if (preg_match('#^/api/lista-compras/([1-9][0-9]*)$#', $path, $matches) === 1) {
+            $id = (int) $matches[1];
+
+            if ($method === 'PUT') {
+                (new ListaCompraController())->update($id);
+
+                return;
+            }
+
+            if ($method === 'DELETE') {
+                (new ListaCompraController())->destroy($id);
+
+                return;
+            }
+        }
+
+        // Publicar receta: /api/admin/recetas/{id}/publicar
+        if (preg_match('#^/api/admin/recetas/([1-9][0-9]*)/publicar$#', $path, $matches) === 1) {
+            if ($method === 'POST') {
+                (new AdminRecetaController())->publicar((int) $matches[1]);
+
+                return;
+            }
+        }
+
+        // Rutas con identificador: /api/admin/recetas/{id}
+        if (preg_match('#^/api/admin/recetas/([1-9][0-9]*)$#', $path, $matches) === 1) {
+            $id = (int) $matches[1];
+
+            if ($method === 'GET') {
+                (new AdminRecetaController())->show($id);
+
+                return;
+            }
+
+            if ($method === 'PUT') {
+                (new AdminRecetaController())->update($id);
+
+                return;
+            }
+
+            if ($method === 'DELETE') {
+                (new AdminRecetaController())->destroy($id);
+
+                return;
+            }
         }
 
         // Rutas con identificador: /api/notas/{id}

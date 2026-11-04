@@ -296,6 +296,68 @@ final class CompraRepository
     }
 
     /**
+     * Productos que el usuario ha comprado, agrupados por nombre de producto.
+     * Es la base para la "despensa inferida" de las recetas.
+     *
+     * @return array<int, array{producto_id: int|null, nombre: string, unidad_base: string|null, categoria_nombre: string|null, veces: int, ultima_compra: string}>
+     */
+    public function despensa(int $usuarioId, ?int $dias = null): array
+    {
+        $where = ['c.usuario_id = ?'];
+        $params = [$usuarioId];
+
+        if ($dias !== null && $dias > 0) {
+            $where[] = 'c.fecha >= DATE_SUB(CURDATE(), INTERVAL ? DAY)';
+            $params[] = $dias;
+        }
+
+        $where[] = "(cat.nombre IS NULL OR cat.nombre NOT IN ('Limpieza', 'Hogar'))";
+
+        $statement = $this->pdo->prepare(
+            'SELECT COALESCE(p.nombre, ci.nombre_libre) AS nombre,
+                    p.id AS producto_id,
+                    p.unidad_base,
+                    cat.nombre AS categoria_nombre,
+                    COUNT(*) AS veces,
+                    MAX(c.fecha) AS ultima_compra
+             FROM compra_items ci
+             INNER JOIN compras c ON c.id = ci.compra_id
+             LEFT JOIN productos p ON p.id = ci.producto_id
+             LEFT JOIN categorias cat ON cat.id = p.categoria_id
+             WHERE ' . implode(' AND ', $where) . '
+             GROUP BY COALESCE(p.nombre, ci.nombre_libre), p.id, p.unidad_base, cat.nombre
+             ORDER BY veces DESC, nombre ASC'
+        );
+
+        $index = 1;
+
+        foreach ($params as $param) {
+            $statement->bindValue(
+                $index++,
+                $param,
+                is_int($param) ? PDO::PARAM_INT : PDO::PARAM_STR
+            );
+        }
+
+        $statement->execute();
+
+        $items = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $items[] = [
+                'producto_id' => $row['producto_id'] === null ? null : (int) $row['producto_id'],
+                'nombre' => (string) $row['nombre'],
+                'unidad_base' => isset($row['unidad_base']) ? (string) $row['unidad_base'] : null,
+                'categoria_nombre' => isset($row['categoria_nombre']) ? (string) $row['categoria_nombre'] : null,
+                'veces' => (int) $row['veces'],
+                'ultima_compra' => (string) $row['ultima_compra'],
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
      * Búsqueda de productos activos sin paginación (máximo 10 por defecto).
      *
      * @return array<int, array<string, mixed>>

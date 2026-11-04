@@ -86,6 +86,10 @@ ob_start();
                                     <?php endforeach; ?>
                                 </select>
                                 <p class="form__error" data-error-for="categoria_id" hidden></p>
+                                <button class="btn btn-sm btn-outline-secondary mt-2" type="button" data-categoria-open>
+                                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                                    Nueva categoría
+                                </button>
                             </div>
 
                             <div class="col-12 col-md-6">
@@ -154,6 +158,8 @@ ob_start();
         </div>
     </div>
 </div>
+
+<?php require __DIR__ . '/_categoria-modal.php'; ?>
 <?php
 
 $content = (string) ob_get_clean();

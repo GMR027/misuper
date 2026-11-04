@@ -60,6 +60,26 @@ final class MetricaController
     }
 
     /**
+     * GET /api/metricas/gasto-anual?anio=YYYY
+     */
+    public function gastoAnual(): void
+    {
+        $usuario = AuthMiddleware::require();
+        $anio = MetricaService::anioValido($_GET['anio'] ?? null);
+
+        if ($anio === null) {
+            Response::fail(
+                'VALIDATION_ERROR',
+                'El año debe ser un número entre 2000 y 2100.',
+                422,
+                ['anio' => 'El año debe ser un número entre 2000 y 2100.']
+            );
+        }
+
+        Response::ok($this->metricas->gastoAnual($usuario['id'], $anio));
+    }
+
+    /**
      * GET /api/metricas/top-productos?mes=&anio=
      */
     public function topProductos(): void

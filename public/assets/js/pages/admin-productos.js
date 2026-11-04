@@ -132,6 +132,134 @@ document.querySelector('[data-logout]')?.addEventListener('click', async (event)
     window.location.replace('/login');
 });
 
+/* Categorías ----------------------------------------------------------- */
+
+const categoriaModal = document.querySelector('[data-categoria-modal]');
+
+if (categoriaModal instanceof HTMLElement) {
+    initCategoriaModal(categoriaModal);
+}
+
+/**
+ * @param {HTMLElement} modalElement
+ */
+function initCategoriaModal(modalElement) {
+    const form = modalElement.querySelector('[data-categoria-form]');
+    const input = modalElement.querySelector('#categoria-nombre');
+    const message = modalElement.querySelector('[data-categoria-message]');
+    const submit = modalElement.querySelector('[data-categoria-submit]');
+
+    if (!(form instanceof HTMLFormElement) || !(input instanceof HTMLInputElement)) {
+        return;
+    }
+
+    const bootstrap = window.bootstrap;
+
+    if (!bootstrap || typeof bootstrap.Modal !== 'function') {
+        return;
+    }
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+    document.querySelectorAll('[data-categoria-open]').forEach((button) => {
+        button.addEventListener('click', () => {
+            input.value = '';
+            input.removeAttribute('aria-invalid');
+            clearMessage(message);
+            modal.show();
+        });
+    });
+
+    modalElement.addEventListener('shown.bs.modal', () => {
+        input.focus();
+    });
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const nombre = input.value.trim();
+
+        if (nombre.length < 2 || nombre.length > 80) {
+            input.setAttribute('aria-invalid', 'true');
+            showMessage(message, 'El nombre debe tener entre 2 y 80 caracteres.');
+
+            return;
+        }
+
+        const textoOriginal = submit instanceof HTMLButtonElement ? submit.textContent : '';
+        setBusy(submit, true, textoOriginal, 'Creando…');
+        clearMessage(message);
+
+        try {
+            const categoria = await fetchApi('/api/admin/categorias', {
+                method: 'POST',
+                body: { nombre },
+            });
+
+            agregarOpcionCategoria(categoria);
+            modal.hide();
+        } catch (error) {
+            if (redirectIfSessionLost(error)) {
+                return;
+            }
+
+            input.setAttribute('aria-invalid', 'true');
+            showMessage(message, firstValidationMessage(error));
+        } finally {
+            setBusy(submit, false, textoOriginal);
+        }
+    });
+}
+
+/**
+ * Agrega la categoría recién creada a los selects de la pantalla.
+ *
+ * @param {any} categoria
+ */
+function agregarOpcionCategoria(categoria) {
+    const id = Number(categoria?.id ?? 0);
+    const nombre = String(categoria?.nombre ?? '');
+
+    if (id <= 0 || nombre === '') {
+        return;
+    }
+
+    for (const select of document.querySelectorAll('#categoria_id')) {
+        if (!(select instanceof HTMLSelectElement)) {
+            continue;
+        }
+
+        if (!select.querySelector(`option[value="${id}"]`)) {
+            const option = document.createElement('option');
+            option.value = String(id);
+            option.textContent = nombre;
+            select.append(option);
+        }
+    }
+
+    const formSelect = document.querySelector('#producto-form #categoria_id');
+
+    if (formSelect instanceof HTMLSelectElement) {
+        formSelect.value = String(id);
+        formSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        showMessage(
+            document.querySelector('#producto-form [data-message]'),
+            `Categoría "${nombre}" creada y seleccionada.`,
+            'success',
+        );
+
+        return;
+    }
+
+    const filtros = document.querySelector('#filtros-form');
+    const filtroCategoria = document.querySelector('#filtros-form #categoria_id');
+
+    if (filtros instanceof HTMLFormElement && filtroCategoria instanceof HTMLSelectElement) {
+        filtroCategoria.value = String(id);
+        filtros.requestSubmit();
+    }
+}
+
 /* Lista ---------------------------------------------------------------- */
 
 const tablaBody = document.querySelector('[data-productos-body]');
@@ -148,6 +276,7 @@ function initLista(body) {
     const buscador = document.querySelector('#q');
     const categoria = document.querySelector('#categoria_id');
     const estado = document.querySelector('#estado');
+    const imagen = document.querySelector('#imagen');
 
     const totalLabel = document.querySelector('[data-total]');
     const tableMessage = document.querySelector('[data-table-message]');
@@ -167,6 +296,7 @@ function initLista(body) {
         const q = buscador instanceof HTMLInputElement ? buscador.value.trim() : '';
         const cat = categoria instanceof HTMLSelectElement ? categoria.value : '';
         const est = estado instanceof HTMLSelectElement ? estado.value : '';
+        const img = imagen instanceof HTMLSelectElement ? imagen.value : '';
 
         if (q !== '') {
             params.set('q', q);
@@ -178,6 +308,10 @@ function initLista(body) {
 
         if (est !== '') {
             params.set('estado', est);
+        }
+
+        if (img !== '') {
+            params.set('imagen', img);
         }
 
         return params;
@@ -214,6 +348,7 @@ function initLista(body) {
 
         const imagenTd = document.createElement('td');
         const url = typeof producto.imagen_url === 'string' ? producto.imagen_url : '';
+        const vencida = producto.imagen_estado === 'vencida';
 
         if (url !== '' && isValidImageUrl(url)) {
             const img = document.createElement('img');
@@ -223,9 +358,21 @@ function initLista(body) {
             img.loading = 'lazy';
             img.width = 44;
             img.height = 44;
+
+            if (vencida) {
+                img.classList.add('thumb--vencida');
+                img.title = 'La URL de la imagen no responde';
+            }
+
             imagenTd.append(img);
+
+            if (vencida) {
+                const badge = cell('span', 'Vencida', 'badge bg-danger d-block mt-1');
+                imagenTd.append(badge);
+            }
         } else {
             imagenTd.append(cell('span', '—', 'thumb thumb--empty'));
+            imagenTd.append(cell('span', 'Sin foto', 'badge bg-secondary d-block mt-1'));
         }
 
         tr.append(imagenTd);
@@ -391,6 +538,50 @@ function initLista(body) {
         if (state.page < paginas) {
             state.page += 1;
             cargar();
+        }
+    });
+
+    const verificar = document.querySelector('[data-verificar-fotos]');
+
+    verificar?.addEventListener('click', async () => {
+        if (!(verificar instanceof HTMLButtonElement)) {
+            return;
+        }
+
+        const confirmado = window.confirm(
+            'Se revisarán las URLs de todas las fotos del catálogo. Puede tardar unos segundos. ¿Continuar?',
+        );
+
+        if (!confirmado) {
+            return;
+        }
+
+        const textoOriginal = verificar.innerHTML;
+        verificar.disabled = true;
+        verificar.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Verificando…';
+        clearMessage(tableMessage);
+
+        try {
+            const data = await fetchApi('/api/admin/productos/verificar-fotos', {
+                method: 'POST',
+            });
+            const revisadas = Number(data?.revisadas ?? 0);
+            const vencidas = Number(data?.vencidas ?? 0);
+
+            state.page = 1;
+            await cargar();
+            showMessage(
+                tableMessage,
+                `Se revisaron ${revisadas} ${revisadas === 1 ? 'foto' : 'fotos'}. ${vencidas} ${vencidas === 1 ? 'está vencida' : 'están vencidas'}.`,
+                'success',
+            );
+        } catch (error) {
+            if (!redirectIfSessionLost(error)) {
+                showMessage(tableMessage, firstValidationMessage(error));
+            }
+        } finally {
+            verificar.disabled = false;
+            verificar.innerHTML = textoOriginal;
         }
     });
 

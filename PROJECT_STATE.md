@@ -6,8 +6,8 @@ ve cuánto gasta al mes y en qué 10 productos se le va el dinero.
 Stack: PHP 8.1+, MySQL 8, PDO, HTML + CSS + JS vanilla (módulos ES6). Sin frameworks.
 
 ## Estado
-- Fase actual: MVP COMPLETO + LECTURA DE TICKETS
-- Fases completadas: Fase 1 a Fase 11.4, Fase 12.0 a Fase 12.9
+- Fase actual: MVP COMPLETO + LECTURA DE TICKETS + RECETAS EDITABLES
+- Fases completadas: Fase 1 a Fase 11.4, Fase 12.0 a Fase 12.9, Fase 13 a Fase 17
 - Próximo chunk: post-MVP. Sin fases pendientes.
 
 ## Alcance del MVP (resumen)
@@ -18,13 +18,14 @@ Stack: PHP 8.1+, MySQL 8, PDO, HTML + CSS + JS vanilla (módulos ES6). Sin frame
 - Pantalla rápida: buscador, categorías, productos frecuentes, carrito con localStorage, edición inline, total, guardar compra.
 - Compras: sin supermercado, editables y borrables sin restricción.
 - Historial agrupado por mes + detalle editable.
-- Métricas: gasto mensual + top 10 productos por gasto del mes.
+- Métricas: gasto mensual + gasto anual comparado con los 3 años anteriores + top 10 productos por gasto del mes.
 - Sugerencias: ítem libre genera sugerencia agrupada; Admin aprueba o ignora.
 - Ajustes: cambiar nombre/email, cambiar contraseña, cerrar sesión, eliminar cuenta (hard delete).
 - Tickets: subir foto, OCR con Tesseract, propuesta editable, relación con el catálogo y compra en el historial.
+- Recetas: catálogo editable de 100 recetas base con tipos (general, diabético, kosher, vegetariano, sin gluten), favoritos por usuario, filtros, escalado por porciones, CRUD de recetas y videos para el Admin, propuestas de usuarios y lista «Productos por comprar» que se envía a la pantalla rápida.
 
 ## Fuera del alcance (NO implementar)
-- Recetas, planes alimenticios, calculadora de despensa.
+- Planes alimenticios y calculadora de despensa.
 - Presupuestos, notificaciones internas.
 - Auditoría, familias, cotizaciones, estados múltiples de compra.
 - Import/export CSV desde la app (solo script de importación inicial).
@@ -37,14 +38,13 @@ Stack: PHP 8.1+, MySQL 8, PDO, HTML + CSS + JS vanilla (módulos ES6). Sin frame
 - Usuario: usa la app, gestiona sus compras y métricas.
 - Admin: gestiona catálogo, sugerencias y usuarios. Accede por /admin/*.
 
-## Modelo de datos (7 tablas)
+## Modelo de datos
 
 usuarios (id, nombre, email UNIQUE, password_hash, rol ENUM('usuario','admin'),
           debe_cambiar_password BOOL, created_at)
 
 categorias (id, nombre UNIQUE)
--- Seed fijo: Lácteos, Carnes, Frutas y Verduras, Cereales y Legumbres,
--- Bebidas, Limpieza, Hogar, Otros. Sin CRUD.
+-- Seed inicial de 8 categorías; el Admin puede crear nuevas.
 
 productos (id, nombre, categoria_id FK, unidad_base ENUM('kg','gr','L','ml','pza'),
            imagen_url VARCHAR(500) NULL, estado ENUM('activo','inactivo'),
@@ -82,6 +82,10 @@ tickets (id, usuario_id FK ON DELETE CASCADE, compra_id NULL FK ON DELETE SET NU
 - Tickets: Tesseract lee la imagen; el usuario revisa antes de crear la compra.
 - Un ticket solo se confirma una vez y en la misma transacción que la compra.
 - Los artículos no catalogados de un ticket se guardan como nombre_libre y generan sugerencia.
+- Recetas: catálogo en la tabla `recetas` (las 100 base se migraron desde data/recetas.json con la migración 019). Los favoritos viven en `receta_favoritos`; el Admin administra recetas y videos desde /admin/recetas. Las propuestas de usuarios quedan pendientes hasta que el Admin las publique.
+- La despensa de recetas es inferida del historial de compras; no es inventario real.
+- Las cantidades de recetas se escalan por porciones y se convierten a la unidad del producto para la lista de compras.
+- La lista «Productos por comprar» es personal; al enviarla, la pantalla rápida la consume y la marca como cargada.
 
 ## Convenciones
 - PHP PSR-12, namespaces App\..., Composer autoload.
@@ -112,14 +116,14 @@ tickets (id, usuario_id FK ON DELETE CASCADE, compra_id NULL FK ON DELETE SET NU
 5. Captura cantidad (decimal) + total pagado; precio unitario calculado.
 6. Una sola unidad base por producto (kg, L, pza).
 7. Compras editables y borrables sin restricción.
-8. Métricas: solo gasto mensual + top 10 por gasto del mes.
+8. Métricas: gasto mensual, gasto anual comparado con los 3 años anteriores y top 10 por gasto del mes.
 9. Top 10 sobre el mes seleccionado.
 10. Ajustes: solo cuenta (email, contraseña, logout, eliminar cuenta).
 11. 6 pantallas + panel Admin: login/registro, pantalla rápida, historial, detalle, métricas, ajustes; Admin con productos/sugerencias/usuarios.
 12. Panel Admin completo (CRUD productos + lista usuarios).
 13. Importación inicial de ~200 productos vía CSV, SIN imágenes. Las imágenes se agregan manualmente después desde el panel Admin.
 14. Buscador de Pexels en panel Admin: DIFERIDO. No se implementa en el MVP. El campo imagen_url se llena manualmente con una URL pegada por el Admin.
-15. Categorías fijas por seed, sin CRUD.
+15. Categorías base por seed; el Admin puede crear categorías nuevas desde Productos.
 16. Ítem libre + sugerencia al Admin.
 17. Sugerencias agrupadas por nombre normalizado; aprobar resuelve todas.
 18. 6 tablas estrictas.
@@ -543,3 +547,38 @@ STATE_HANDOFF — Fase 14 (Lectura de tickets por layout) — 2026-11-02
 - `TicketParserService::parsearEstructura()` detecta la columna de precios por borde derecho, delimita el bloque de artículos y descarta encabezado (dirección, teléfono, RFC, folio, cajero, saldo) y pie (subtotal, IVA, total, pago, cambio). El parser de texto queda como respaldo endurecido.
 - Se añadieron fixtures en `database/fixtures/tickets/` y `scripts/test_ticket_parser.php` (6 casos; 0 fallos). También se probó el flujo HTTP completo con una imagen de ticket simulada: 3 artículos correctos, fecha y total detectados.
 - Regla conservadora: ante una línea dudosa se omite; el usuario la agrega en la revisión.
+
+STATE_HANDOFF — Fase 15 (Gasto anual, categorías admin y estado de fotos) — 2026-11-03
+- Métricas: nueva sección «Gasto anual» con el total del año seleccionado, variación porcentual contra el año anterior y promedio de los 3 años previos. La comparativa muestra los últimos 3 años más el seleccionado.
+- Endpoint `GET /api/metricas/gasto-anual?anio=YYYY` (Auth). Rellena con 0 los años sin compras y devuelve `variacion_porcentual`/`promedio_anteriores` en null cuando no hay base de comparación.
+- Admin · Productos: botón y modal «Nueva categoría» en lista y formulario. `POST /api/admin/categorias` (Admin + CSRF) valida nombre 2–80, normaliza espacios y evita duplicados según la collation de la tabla.
+- Migración 015: `productos.imagen_estado ENUM('ok','vencida') NULL` e `imagen_verificada_at DATETIME NULL`. Al cambiar/quitar `imagen_url` el estado vuelve a NULL.
+- Filtro de fotos en Admin: «Sin foto» (imagen_url nula/vacía) y «Foto vencida» (URL verificada como rota). El botón «Verificar fotos» recorre las URLs con HEAD en lotes (curl_multi, timeouts y bloqueo de IP privadas) y marca ok/vencida.
+- La tabla Admin muestra badge «Vencida» o «Sin foto»; la verificación informa cuántas fotos se revisaron y cuántas están rotas.
+- Verificado: `php -l` y `node --check` sin errores; migración aplicada; endpoints de gasto anual, filtros, alta de categoría (incluido duplicado 422) y verificación de fotos probados por HTTP con usuario admin temporal. Datos de prueba eliminados.
+
+STATE_HANDOFF — Fase 15.1 (Vista de lista en Resultados) — 2026-11-03
+- El icono de la sección «Resultados» de la pantalla rápida ahora es un botón que alterna entre cuadrícula y lista.
+- La vista de lista convierte cada tarjeta en una fila compacta (miniatura, nombre, categoría/unidad y acciones) y aplica en móvil, tablet y escritorio; en móvil las acciones pasan a una segunda línea.
+- La preferencia se guarda en localStorage (`misuper:resultados-vista`) y el botón expone `aria-pressed`, etiqueta y tooltip dinámicos.
+
+
+STATE_HANDOFF — Fase 16 (Recetas + lista de compras) — 2026-11-03
+- Nueva sección `/recetas` con 100 recetas locales en `data/recetas.json`, filtros por tipo, tiempo, búsqueda y «solo con lo que he comprado». Los tipos iniciales son general, diabético, kosher, vegetariano y sin gluten, con avisos orientativos para las etiquetas de salud/religión.
+- Cada receta tiene porciones base y el detalle permite escalar cantidades. La despensa se infiere del historial de compras (`CompraRepository::despensa`), excluyendo Limpieza y Hogar.
+- Selección múltiple de recetas con porciones editables, preview de ingredientes agrupados y guardado en la lista personal.
+- `/lista-compras` implementa el CRUD de «Productos por comprar»: agregar manual, editar cantidad/unidad, eliminar, vaciar y enviar a la pantalla rápida.
+- El botón «Enviar a pantalla rápida» marca los pendientes y redirige a `/?lista=1`; la pantalla rápida consume los ítems, los fusiona con el carrito (sumando cantidades) y deja precio pendiente para asignar costos.
+- Migración 016: `recetas_videos` (un video de YouTube por receta, administrado en `/admin/recetas`). Migración 017: `lista_compra_items` con estados pendiente/enviado/cargado.
+- Nuevos endpoints: `GET /api/recetas`, `GET /api/recetas/{slug}`, `POST /api/recetas/preview-lista`, CRUD `/api/lista-compras`, `POST /api/lista-compras/enviar`, `POST /api/lista-compras/consumir`, y `GET/PUT/DELETE /api/admin/recetas...`.
+- Verificado por HTTP: login, filtros, preview con escalado, alta/edición/borrado de lista, envío/consumo, alta y borrado de video de YouTube. `php -l` y `node --check` sin errores.
+
+
+STATE_HANDOFF — Fase 17 (Favoritos + CRUD de recetas) — 2026-11-03
+- Favoritos por usuario: `receta_favoritos` (PK usuario_id + receta_id). La estrella aparece en tarjetas y detalle; `POST /api/recetas/{slug}/favorito` alterna el estado. El filtro «Solo mis favoritas» usa `GET /api/recetas?favoritas=1`.
+- Las recetas base se migraron de `data/recetas.json` a la tabla `recetas` con la migración 019 (100 filas); el catálogo ahora es editable y la fuente de verdad es MySQL.
+- El Admin tiene CRUD completo en `/admin/recetas`: listado con filtros por estado, alta/edición, publicación y borrado. El formulario incluye tipos, porciones, tiempo, dificultad, ingredientes, pasos y video de YouTube.
+- Los usuarios pueden proponer recetas en `/recetas/proponer`; se guardan con estado `pendiente` y autor. El Admin las revisa, edita y publica desde el listado.
+- Migración 018: tablas `recetas` y `receta_favoritos`. Migración 019: seed de las 100 recetas base y copia de videos existentes de `recetas_videos` a las columnas nuevas.
+- Endpoints nuevos: `POST /api/recetas/{slug}/favorito`, `POST /api/recetas/proponer`, `GET/POST /api/admin/recetas`, `GET/PUT/DELETE /api/admin/recetas/{id}` y `POST /api/admin/recetas/{id}/publicar`.
+- Verificado por HTTP con usuario temporal: listado, favorito on/off, filtro de favoritas, propuesta pendiente, publicación, edición, borrado, video, preview de lista y CRUD de productos por comprar. Datos temporales eliminados.

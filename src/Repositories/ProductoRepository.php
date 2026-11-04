@@ -17,7 +17,8 @@ use PDO;
 final class ProductoRepository
 {
     private const COLUMNS = 'p.id, p.nombre, p.usuario_id, p.categoria_id, c.nombre AS categoria_nombre,
-        p.unidad_base, p.imagen_url, p.estado, p.created_at, p.updated_at';
+        p.unidad_base, p.imagen_url, p.imagen_estado, p.imagen_verificada_at,
+        p.estado, p.created_at, p.updated_at';
 
     private const FROM = ' FROM productos p INNER JOIN categorias c ON c.id = p.categoria_id';
 
@@ -35,7 +36,7 @@ final class ProductoRepository
      */
     public function searchPublic(string $q, ?int $categoriaId, int $page, int $perPage): array
     {
-        return $this->search($q, $categoriaId, 'activo', $page, $perPage);
+        return $this->search($q, $categoriaId, 'activo', $page, $perPage, null);
     }
 
     /**
@@ -43,9 +44,15 @@ final class ProductoRepository
      *
      * @return array{items: array<int, Producto>, total: int}
      */
-    public function searchAdmin(string $q, ?int $categoriaId, ?string $estado, int $page, int $perPage): array
-    {
-        return $this->search($q, $categoriaId, $estado, $page, $perPage);
+    public function searchAdmin(
+        string $q,
+        ?int $categoriaId,
+        ?string $estado,
+        int $page,
+        int $perPage,
+        ?string $imagen = null
+    ): array {
+        return $this->search($q, $categoriaId, $estado, $page, $perPage, $imagen);
     }
 
     /**
@@ -56,7 +63,8 @@ final class ProductoRepository
         ?int $categoriaId,
         ?string $estado,
         int $page,
-        int $perPage
+        int $perPage,
+        ?string $imagen
     ): array {
         $where = ['p.usuario_id IS NULL'];
         $params = [];
@@ -75,6 +83,12 @@ final class ProductoRepository
         if ($estado !== null) {
             $where[] = 'p.estado = ?';
             $params[] = $estado;
+        }
+
+        if ($imagen === 'sin_foto') {
+            $where[] = "(p.imagen_url IS NULL OR p.imagen_url = '')";
+        } elseif ($imagen === 'vencida') {
+            $where[] = "p.imagen_url IS NOT NULL AND p.imagen_url <> '' AND p.imagen_estado = 'vencida'";
         }
 
         $whereSql = $where === [] ? '' : ' WHERE ' . implode(' AND ', $where);
@@ -179,6 +193,12 @@ final class ProductoRepository
             if (array_key_exists($columna, $campos)) {
                 $sets[] = $columna . ' = ?';
                 $params[] = $campos[$columna];
+
+                if ($columna === 'imagen_url') {
+                    // Una URL nueva (o quitada) debe volver a verificarse.
+                    $sets[] = 'imagen_estado = NULL';
+                    $sets[] = 'imagen_verificada_at = NULL';
+                }
             }
         }
 
@@ -241,12 +261,116 @@ final class ProductoRepository
         return $productos;
     }
 
+    /**
+     * Catálogo activo con categoría para resolver ingredientes de recetas.
+     *
+     * @return array<int, array{id: int, nombre: string, unidad_base: string, categoria_nombre: string, imagen_url: string|null}>
+     */
+    public function catalogoActivo(?int $usuarioId = null): array
+    {
+        if ($usuarioId === null) {
+            $statement = $this->pdo->prepare(
+                "SELECT p.id, p.nombre, p.unidad_base, c.nombre AS categoria_nombre, p.imagen_url
+                 FROM productos p
+                 INNER JOIN categorias c ON c.id = p.categoria_id
+                 WHERE p.estado = 'activo' AND p.usuario_id IS NULL
+                 ORDER BY p.nombre ASC, p.id ASC"
+            );
+            $statement->execute();
+        } else {
+            $statement = $this->pdo->prepare(
+                "SELECT p.id, p.nombre, p.unidad_base, c.nombre AS categoria_nombre, p.imagen_url
+                 FROM productos p
+                 INNER JOIN categorias c ON c.id = p.categoria_id
+                 WHERE p.estado = 'activo' AND (p.usuario_id IS NULL OR p.usuario_id = ?)
+                 ORDER BY p.nombre ASC, p.id ASC"
+            );
+            $statement->execute([$usuarioId]);
+        }
+
+        $productos = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $productos[] = [
+                'id' => (int) $row['id'],
+                'nombre' => (string) $row['nombre'],
+                'unidad_base' => (string) $row['unidad_base'],
+                'categoria_nombre' => (string) $row['categoria_nombre'],
+                'imagen_url' => isset($row['imagen_url']) ? (string) $row['imagen_url'] : null,
+            ];
+        }
+
+        return $productos;
+    }
+
     public function categoriaExists(int $id): bool
     {
         $statement = $this->pdo->prepare('SELECT 1 FROM categorias WHERE id = ? LIMIT 1');
         $statement->execute([$id]);
 
         return $statement->fetchColumn() !== false;
+    }
+
+    /**
+     * Comprueba si ya existe una categoría con ese nombre (sin distinguir
+     * mayúsculas ni acentos, según la collation de la tabla).
+     */
+    public function categoriaNombreExists(string $nombre): bool
+    {
+        $statement = $this->pdo->prepare('SELECT 1 FROM categorias WHERE nombre = ? LIMIT 1');
+        $statement->execute([$nombre]);
+
+        return $statement->fetchColumn() !== false;
+    }
+
+    /**
+     * @return array{id: int, nombre: string}
+     */
+    public function createCategoria(string $nombre): array
+    {
+        $statement = $this->pdo->prepare('INSERT INTO categorias (nombre) VALUES (?)');
+        $statement->execute([$nombre]);
+
+        return [
+            'id' => (int) $this->pdo->lastInsertId(),
+            'nombre' => $nombre,
+        ];
+    }
+
+    /**
+     * Productos globales con imagen para verificar su disponibilidad.
+     *
+     * @return array<int, array{id: int, imagen_url: string}>
+     */
+    public function productosConImagen(): array
+    {
+        $statement = $this->pdo->query(
+            "SELECT id, imagen_url
+             FROM productos
+             WHERE usuario_id IS NULL AND imagen_url IS NOT NULL AND imagen_url <> ''
+             ORDER BY id ASC"
+        );
+
+        $productos = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $productos[] = [
+                'id' => (int) $row['id'],
+                'imagen_url' => (string) $row['imagen_url'],
+            ];
+        }
+
+        return $productos;
+    }
+
+    public function setImagenEstado(int $id, string $estado): void
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE productos
+             SET imagen_estado = ?, imagen_verificada_at = NOW()
+             WHERE id = ?'
+        );
+        $statement->execute([$estado, $id]);
     }
 
     /**

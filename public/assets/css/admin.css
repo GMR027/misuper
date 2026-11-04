@@ -19,6 +19,11 @@
     color: var(--bs-secondary-color);
 }
 
+.thumb--vencida {
+    outline: 2px solid var(--bs-danger);
+    outline-offset: 2px;
+}
+
 .form__error {
     margin: 0.25rem 0 0;
     font-size: 0.85rem;

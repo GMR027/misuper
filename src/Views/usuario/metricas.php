@@ -39,6 +39,45 @@ ob_start();
         Mis métricas
     </h2>
 
+    <section class="mb-5" aria-labelledby="metrics-anual-title">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
+            <div>
+                <h5 class="mb-1" id="metrics-anual-title">
+                    <span class="title-icon"><i class="bi bi-calendar-range" aria-hidden="true"></i></span>
+                    Gasto anual
+                </h5>
+                <p class="text-muted small mb-0">
+                    Comparativa con los tres años anteriores al año seleccionado.
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12 col-lg-4">
+                <div class="card h-100 metrics-summary">
+                    <div class="card-body">
+                        <p class="text-muted small text-uppercase mb-1">
+                            Total <span data-anual-year><?= $anioActual ?></span>
+                        </p>
+                        <p class="display-6 fw-bold mb-2" data-anual-total>—</p>
+                        <p class="small mb-1" data-anual-variacion></p>
+                        <p class="text-muted small mb-0" data-anual-promedio></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-8">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <p class="text-muted small mb-2">Los tres años anteriores y el año seleccionado</p>
+                        <div class="d-flex flex-column gap-3" data-anual-list></div>
+                        <p class="text-muted small mt-3 mb-0" data-anual-status>Cargando gasto anual…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="mb-5" aria-labelledby="metrics-gasto-title">
         <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
             <div>

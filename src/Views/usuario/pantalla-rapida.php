@@ -86,7 +86,16 @@ ob_start();
             <section aria-labelledby="resultados-title">
                 <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-2">
                     <h5 class="mb-0" id="resultados-title">
-                        <span class="title-icon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i></span>
+                        <button
+                            class="title-icon title-icon--button"
+                            type="button"
+                            data-toggle-vista
+                            aria-pressed="false"
+                            aria-label="Ver productos en lista"
+                            title="Ver productos en lista"
+                        >
+                            <i class="bi bi-list-ul" aria-hidden="true" data-vista-icon></i>
+                        </button>
                         Resultados
                     </h5>
                     <p class="text-muted small mb-0" data-resultados-status>

@@ -33,6 +33,18 @@
 
 /* Resultados ----------------------------------------------------------- */
 
+.title-icon--button {
+    padding: 0;
+    border: 0;
+    cursor: pointer;
+    appearance: none;
+}
+
+.title-icon--button:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
 .product-card .card-img-top {
     width: 100%;
     height: auto;
@@ -73,6 +85,82 @@
 .result__calc i {
     font-size: 1rem;
     line-height: 1;
+}
+
+/* Vista de lista: tarjetas compactas en móvil, tablet y escritorio. */
+[data-resultados].results--list {
+    --bs-gutter-y: 0.5rem;
+}
+
+[data-resultados].results--list > [class*="col-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+.results--list .product-card.result {
+    flex-direction: row;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+.results--list .result__thumb {
+    flex: 0 0 96px;
+    width: 96px;
+    height: 96px;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--bs-border-radius) 0 0 var(--bs-border-radius);
+}
+
+.results--list .result__thumb--empty {
+    font-size: 1.5rem;
+}
+
+.results--list .result .card-body {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.75rem !important;
+    padding: 0.65rem 0.85rem;
+}
+
+.results--list .result__name {
+    flex: 1 1 10rem;
+    font-size: 0.95rem;
+}
+
+.results--list .result__meta {
+    flex: 1 1 100%;
+    order: 3;
+    margin-top: 0;
+    font-size: 0.78rem;
+}
+
+.results--list .result__actions {
+    flex: 0 0 auto;
+    margin-top: 0;
+    margin-left: auto;
+}
+
+@media (max-width: 575.98px) {
+    .results--list .result__thumb {
+        flex-basis: 72px;
+        width: 72px;
+        height: 72px;
+    }
+
+    .results--list .result .card-body {
+        gap: 0.2rem 0.5rem !important;
+        padding: 0.5rem 0.65rem;
+    }
+
+    .results--list .result__actions {
+        flex: 1 1 100%;
+        margin-left: 0;
+    }
+
+    .results--list .result__add {
+        flex: 1 1 auto;
+    }
 }
 
 /* Calculadora de importe ----------------------------------------------- */

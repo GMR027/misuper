@@ -20,7 +20,9 @@ final class Producto
         public readonly ?string $categoriaNombre,
         public readonly string $unidadBase,
         public readonly ?string $imagenUrl,
-        public readonly string $estado,
+        public readonly ?string $imagenEstado = null,
+        public readonly ?string $imagenVerificadaAt = null,
+        public readonly string $estado = 'activo',
         public readonly ?string $createdAt = null,
         public readonly ?string $updatedAt = null,
     ) {
@@ -39,6 +41,10 @@ final class Producto
             categoriaNombre: isset($row['categoria_nombre']) ? (string) $row['categoria_nombre'] : null,
             unidadBase: (string) $row['unidad_base'],
             imagenUrl: isset($row['imagen_url']) ? (string) $row['imagen_url'] : null,
+            imagenEstado: isset($row['imagen_estado']) ? (string) $row['imagen_estado'] : null,
+            imagenVerificadaAt: isset($row['imagen_verificada_at'])
+                ? (string) $row['imagen_verificada_at']
+                : null,
             estado: (string) $row['estado'],
             createdAt: isset($row['created_at']) ? (string) $row['created_at'] : null,
             updatedAt: isset($row['updated_at']) ? (string) $row['updated_at'] : null,
@@ -65,7 +71,7 @@ final class Producto
     /**
      * Representación para el panel Admin (incluye estado y fecha de alta).
      *
-     * @return array{id: int, nombre: string, categoria_id: int, categoria_nombre: string|null, unidad_base: string, imagen_url: string|null, estado: string, created_at: string|null}
+     * @return array{id: int, nombre: string, categoria_id: int, categoria_nombre: string|null, unidad_base: string, imagen_url: string|null, imagen_estado: string|null, imagen_verificada_at: string|null, estado: string, created_at: string|null}
      */
     public function toAdminArray(): array
     {
@@ -76,6 +82,8 @@ final class Producto
             'categoria_nombre' => $this->categoriaNombre,
             'unidad_base' => $this->unidadBase,
             'imagen_url' => $this->imagenUrl,
+            'imagen_estado' => $this->imagenEstado,
+            'imagen_verificada_at' => $this->imagenVerificadaAt,
             'estado' => $this->estado,
             'created_at' => $this->createdAt,
         ];

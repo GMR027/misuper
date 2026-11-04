@@ -17,6 +17,8 @@ final class ProductoService
 
     private const ESTADOS = ['activo', 'inactivo'];
 
+    private const FILTROS_IMAGEN = ['sin_foto', 'vencida'];
+
     private readonly ProductoRepository $productos;
 
     public function __construct(?ProductoRepository $productos = null)
@@ -55,17 +57,24 @@ final class ProductoService
      *
      * @return array{items: array<int, array<string, mixed>>, total: int, page: int, per_page: int}
      */
-    public function listarAdmin(?string $q, ?int $categoriaId, ?string $estado, int $page): array
-    {
+    public function listarAdmin(
+        ?string $q,
+        ?int $categoriaId,
+        ?string $estado,
+        int $page,
+        ?string $imagen = null
+    ): array {
         $page = max(1, $page);
         $estado = in_array($estado, self::ESTADOS, true) ? $estado : null;
+        $imagen = in_array($imagen, self::FILTROS_IMAGEN, true) ? $imagen : null;
 
         $resultado = $this->productos->searchAdmin(
             NormalizadorService::normalizar((string) $q),
             $categoriaId,
             $estado,
             $page,
-            self::PER_PAGE
+            self::PER_PAGE,
+            $imagen
         );
 
         return [
@@ -214,6 +223,63 @@ final class ProductoService
     public function categorias(): array
     {
         return $this->productos->categorias();
+    }
+
+    /**
+     * Crea una categoría del catálogo global.
+     *
+     * @return array{status: 'ok', categoria: array{id: int, nombre: string}}|array{status: 'invalida', errors: array<string, string>}
+     */
+    public function crearCategoria(mixed $nombre): array
+    {
+        if (!is_string($nombre)) {
+            return [
+                'status' => 'invalida',
+                'errors' => ['nombre' => 'El nombre de la categoría es obligatorio.'],
+            ];
+        }
+
+        $nombre = trim(preg_replace('/\s+/u', ' ', $nombre) ?? $nombre);
+
+        if (mb_strlen($nombre) < 2) {
+            return [
+                'status' => 'invalida',
+                'errors' => ['nombre' => 'El nombre debe tener al menos 2 caracteres.'],
+            ];
+        }
+
+        if (mb_strlen($nombre) > 80) {
+            return [
+                'status' => 'invalida',
+                'errors' => ['nombre' => 'El nombre debe tener como máximo 80 caracteres.'],
+            ];
+        }
+
+        if ($this->productos->categoriaNombreExists($nombre)) {
+            return [
+                'status' => 'invalida',
+                'errors' => ['nombre' => 'Ya existe una categoría con ese nombre.'],
+            ];
+        }
+
+        try {
+            $categoria = $this->productos->createCategoria($nombre);
+        } catch (\PDOException $error) {
+            // Carrera con otra creación simultánea: el UNIQUE de la tabla gana.
+            if ((string) $error->getCode() === '23000') {
+                return [
+                    'status' => 'invalida',
+                    'errors' => ['nombre' => 'Ya existe una categoría con ese nombre.'],
+                ];
+            }
+
+            throw $error;
+        }
+
+        return [
+            'status' => 'ok',
+            'categoria' => $categoria,
+        ];
     }
 
     /**

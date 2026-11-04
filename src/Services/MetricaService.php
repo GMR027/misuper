@@ -69,6 +69,69 @@ final class MetricaService
     }
 
     /**
+     * Comparativa de gasto anual: el año solicitado y los tres anteriores.
+     *
+     * Devuelve el total de cada año (incluidos los que no tienen compras),
+     * la variación porcentual contra el año inmediatamente anterior y el
+     * promedio de los tres años previos.
+     *
+     * @return array{
+     *     anio: int,
+     *     total: float,
+     *     anios: array<int, array{anio: int, total: float}>,
+     *     anio_anterior: int,
+     *     total_anterior: float,
+     *     variacion_porcentual: float|null,
+     *     promedio_anteriores: float|null
+     * }
+     */
+    public function gastoAnual(int $usuarioId, int $anio): array
+    {
+        $desde = $anio - 3;
+        $totales = $this->metricas->gastoAnual($usuarioId, $desde, $anio);
+        $anios = [];
+
+        for ($actual = $desde; $actual <= $anio; $actual++) {
+            $anios[] = [
+                'anio' => $actual,
+                'total' => $totales[$actual] ?? 0.0,
+            ];
+        }
+
+        $totalActual = $totales[$anio] ?? 0.0;
+        $anioAnterior = $anio - 1;
+        $totalAnterior = $totales[$anioAnterior] ?? 0.0;
+
+        $variacion = null;
+
+        if ($totalAnterior > 0) {
+            $variacion = round((($totalActual - $totalAnterior) / $totalAnterior) * 100, 1);
+        }
+
+        $totalesAnteriores = [];
+
+        for ($actual = $desde; $actual < $anio; $actual++) {
+            $totalesAnteriores[] = $totales[$actual] ?? 0.0;
+        }
+
+        $promedio = null;
+
+        if (array_sum($totalesAnteriores) > 0) {
+            $promedio = round(array_sum($totalesAnteriores) / count($totalesAnteriores), 2);
+        }
+
+        return [
+            'anio' => $anio,
+            'total' => $totalActual,
+            'anios' => $anios,
+            'anio_anterior' => $anioAnterior,
+            'total_anterior' => $totalAnterior,
+            'variacion_porcentual' => $variacion,
+            'promedio_anteriores' => $promedio,
+        ];
+    }
+
+    /**
      * @return array<int, array{
      *     producto_id: int|null,
      *     nombre: string,

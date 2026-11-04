@@ -1,0 +1,37 @@
+[
+  {
+    "slug": "general",
+    "nombre": "General",
+    "descripcion": "Recetas caseras para cualquier ocasión.",
+    "icono": "bi-egg-fried",
+    "aviso": ""
+  },
+  {
+    "slug": "diabetico",
+    "nombre": "Apto para diabéticos",
+    "descripcion": "Opciones sin azúcar añadida y con ingredientes de bajo impacto glucémico.",
+    "icono": "bi-heart-pulse",
+    "aviso": "Esta etiqueta es orientativa. No sustituye la valoración de tu médico o nutriólogo; revisa porciones y carbohidratos según tu plan."
+  },
+  {
+    "slug": "kosher",
+    "nombre": "Kosher",
+    "descripcion": "Recetas sin cerdo ni mariscos y sin mezclar carne con lácteos.",
+    "icono": "bi-star-of-david",
+    "aviso": "Etiqueta orientativa de estilo kosher. No es una certificación rabínica; verifica ingredientes, certificaciones y utensilios si sigues una dieta kosher estricta."
+  },
+  {
+    "slug": "vegetariano",
+    "nombre": "Vegetariano",
+    "descripcion": "Sin carne ni pescado.",
+    "icono": "bi-flower1",
+    "aviso": ""
+  },
+  {
+    "slug": "sin_gluten",
+    "nombre": "Sin gluten",
+    "descripcion": "Recetas elaboradas sin trigo ni pasta.",
+    "icono": "bi-shield-check",
+    "aviso": "Revisa las etiquetas de los productos envasados y evita la contaminación cruzada si tienes enfermedad celíaca."
+  }
+]

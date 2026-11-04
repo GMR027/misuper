@@ -92,6 +92,14 @@ if ($avatarEsPreset) {
                         <i class="bi bi-clock-history" aria-hidden="true"></i>
                         <span>Historial</span>
                     </a>
+                    <a class="app-nav__link<?= $active === 'recetas' ? ' is-active' : '' ?>" href="/recetas">
+                        <i class="bi bi-egg-fried" aria-hidden="true"></i>
+                        <span>Recetas</span>
+                    </a>
+                    <a class="app-nav__link<?= $active === 'lista-compras' ? ' is-active' : '' ?>" href="/lista-compras">
+                        <i class="bi bi-cart-check" aria-hidden="true"></i>
+                        <span>Por comprar</span>
+                    </a>
                     <a class="app-nav__link<?= $active === 'notas' ? ' is-active' : '' ?>" href="/notas">
                         <i class="bi bi-journal-richtext" aria-hidden="true"></i>
                         <span>Notas</span>
@@ -109,6 +117,10 @@ if ($avatarEsPreset) {
                         <span>Ajustes</span>
                     </a>
                     <?php if ($esAdmin): ?>
+                        <a class="app-nav__link<?= $active === 'admin-recetas' ? ' is-active' : '' ?>" href="/admin/recetas">
+                            <i class="bi bi-play-btn" aria-hidden="true"></i>
+                            <span>Videos</span>
+                        </a>
                         <a class="app-nav__link<?= $active === 'admin-productos' ? ' is-active' : '' ?>" href="/admin/productos">
                             <i class="bi bi-box-seam" aria-hidden="true"></i>
                             <span>Productos</span>
@@ -228,6 +240,16 @@ if ($avatarEsPreset) {
                         <span class="dock-menu__text">Historial</span>
                         <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
                     </a>
+                    <a class="dock-menu__link<?= $active === 'recetas' ? ' is-active' : '' ?>" href="/recetas">
+                        <span class="dock-menu__icon"><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
+                        <span class="dock-menu__text">Recetas</span>
+                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
+                    </a>
+                    <a class="dock-menu__link<?= $active === 'lista-compras' ? ' is-active' : '' ?>" href="/lista-compras">
+                        <span class="dock-menu__icon"><i class="bi bi-cart-check" aria-hidden="true"></i></span>
+                        <span class="dock-menu__text">Productos por comprar</span>
+                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
+                    </a>
                     <a class="dock-menu__link<?= $active === 'notas' ? ' is-active' : '' ?>" href="/notas">
                         <span class="dock-menu__icon"><i class="bi bi-journal-richtext" aria-hidden="true"></i></span>
                         <span class="dock-menu__text">Notas</span>
@@ -250,6 +272,11 @@ if ($avatarEsPreset) {
                     </a>
                     <?php if ($esAdmin): ?>
                         <p class="dock-menu__label">Administración</p>
+                        <a class="dock-menu__link<?= $active === 'admin-recetas' ? ' is-active' : '' ?>" href="/admin/recetas">
+                            <span class="dock-menu__icon"><i class="bi bi-play-btn" aria-hidden="true"></i></span>
+                            <span class="dock-menu__text">Videos de recetas</span>
+                            <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
+                        </a>
                         <a class="dock-menu__link<?= $active === 'admin-productos' ? ' is-active' : '' ?>" href="/admin/productos">
                             <span class="dock-menu__icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
                             <span class="dock-menu__text">Productos</span>

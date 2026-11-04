@@ -8,6 +8,10 @@
     height: 10px;
 }
 
+.metrics-summary {
+    border-left: 4px solid var(--bs-success);
+}
+
 .metrics-bar__fill {
     transition: width 0.25s ease;
 }

@@ -38,6 +38,12 @@ function init(root) {
     const topList = root.querySelector('[data-top-list]');
     const topStatus = root.querySelector('[data-top-status]');
     const topYear = root.querySelector('[data-top-year]');
+    const anualTotal = root.querySelector('[data-anual-total]');
+    const anualYear = root.querySelector('[data-anual-year]');
+    const anualVariacion = root.querySelector('[data-anual-variacion]');
+    const anualPromedio = root.querySelector('[data-anual-promedio]');
+    const anualList = root.querySelector('[data-anual-list]');
+    const anualStatus = root.querySelector('[data-anual-status]');
 
     bindLogout();
 
@@ -56,14 +62,17 @@ function init(root) {
     let mes = readNumber(mesSelect.value, new Date().getMonth() + 1);
     let gastoToken = 0;
     let topToken = 0;
+    let anualToken = 0;
 
     updateTopYear();
+    loadAnual(anio);
     loadGasto(anio);
     loadTop(mes, anio);
 
     anioSelect.addEventListener('change', () => {
         anio = readNumber(anioSelect.value, anio);
         updateTopYear();
+        loadAnual(anio);
         loadGasto(anio);
         loadTop(mes, anio);
     });
@@ -72,6 +81,173 @@ function init(root) {
         mes = readNumber(mesSelect.value, mes);
         loadTop(mes, anio);
     });
+
+    /* Gasto anual ------------------------------------------------------- */
+
+    async function loadAnual(year) {
+        const token = ++anualToken;
+
+        anualList?.replaceChildren();
+
+        if (anualStatus instanceof HTMLElement) {
+            mostrarEstado(anualStatus, 'Cargando gasto anual…', false);
+        }
+
+        resetAnualResumen(year);
+
+        try {
+            const data = await fetchApi(
+                `/api/metricas/gasto-anual?anio=${encodeURIComponent(year)}`,
+            );
+
+            if (token !== anualToken) {
+                return;
+            }
+
+            renderAnual(data);
+        } catch (error) {
+            if (token !== anualToken) {
+                return;
+            }
+
+            if (!redirectIfSessionLost(error)) {
+                if (anualStatus instanceof HTMLElement) {
+                    anualStatus.textContent = 'No se pudo cargar el gasto anual.';
+                }
+
+                showToast(error?.message ?? 'No se pudo cargar el gasto anual.', 'error');
+            }
+        }
+    }
+
+    /**
+     * @param {any} data
+     */
+    function renderAnual(data) {
+        const anios = Array.isArray(data?.anios) ? data.anios : [];
+        const total = Number(data?.total) || 0;
+        const anioSeleccionado = Number(data?.anio) || anio;
+        const variacion = data?.variacion_porcentual;
+        const promedio = data?.promedio_anteriores;
+
+        if (anualYear instanceof HTMLElement) {
+            anualYear.textContent = String(anioSeleccionado);
+        }
+
+        if (anualTotal instanceof HTMLElement) {
+            anualTotal.textContent = formatCurrency(total);
+        }
+
+        if (anualVariacion instanceof HTMLElement) {
+            anualVariacion.replaceChildren();
+
+            if (variacion === null || variacion === undefined) {
+                anualVariacion.textContent = 'Sin gasto registrado el año anterior.';
+                anualVariacion.className = 'small mb-1 text-muted';
+            } else {
+                const valor = Number(variacion) || 0;
+                const sube = valor > 0;
+                const baja = valor < 0;
+                const icon = document.createElement('i');
+                icon.className = `bi ${sube ? 'bi-arrow-up-right' : baja ? 'bi-arrow-down-right' : 'bi-dash'}`;
+                icon.setAttribute('aria-hidden', 'true');
+
+                const signo = sube ? '+' : '';
+                anualVariacion.className = `small mb-1 fw-semibold ${sube ? 'text-danger' : baja ? 'text-success' : 'text-muted'}`;
+                anualVariacion.append(
+                    icon,
+                    ` ${signo}${valor.toLocaleString('es-MX', { maximumFractionDigits: 1 })}% vs ${Number(data?.anio_anterior)}`,
+                );
+            }
+        }
+
+        if (anualPromedio instanceof HTMLElement) {
+            anualPromedio.textContent = promedio === null || promedio === undefined
+                ? 'Sin años previos con gasto para comparar.'
+                : `Promedio de los 3 años anteriores: ${formatCurrency(Number(promedio) || 0)}.`;
+        }
+
+        if (!(anualList instanceof HTMLElement) || !(anualStatus instanceof HTMLElement)) {
+            return;
+        }
+
+        anualList.replaceChildren();
+
+        if (anios.length === 0) {
+            anualStatus.textContent = 'Sin compras registradas.';
+
+            return;
+        }
+
+        const max = anios.reduce((current, row) => {
+            const value = Number(row.total) || 0;
+
+            return value > current ? value : current;
+        }, 0);
+
+        for (const row of anios) {
+            const rowYear = Number(row.anio) || 0;
+            const rowTotal = Number(row.total) || 0;
+            const width = max > 0 ? Math.max((rowTotal / max) * 100, rowTotal > 0 ? 2 : 0) : 0;
+            const actual = rowYear === anioSeleccionado;
+
+            const item = document.createElement('div');
+            item.className = 'metrics-bar';
+
+            const head = document.createElement('div');
+            head.className = 'd-flex justify-content-between small mb-1';
+
+            const name = document.createElement('span');
+            name.className = `fw-semibold${actual ? '' : ' text-muted'}`;
+            name.textContent = actual ? `${rowYear} (año seleccionado)` : String(rowYear);
+
+            const amount = document.createElement('strong');
+            amount.className = actual ? 'text-success' : 'text-muted';
+            amount.textContent = formatCurrency(rowTotal);
+
+            head.append(name, amount);
+
+            const track = document.createElement('div');
+            track.className = 'progress metrics-bar__track';
+            track.setAttribute('role', 'progressbar');
+            track.setAttribute('aria-label', `${rowYear}: ${formatCurrency(rowTotal)}`);
+            track.setAttribute('aria-valuenow', String(Math.round(width)));
+            track.setAttribute('aria-valuemin', '0');
+            track.setAttribute('aria-valuemax', '100');
+
+            const fill = document.createElement('span');
+            fill.className = `progress-bar metrics-bar__fill ${actual ? 'bg-success' : 'bg-secondary'}`;
+            fill.style.width = `${width}%`;
+            track.append(fill);
+
+            item.append(head, track);
+            anualList.append(item);
+        }
+
+        anualStatus.textContent = `Comparando ${anios[0]?.anio ?? ''}–${anioSeleccionado}.`;
+    }
+
+    /**
+     * @param {number} year
+     */
+    function resetAnualResumen(year) {
+        if (anualYear instanceof HTMLElement) {
+            anualYear.textContent = String(year);
+        }
+
+        if (anualTotal instanceof HTMLElement) {
+            anualTotal.textContent = '—';
+        }
+
+        if (anualVariacion instanceof HTMLElement) {
+            anualVariacion.textContent = '';
+            anualVariacion.className = 'small mb-1';
+        }
+
+        if (anualPromedio instanceof HTMLElement) {
+            anualPromedio.textContent = '';
+        }
+    }
 
     /* Gasto por mes ----------------------------------------------------- */
 

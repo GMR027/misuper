@@ -6,6 +6,7 @@ import { fetchApi } from '../modules/api.js';
 import {
     addProduct,
     clearCart,
+    importItems,
     count as cartCount,
     getItems,
     hasItems,
@@ -33,22 +34,26 @@ const UNIDADES_INFO = {
     pza: { label: 'pza', nombre: 'pieza' },
 };
 
+const VISTA_KEY = 'misuper:resultados-vista';
+
 const root = document.querySelector('[data-quick]');
 
 if (root instanceof HTMLElement) {
-    init(root);
+    void init(root);
 }
 
 /**
  * @param {HTMLElement} root
  */
-function init(root) {
+async function init(root) {
     const el = {
         searchForm: root.querySelector('[data-search-form]'),
         search: root.querySelector('[data-buscador]'),
         chips: root.querySelector('[data-categorias]'),
         results: root.querySelector('[data-resultados]'),
         resultsStatus: root.querySelector('[data-resultados-status]'),
+        toggleVista: root.querySelector('[data-toggle-vista]'),
+        vistaIcon: root.querySelector('[data-vista-icon]'),
         frequentSection: root.querySelector('[data-frecuentes]'),
         frequentGrid: root.querySelector('[data-frecuentes-grid]'),
         cartItems: root.querySelector('[data-carrito-items]'),
@@ -68,11 +73,15 @@ function init(root) {
     let searchTimer = null;
     let searchSequence = 0;
     let productoCalculo = null;
+    let vistaLista = leerVistaLista();
 
     loadCart();
+    await importarListaSiAplica();
 
     registerRenderer(renderResultados);
     registerRenderer(renderCart);
+
+    aplicarVista(vistaLista);
 
     // El buscador de la barra inferior también agrega productos al carrito.
     window.addEventListener('misuper:cart-changed', () => {
@@ -82,6 +91,7 @@ function init(root) {
 
     bindLogout();
     bindSearch();
+    bindVista();
     bindCart();
     bindModals();
     bindFreeForm();
@@ -100,6 +110,39 @@ function init(root) {
     }
 
     showSavedToastIfNeeded();
+
+    /* Vista de resultados ----------------------------------------------- */
+
+    function bindVista() {
+        if (!(el.toggleVista instanceof HTMLButtonElement)) {
+            return;
+        }
+
+        el.toggleVista.addEventListener('click', () => {
+            vistaLista = !vistaLista;
+            aplicarVista(vistaLista);
+            guardarVistaLista(vistaLista);
+        });
+    }
+
+    /**
+     * @param {boolean} lista
+     */
+    function aplicarVista(lista) {
+        if (el.results instanceof HTMLElement) {
+            el.results.classList.toggle('results--list', lista);
+        }
+
+        if (el.toggleVista instanceof HTMLButtonElement) {
+            el.toggleVista.setAttribute('aria-pressed', lista ? 'true' : 'false');
+            el.toggleVista.setAttribute('aria-label', lista ? 'Ver productos en cuadrícula' : 'Ver productos en lista');
+            el.toggleVista.title = lista ? 'Ver productos en cuadrícula' : 'Ver productos en lista';
+        }
+
+        if (el.vistaIcon instanceof HTMLElement) {
+            el.vistaIcon.className = `bi ${lista ? 'bi-grid-3x3-gap-fill' : 'bi-list-ul'}`;
+        }
+    }
 
     /* Búsqueda ---------------------------------------------------------- */
 
@@ -1314,6 +1357,36 @@ function init(root) {
         });
     }
 
+    async function importarListaSiAplica() {
+        const params = new URLSearchParams(window.location.search);
+
+        if (params.get('lista') !== '1') {
+            return;
+        }
+
+        try {
+            const data = await fetchApi('/api/lista-compras/consumir', { method: 'POST' });
+            const items = Array.isArray(data?.items) ? data.items : [];
+
+            if (items.length > 0) {
+                const importados = importItems(items);
+                loadCart();
+                showToast(
+                    `Se agregaron ${importados} ${importados === 1 ? 'producto' : 'productos'} de tu lista. Asigna precios y cantidades.`,
+                    'success',
+                );
+            }
+        } catch (error) {
+            if (!redirectIfSessionLost(error)) {
+                showToast(error?.message ?? 'No se pudo cargar la lista de compras.', 'error');
+            }
+        } finally {
+            params.delete('lista');
+            const query = params.toString();
+            window.history.replaceState({}, '', `${window.location.pathname}${query === '' ? '' : `?${query}`}`);
+        }
+    }
+
     function showSavedToastIfNeeded() {
         const params = new URLSearchParams(window.location.search);
 
@@ -1325,6 +1398,28 @@ function init(root) {
         params.delete('guardada');
         const query = params.toString();
         window.history.replaceState({}, '', `${window.location.pathname}${query === '' ? '' : `?${query}`}`);
+    }
+}
+
+/**
+ * @returns {boolean}
+ */
+function leerVistaLista() {
+    try {
+        return window.localStorage.getItem(VISTA_KEY) === 'lista';
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * @param {boolean} lista
+ */
+function guardarVistaLista(lista) {
+    try {
+        window.localStorage.setItem(VISTA_KEY, lista ? 'lista' : 'cuadricula');
+    } catch {
+        // Si el navegador bloquea localStorage, la vista solo dura la sesión.
     }
 }
 

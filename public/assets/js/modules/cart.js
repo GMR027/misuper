@@ -206,3 +206,98 @@ export function clearCart() {
         // Nada que hacer si localStorage no está disponible.
     }
 }
+
+/**
+ * Agrega un ítem libre (sin producto del catálogo) al carrito.
+ *
+ * @param {{nombre: string, unidad_base?: string, categoria_nombre?: string|null, cantidad?: number, precio_total?: number}} item
+ * @returns {boolean}
+ */
+export function addFreeItem(item) {
+    if (items.length >= MAX_ITEMS) {
+        return false;
+    }
+
+    const nombre = String(item.nombre ?? '').trim();
+    const cantidad = Number(item.cantidad ?? 1);
+    const precio = Number(item.precio_total ?? 0);
+
+    if (nombre === '' || !Number.isFinite(cantidad) || cantidad <= 0) {
+        return false;
+    }
+
+    items.push({
+        producto_id: null,
+        nombre,
+        unidad_base: UNIDADES.includes(item.unidad_base) ? item.unidad_base : 'pza',
+        categoria_nombre: typeof item.categoria_nombre === 'string' ? item.categoria_nombre : null,
+        cantidad: round(cantidad, 3),
+        precio_total: Number.isFinite(precio) && precio >= 0 ? round(precio, 2) : 0,
+    });
+    persist();
+
+    return true;
+}
+
+/**
+ * Importa varios ítems (por ejemplo, desde Productos por comprar) y suma
+ * cantidades cuando el producto ya existe en el carrito.
+ *
+ * @param {Array<{producto_id?: number|null, nombre: string, unidad_base?: string, categoria_nombre?: string|null, cantidad?: number, precio_total?: number}>} lista
+ * @returns {number} cantidad de ítems agregados o fusionados
+ */
+export function importItems(lista) {
+    if (!Array.isArray(lista)) {
+        return 0;
+    }
+
+    let importados = 0;
+
+    for (const raw of lista) {
+        if (!raw || typeof raw !== 'object' || items.length >= MAX_ITEMS) {
+            continue;
+        }
+
+        const nombre = String(raw.nombre ?? '').trim();
+        const cantidad = Number(raw.cantidad ?? 1);
+        const unidad = UNIDADES.includes(raw.unidad_base) ? raw.unidad_base : 'pza';
+
+        if (nombre === '' || !Number.isFinite(cantidad) || cantidad <= 0) {
+            continue;
+        }
+
+        const productoId = raw.producto_id === null || raw.producto_id === undefined
+            ? null
+            : Number(raw.producto_id);
+        const idValido = Number.isInteger(productoId) && productoId > 0 ? productoId : null;
+        const existente = items.find((item) => (
+            idValido !== null
+                ? item.producto_id === idValido
+                : item.producto_id === null
+                    && item.nombre.toLocaleLowerCase('es-MX') === nombre.toLocaleLowerCase('es-MX')
+                    && item.unidad_base === unidad
+        ));
+
+        if (existente !== undefined) {
+            existente.cantidad = round(existente.cantidad + cantidad, 3);
+            importados++;
+            continue;
+        }
+
+        items.push({
+            producto_id: idValido,
+            nombre,
+            unidad_base: unidad,
+            categoria_nombre: typeof raw.categoria_nombre === 'string' ? raw.categoria_nombre : null,
+            cantidad: round(cantidad, 3),
+            precio_total: 0,
+        });
+        importados++;
+    }
+
+    if (importados > 0) {
+        persist();
+    }
+
+    return importados;
+}

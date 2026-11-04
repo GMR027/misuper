@@ -13,9 +13,16 @@ $categoriaSeleccionada = ProductoService::enteroPositivo($_GET['categoria_id'] ?
 $estadoSeleccionado = isset($_GET['estado']) && is_string($_GET['estado'])
     ? $_GET['estado']
     : '';
+$imagenSeleccionada = isset($_GET['imagen']) && is_string($_GET['imagen'])
+    ? $_GET['imagen']
+    : '';
 
 if (!in_array($estadoSeleccionado, ['activo', 'inactivo'], true)) {
     $estadoSeleccionado = '';
+}
+
+if (!in_array($imagenSeleccionada, ['sin_foto', 'vencida'], true)) {
+    $imagenSeleccionada = '';
 }
 
 $mensajes = [
@@ -38,7 +45,17 @@ ob_start();
             <p class="text-muted mb-0">Catálogo del súper: crea, edita y desactiva productos.</p>
         </div>
 
-        <a class="btn btn-primary" href="/admin/productos/nuevo">Nuevo producto</a>
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-outline-primary" type="button" data-categoria-open>
+                <i class="bi bi-tags" aria-hidden="true"></i>
+                Nueva categoría
+            </button>
+            <button class="btn btn-outline-secondary" type="button" data-verificar-fotos>
+                <i class="bi bi-image" aria-hidden="true"></i>
+                Verificar fotos
+            </button>
+            <a class="btn btn-primary" href="/admin/productos/nuevo">Nuevo producto</a>
+        </div>
     </div>
 
     <?php if (isset($mensajes[$ok])): ?>
@@ -48,7 +65,7 @@ ob_start();
     <?php endif; ?>
 
     <form id="filtros-form" class="row g-2 mb-4" method="get" action="/admin/productos">
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-4">
             <label class="form-label" for="q">Buscar</label>
             <input
                 class="form-control"
@@ -61,7 +78,7 @@ ob_start();
             >
         </div>
 
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
             <label class="form-label" for="categoria_id">Categoría</label>
             <select class="form-select" id="categoria_id" name="categoria_id">
                 <option value="">Todas</option>
@@ -76,12 +93,21 @@ ob_start();
             </select>
         </div>
 
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
             <label class="form-label" for="estado">Estado</label>
             <select class="form-select" id="estado" name="estado">
                 <option value="" <?= $estadoSeleccionado === '' ? 'selected' : '' ?>>Todos</option>
                 <option value="activo" <?= $estadoSeleccionado === 'activo' ? 'selected' : '' ?>>Activos</option>
                 <option value="inactivo" <?= $estadoSeleccionado === 'inactivo' ? 'selected' : '' ?>>Inactivos</option>
+            </select>
+        </div>
+
+        <div class="col-6 col-md-4">
+            <label class="form-label" for="imagen">Foto</label>
+            <select class="form-select" id="imagen" name="imagen">
+                <option value="" <?= $imagenSeleccionada === '' ? 'selected' : '' ?>>Todas</option>
+                <option value="sin_foto" <?= $imagenSeleccionada === 'sin_foto' ? 'selected' : '' ?>>Sin foto</option>
+                <option value="vencida" <?= $imagenSeleccionada === 'vencida' ? 'selected' : '' ?>>Foto vencida (rota)</option>
             </select>
         </div>
 
@@ -132,6 +158,8 @@ ob_start();
         </ul>
     </nav>
 </div>
+
+<?php require __DIR__ . '/_categoria-modal.php'; ?>
 <?php
 
 $content = (string) ob_get_clean();

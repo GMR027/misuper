@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Controllers\AdminRecetaController;
 use App\Controllers\HistorialController;
+use App\Controllers\ListaCompraController;
 use App\Controllers\MetricaController;
 use App\Controllers\NotaController;
+use App\Controllers\RecetaController;
 use App\Controllers\TicketController;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\AuthMiddleware;
@@ -145,6 +148,31 @@ HTML;
 
             return;
 
+        case 'GET /recetas':
+            (new RecetaController())->vista();
+
+            return;
+
+        case 'GET /recetas/proponer':
+            (new RecetaController())->propuesta();
+
+            return;
+
+        case 'GET /lista-compras':
+            (new ListaCompraController())->vista();
+
+            return;
+
+        case 'GET /admin/recetas':
+            (new AdminRecetaController())->vista();
+
+            return;
+
+        case 'GET /admin/recetas/nuevo':
+            (new AdminRecetaController())->form();
+
+            return;
+
         case 'GET /admin/productos':
             if ($exigirAdmin() === null) {
                 return;
@@ -222,6 +250,22 @@ HTML;
 
         header('Content-Type: text/html; charset=utf-8');
         require BASE_PATH . '/src/Views/admin/productos/form.php';
+
+        return;
+    }
+
+    if (preg_match('#^/admin/recetas/([1-9][0-9]*)$#', $path, $matches) === 1) {
+        if ($method !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            header('Content-Type: text/plain; charset=utf-8');
+
+            echo "Método no permitido.\n";
+
+            return;
+        }
+
+        (new AdminRecetaController())->form((int) $matches[1]);
 
         return;
     }

@@ -50,6 +50,34 @@ final class MetricaRepository
     }
 
     /**
+     * Gasto total por año dentro de un rango inclusivo.
+     *
+     * Solo devuelve los años que tienen compras; el servicio rellena los
+     * años sin movimientos con cero.
+     *
+     * @return array<int, float> Año => total
+     */
+    public function gastoAnual(int $usuarioId, int $desde, int $hasta): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT YEAR(c.fecha) AS anio, SUM(c.total) AS total
+             FROM compras c
+             WHERE c.usuario_id = ? AND YEAR(c.fecha) BETWEEN ? AND ?
+             GROUP BY YEAR(c.fecha)
+             ORDER BY anio ASC'
+        );
+        $statement->execute([$usuarioId, $desde, $hasta]);
+
+        $items = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $items[(int) $row['anio']] = (float) $row['total'];
+        }
+
+        return $items;
+    }
+
+    /**
      * Top de productos por gasto en un mes concreto.
      *
      * Los ítems libres (producto_id NULL) se agrupan por nombre_libre.
