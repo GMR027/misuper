@@ -12,6 +12,31 @@
     border-left: 4px solid var(--bs-success);
 }
 
+.metrics-summary__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding-top: 0.9rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.metrics-summary__caption {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+
+.metrics-summary__value {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
 .metrics-bar__fill {
     transition: width 0.25s ease;
 }

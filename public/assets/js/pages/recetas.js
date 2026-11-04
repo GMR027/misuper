@@ -913,7 +913,7 @@ function init(root) {
             for (const lista of listas) {
                 const option = document.createElement('option');
                 option.value = String(lista.id);
-                option.textContent = `${lista.nombre} (${Number(lista.items_count ?? 0)} productos)`;
+                option.textContent = `${lista.nombre} (${Number(lista.items_count ?? 0)})`;
                 el.previewLista.append(option);
             }
 

@@ -3,6 +3,7 @@
  */
 
 import { fetchApi } from '../modules/api.js';
+import { confirmar } from '../modules/confirm.js';
 import { formatQuantity } from '../modules/format.js';
 import { showToast } from '../modules/toast.js';
 
@@ -136,7 +137,8 @@ function init(root) {
         for (const lista of listas) {
             const option = document.createElement('option');
             option.value = String(lista.id);
-            option.textContent = `${lista.nombre} · ${Number(lista.items_count ?? 0)} productos`;
+            option.textContent = `${lista.nombre} (${Number(lista.items_count ?? 0)})`;
+            option.title = `${lista.nombre} · ${Number(lista.items_count ?? 0)} productos`;
             option.selected = Number(lista.id) === Number(preferida ?? listaActual);
             el.select.append(option);
         }
@@ -336,7 +338,13 @@ function init(root) {
         remove.setAttribute('aria-label', `Eliminar ${item.nombre}`);
         remove.innerHTML = '<i class="bi bi-trash3" aria-hidden="true"></i>';
         remove.addEventListener('click', async () => {
-            if (!window.confirm(`¿Eliminar "${item.nombre}" de la lista?`)) {
+            const confirmado = await confirmar({
+                title: 'Quitar de la lista',
+                message: `«${item.nombre}» se eliminará de esta lista.`,
+                confirmText: 'Quitar',
+            });
+
+            if (!confirmado) {
                 return;
             }
 
@@ -458,7 +466,17 @@ function init(root) {
     }
 
     async function vaciarLista() {
-        if (listaActual <= 0 || !window.confirm('¿Vaciar todos los productos de esta lista?')) {
+        if (listaActual <= 0) {
+            return;
+        }
+
+        const confirmado = await confirmar({
+            title: 'Vaciar lista',
+            message: 'Se quitarán todos los productos de esta lista. La lista seguirá existiendo.',
+            confirmText: 'Vaciar lista',
+        });
+
+        if (!confirmado) {
             return;
         }
 
@@ -479,7 +497,17 @@ function init(root) {
     async function eliminarLista() {
         const lista = listas.find((fila) => Number(fila.id) === listaActual);
 
-        if (lista === undefined || !window.confirm(`¿Eliminar la lista "${lista.nombre}" y todos sus productos?`)) {
+        if (lista === undefined) {
+            return;
+        }
+
+        const confirmado = await confirmar({
+            title: 'Eliminar lista',
+            message: `Se eliminará «${lista.nombre}» y todos sus productos.`,
+            confirmText: 'Eliminar lista',
+        });
+
+        if (!confirmado) {
             return;
         }
 

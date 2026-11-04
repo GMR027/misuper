@@ -574,6 +574,7 @@ function init(form) {
         nombre.maxLength = 150;
         nombre.value = String(ingrediente?.nombre ?? '');
         nombre.dataset.ingNombre = '';
+        nombre.setAttribute('aria-label', 'Nombre del ingrediente');
 
         const cantidad = document.createElement('input');
         cantidad.type = 'number';
@@ -583,10 +584,12 @@ function init(form) {
         cantidad.inputMode = 'decimal';
         cantidad.value = ingrediente?.unidad === 'al_gusto' ? '' : String(ingrediente?.cantidad ?? 1);
         cantidad.dataset.ingCantidad = '';
+        cantidad.setAttribute('aria-label', 'Cantidad del ingrediente');
 
         const unidad = document.createElement('select');
         unidad.className = 'form-select form-select-sm';
         unidad.dataset.ingUnidad = '';
+        unidad.setAttribute('aria-label', 'Unidad del ingrediente');
         [
             ['g', 'g'],
             ['ml', 'ml'],

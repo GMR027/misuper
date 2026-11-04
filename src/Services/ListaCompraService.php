@@ -227,7 +227,7 @@ final class ListaCompraService
             }
         }
 
-        $origen = isset($item['origen']) ? trim((string) $item['origen']) : null;
+        $origen = isset($item['origen']) ? trim((string) $item['origen']) : '';
         $origen = $origen === '' ? null : mb_substr($origen, 0, 255);
 
         return [

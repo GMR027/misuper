@@ -87,11 +87,11 @@ ob_start();
             <thead class="table-light">
                 <tr>
                     <th scope="col">Receta</th>
-                    <th scope="col">Categoría</th>
-                    <th scope="col">Tipos</th>
+                    <th scope="col" class="d-none d-md-table-cell">Categoría</th>
+                    <th scope="col" class="d-none d-lg-table-cell">Tipos</th>
                     <th scope="col">Estado</th>
-                    <th scope="col">Autor</th>
-                    <th scope="col">Video</th>
+                    <th scope="col" class="d-none d-lg-table-cell">Autor</th>
+                    <th scope="col" class="d-none d-lg-table-cell">Video</th>
                     <th class="text-end" scope="col">Acciones</th>
                 </tr>
             </thead>

@@ -6,8 +6,8 @@ ve cuánto gasta al mes y en qué 10 productos se le va el dinero.
 Stack: PHP 8.1+, MySQL 8, PDO, HTML + CSS + JS vanilla (módulos ES6). Sin frameworks.
 
 ## Estado
-- Fase actual: MVP COMPLETO + LECTURA DE TICKETS + RECETAS EDITABLES
-- Fases completadas: Fase 1 a Fase 11.4, Fase 12.0 a Fase 12.9, Fase 13 a Fase 17
+- Fase actual: MVP COMPLETO + LECTURA DE TICKETS + RECETAS EDITABLES + AUDITORÍA UX/UI
+- Fases completadas: Fase 1 a Fase 11.4, Fase 12.0 a Fase 12.9, Fase 13 a Fase 22
 - Próximo chunk: post-MVP. Sin fases pendientes.
 
 ## Alcance del MVP (resumen)
@@ -615,3 +615,17 @@ STATE_HANDOFF — Fase 21 (Último precio por usuario en la calculadora) — 202
 - `pantalla-rapida.js` precarga la calculadora con `product.ultimo_precio` (si es mayor que 0); si no existe cae al último precio guardado en localStorage y, si tampoco, deja el campo vacío.
 - El precio es por usuario, por lo que cada cuenta/región mantiene el suyo; al guardar o editar una compra el valor de referencia se actualiza solo.
 - Verificado con la BD local: la consulta devuelve el último precio correcto y `NULL` para productos nunca comprados. Sin migración nueva ni cambios en el guardado de compras.
+
+STATE_HANDOFF — Fase 22 (Auditoría UX/UI mobile-first) — 2026-11-04
+- Shell global: en móvil/tablet se oculta la barra de navegación superior (el dock inferior ya concentra la navegación) para eliminar la duplicidad y el corte horizontal. La cabecera queda más compacta, el avatar enlaza a Ajustes y «Cerrar sesión» tiene nombre accesible incluso cuando el texto se oculta.
+- Se añadió un enlace «Saltar al contenido principal» visible solo con teclado.
+- Tablas de administración (productos, usuarios, recetas, categorías y tipos): columnas secundarias ocultas por breakpoint, acciones compactas con iconos + `aria-label` y etiquetas visibles solo en escritorio. Ya no requieren scroll horizontal en 390 px.
+- Detalle de compra: los ítems pasan a una rejilla de 3 campos en móvil; el botón de borrar se posiciona arriba a la derecha y los campos de cantidad/precio/unidad dejan de recortarse.
+- Ajustes: todas las tarjetas comparten el mismo ancho centrado (9 columnas) en lugar de mezclar una tarjeta a ancho completo con formularios de 8 columnas.
+- Recetas: filtros alineados; los dos switches pasan a un panel compacto y «Solo con lo que he comprado» ya no descuadra la fila de búsqueda/tiempo. Las filas de ingredientes del formulario se reorganizan en móvil y sus controles tienen nombre accesible.
+- Métricas: la tarjeta de gasto anual muestra «Promedio mensual» y «Mes más alto» calculados desde el gasto mensual del año.
+- Modales: nuevo `password-toggle.js` (ojo para mostrar/ocultar en login, registro, ajustes y cambio forzado) y `modal-a11y.js` (bloqueo de scroll de fondo, trampa de Tab, cierre al pulsar el fondo y devolución del foco). Los `window.confirm` nativos se sustituyeron por un diálogo propio (`modules/confirm.js`) en carrito, compras, listas, productos, recetas, categorías y tipos.
+- Contraste: chips activos y favoritos de recetas legibles en modo oscuro.
+- Corrección funcional detectada durante las pruebas: `ListaCompraService::normalizarItem()` llamaba a `mb_substr(null)` cuando el ítem no traía `origen`, lo que devolvía 500 al agregar productos manualmente a una lista. Ahora `origen` se normaliza a `''` antes del recorte.
+- Verificado con Playwright en 1440, 768 y 390 px, tema claro y oscuro: sin errores de consola, sin desbordes no intencionados, sin controles sin etiqueta. Flujos probados: login con ojo de contraseña, búsqueda y guardado de compra, alta/edición/borrado de nota, listas (crear/agregar/eliminar), recetas (detalle/selección/preview), tickets (OCR real con Tesseract: 3 artículos, total $101.00), admin de usuarios, categorías, tipos, recetas y productos, confirmaciones propias y modales con foco atrapado.
+- BD local limpia después de las pruebas: 1 admin, 200 productos, 3 compras originales, 0 notas, 1 lista y 10 ítems de recetas. Sin migraciones nuevas.

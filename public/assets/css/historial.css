@@ -118,6 +118,50 @@ body.ticket-photo-open {
     width: 7rem;
 }
 
+@media (max-width: 575.98px) {
+    .detail-item {
+        position: relative;
+        align-items: stretch;
+        padding-right: 2.75rem;
+    }
+
+    .detail-item__info {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .detail-item__fields {
+        display: grid !important;
+        flex: 1 1 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.4rem;
+        width: 100%;
+    }
+
+    .detail-item__field {
+        min-width: 0;
+    }
+
+    .detail-item__caption {
+        font-size: 0.62rem;
+        letter-spacing: 0.02em;
+    }
+
+    .detail-item__value,
+    .detail-item__unit-price {
+        width: 100%;
+        min-width: 0;
+        padding-inline: 0.35rem;
+        font-size: 0.78rem;
+    }
+
+    .detail-item__remove {
+        position: absolute;
+        top: 0.65rem;
+        right: 0.55rem;
+    }
+}
+
 /* Modal de agregar: resultados y separador */
 
 .add-results {

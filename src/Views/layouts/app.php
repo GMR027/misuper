@@ -76,6 +76,7 @@ if ($avatarEsPreset) {
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/modes.css'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body class="app">
+    <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
     <header class="app-header">
         <div class="app-header__inner">
             <a class="app-header__brand" href="/">
@@ -136,19 +137,21 @@ if ($avatarEsPreset) {
             <?php endif; ?>
 
             <div class="app-header__account">
-                <span class="<?= htmlspecialchars($avatarClases, ENT_QUOTES, 'UTF-8') ?>" data-header-avatar aria-hidden="true">
-                    <?php if ($avatarEsFoto): ?>
-                        <img src="<?= htmlspecialchars($avatarValor, ENT_QUOTES, 'UTF-8') ?>" alt="">
-                    <?php elseif ($avatarEsPreset): ?>
-                        <?= htmlspecialchars($avatarEmoji, ENT_QUOTES, 'UTF-8') ?>
-                    <?php else: ?>
-                        <?= htmlspecialchars($iniciales, ENT_QUOTES, 'UTF-8') ?>
-                    <?php endif; ?>
-                </span>
-                <span class="app-header__name" data-username>
-                    <?= htmlspecialchars((string) ($usuario['nombre'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
-                </span>
-                <button class="app-header__logout" type="button" data-logout>
+                <a class="app-header__profile" href="/ajustes" aria-label="Abrir los ajustes de tu cuenta" title="Ajustes de la cuenta">
+                    <span class="<?= htmlspecialchars($avatarClases, ENT_QUOTES, 'UTF-8') ?>" data-header-avatar aria-hidden="true">
+                        <?php if ($avatarEsFoto): ?>
+                            <img src="<?= htmlspecialchars($avatarValor, ENT_QUOTES, 'UTF-8') ?>" alt="">
+                        <?php elseif ($avatarEsPreset): ?>
+                            <?= htmlspecialchars($avatarEmoji, ENT_QUOTES, 'UTF-8') ?>
+                        <?php else: ?>
+                            <?= htmlspecialchars($iniciales, ENT_QUOTES, 'UTF-8') ?>
+                        <?php endif; ?>
+                    </span>
+                    <span class="app-header__name" data-username>
+                        <?= htmlspecialchars((string) ($usuario['nombre'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
+                    </span>
+                </a>
+                <button class="app-header__logout" type="button" data-logout aria-label="Cerrar sesión">
                     <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
                     <span>Cerrar sesión</span>
                 </button>
@@ -325,6 +328,11 @@ if ($avatarEsPreset) {
                             <span class="dock-menu__text">Categorías de recetas</span>
                             <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
                         </a>
+                        <a class="dock-menu__link<?= $active === 'admin-tipos' ? ' is-active' : '' ?>" href="/admin/recetas/tipos">
+                            <span class="dock-menu__icon"><i class="bi bi-tags-fill" aria-hidden="true"></i></span>
+                            <span class="dock-menu__text">Tipos de dieta</span>
+                            <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
+                        </a>
                         <a class="dock-menu__link<?= $active === 'admin-productos' ? ' is-active' : '' ?>" href="/admin/productos">
                             <span class="dock-menu__icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
                             <span class="dock-menu__text">Productos</span>
@@ -348,6 +356,8 @@ if ($avatarEsPreset) {
     <?php endif; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/password-toggle.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+    <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/modal-a11y.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
     <?php if (!$ocultarNav): ?>
         <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/dock.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
         <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/nav-slider.js'), ENT_QUOTES, 'UTF-8') ?>"></script>

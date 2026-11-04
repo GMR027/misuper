@@ -208,7 +208,7 @@ ob_start();
                     <div class="col-12 col-sm-6">
                         <label class="form-label" for="libre-categoria">Categoría</label>
                         <select class="form-select" id="libre-categoria" name="categoria_id" required data-libre-categoria>
-                            <option value="">Selecciona una categoría</option>
+                            <option value="">Elige categoría</option>
                         </select>
                     </div>
 
@@ -347,7 +347,7 @@ ob_start();
 
                 <div class="mb-3">
                     <label class="form-label" for="fecha-compra">Fecha</label>
-                    <input class="form-control" type="date" id="fecha-compra" name="fecha" required data-fecha>
+                    <input class="form-control" type="date" id="fecha-compra" name="fecha" required max="<?= (new DateTimeImmutable('today'))->format('Y-m-d') ?>" data-fecha>
                 </div>
 
                 <p class="form__message mb-0" data-fecha-error hidden></p>

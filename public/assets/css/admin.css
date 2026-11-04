@@ -48,11 +48,15 @@
 }
 
 /* Botones de acciones de tabla: misma caja para Editar/Desactivar/Resetear. */
+.admin-actions {
+    white-space: nowrap;
+}
+
 .admin-actions .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 12rem;
+    min-width: 7.5rem;
     white-space: nowrap;
 }
 
@@ -146,9 +150,44 @@
     transform: translateY(0);
 }
 
+@media (max-width: 991.98px) {
+    .admin-actions .btn {
+        min-width: 2.5rem;
+        padding-inline: 0.55rem;
+    }
+
+    .admin-actions .btn .bi {
+        margin-right: 0;
+    }
+
+    .admin-actions .btn-label {
+        display: none;
+    }
+
+    .admin-actions {
+        white-space: normal;
+    }
+}
+
 @media (max-width: 575.98px) {
     .admin-actions .btn {
         width: auto;
+    }
+
+    .admin-actions .btn + .btn {
+        margin-left: 0.3rem;
+    }
+
+    .table > :not(caption) > * > * {
+        padding: 0.55rem 0.45rem;
+    }
+
+    .table {
+        font-size: 0.86rem;
+    }
+
+    .table .badge {
+        font-size: 0.68rem;
     }
 }
 

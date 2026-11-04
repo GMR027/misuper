@@ -7,6 +7,7 @@
  */
 
 import { fetchApi } from '../modules/api.js';
+import { confirmar } from '../modules/confirm.js';
 
 const PER_PAGE = 20;
 const UNIDADES = ['kg', 'gr', 'L', 'ml', 'pza'];
@@ -347,6 +348,7 @@ function initLista(body) {
         tr.dataset.productoId = String(Number(producto.id ?? 0));
 
         const imagenTd = document.createElement('td');
+        imagenTd.className = 'd-none d-sm-table-cell';
         const url = typeof producto.imagen_url === 'string' ? producto.imagen_url : '';
         const vencida = producto.imagen_estado === 'vencida';
 
@@ -380,9 +382,10 @@ function initLista(body) {
         const nombre = cell('td', String(producto.nombre ?? ''), 'fw-semibold');
         tr.append(nombre);
 
-        tr.append(cell('td', String(producto.categoria_nombre ?? '—')));
+        tr.append(cell('td', String(producto.categoria_nombre ?? '—'), 'd-none d-md-table-cell'));
 
         const unidadTd = document.createElement('td');
+        unidadTd.className = 'd-none d-lg-table-cell';
         unidadTd.append(cell('span', String(producto.unidad_base ?? ''), 'badge bg-light text-dark'));
         tr.append(unidadTd);
 
@@ -402,14 +405,16 @@ function initLista(body) {
         const editar = document.createElement('a');
         editar.className = 'btn btn-sm btn-outline-primary me-1';
         editar.href = `/admin/productos/${Number(producto.id)}`;
-        editar.innerHTML = '<i class="bi bi-pencil-square" aria-hidden="true"></i> Editar';
+        editar.setAttribute('aria-label', `Editar ${String(producto.nombre ?? 'producto')}`);
+        editar.innerHTML = '<i class="bi bi-pencil-square" aria-hidden="true"></i> <span class="btn-label">Editar</span>';
         acciones.append(editar);
 
         if (esActivo) {
             const desactivar = document.createElement('button');
             desactivar.type = 'button';
             desactivar.className = 'btn btn-sm btn-outline-danger';
-            desactivar.innerHTML = '<i class="bi bi-eye-slash" aria-hidden="true"></i> Desactivar';
+            desactivar.setAttribute('aria-label', `Desactivar ${String(producto.nombre ?? 'producto')}`);
+            desactivar.innerHTML = '<i class="bi bi-eye-slash" aria-hidden="true"></i> <span class="btn-label">Desactivar</span>';
             desactivar.dataset.deactivateId = String(producto.id);
             desactivar.dataset.nombre = String(producto.nombre ?? '');
             acciones.append(desactivar);
@@ -548,9 +553,12 @@ function initLista(body) {
             return;
         }
 
-        const confirmado = window.confirm(
-            'Se revisarán las URLs de todas las fotos del catálogo. Puede tardar unos segundos. ¿Continuar?',
-        );
+        const confirmado = await confirmar({
+            title: 'Verificar fotos',
+            message: 'Se revisarán las URLs de todas las fotos del catálogo. Puede tardar unos segundos.',
+            confirmText: 'Verificar fotos',
+            tone: 'primary',
+        });
 
         if (!confirmado) {
             return;
@@ -600,9 +608,11 @@ function initLista(body) {
 
         const id = button.dataset.deactivateId ?? '';
         const nombre = button.dataset.nombre ?? 'este producto';
-        const confirmado = window.confirm(
-            `¿Desactivar "${nombre}"? Dejará de aparecer en el catálogo público.`,
-        );
+        const confirmado = await confirmar({
+            title: 'Desactivar producto',
+            message: `«${nombre}» dejará de aparecer en el catálogo público. Podrás reactivarlo editándolo.`,
+            confirmText: 'Desactivar',
+        });
 
         if (!confirmado) {
             return;
@@ -795,10 +805,13 @@ function initFormulario(form) {
         }
     });
 
-    desactivar?.addEventListener('click', async () => {        const nombre = nombreInput instanceof HTMLInputElement ? nombreInput.value.trim() : '';
-        const confirmado = window.confirm(
-            `¿Desactivar "${nombre}"? Dejará de aparecer en el catálogo público.`,
-        );
+    desactivar?.addEventListener('click', async () => {
+        const nombre = nombreInput instanceof HTMLInputElement ? nombreInput.value.trim() : '';
+        const confirmado = await confirmar({
+            title: 'Desactivar producto',
+            message: `«${nombre}» dejará de aparecer en el catálogo público. Podrás reactivarlo editándolo.`,
+            confirmText: 'Desactivar',
+        });
 
         if (!confirmado) {
             return;

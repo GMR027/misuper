@@ -44,6 +44,8 @@ function init(root) {
     const anualPromedio = root.querySelector('[data-anual-promedio]');
     const anualList = root.querySelector('[data-anual-list]');
     const anualStatus = root.querySelector('[data-anual-status]');
+    const anualMensual = root.querySelector('[data-anual-mensual]');
+    const anualMejor = root.querySelector('[data-anual-mejor]');
 
     bindLogout();
 
@@ -257,6 +259,15 @@ function init(root) {
         gastoList.replaceChildren();
         mostrarEstado(gastoStatus, 'Cargando gasto…', false);
 
+        if (anualMensual instanceof HTMLElement) {
+            anualMensual.textContent = '—';
+        }
+
+        if (anualMejor instanceof HTMLElement) {
+            anualMejor.textContent = '—';
+            anualMejor.removeAttribute('title');
+        }
+
         try {
             const data = await fetchApi(
                 `/api/metricas/gasto-mensual?anio=${encodeURIComponent(year)}`,
@@ -288,6 +299,7 @@ function init(root) {
 
         if (rows.length === 0) {
             mostrarEstado(gastoStatus, `Sin compras en ${year}.`, true);
+            actualizarResumenMensual([], year);
 
             return;
         }
@@ -301,6 +313,7 @@ function init(root) {
         const yearTotal = rows.reduce((sum, row) => sum + (Number(row.total) || 0), 0);
 
         mostrarEstado(gastoStatus, `${formatCurrency(yearTotal)} en ${year}.`, false);
+        actualizarResumenMensual(rows, year);
 
         for (const row of rows) {
             const monthIndex = Number(row.mes) - 1;
@@ -343,6 +356,34 @@ function init(root) {
     }
 
     /* Top de productos -------------------------------------------------- */
+
+    /**
+     * @param {Array<{ mes: number, total: number }>} rows
+     * @param {number} year
+     */
+    function actualizarResumenMensual(rows, year) {
+        if (!(anualMensual instanceof HTMLElement) || !(anualMejor instanceof HTMLElement)) {
+            return;
+        }
+
+        if (rows.length === 0) {
+            anualMensual.textContent = '—';
+            anualMejor.textContent = 'Sin datos';
+            anualMejor.title = `Sin compras en ${year}`;
+
+            return;
+        }
+
+        const total = rows.reduce((sum, row) => sum + (Number(row.total) || 0), 0);
+        const mejor = rows.reduce((actual, row) => (
+            (Number(row.total) || 0) > (Number(actual.total) || 0) ? row : actual
+        ), rows[0]);
+        const mesMejor = MONTHS[Number(mejor.mes) - 1] ?? '';
+
+        anualMensual.textContent = formatCurrency(total / rows.length);
+        anualMejor.textContent = mesMejor;
+        anualMejor.title = `${mesMejor}: ${formatCurrency(Number(mejor.total) || 0)}`;
+    }
 
     async function loadTop(month, year) {
         const token = ++topToken;

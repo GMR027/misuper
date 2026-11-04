@@ -342,6 +342,27 @@ p { color: inherit; }
     box-shadow: 0 10px 30px rgba(var(--shadow-rgb), 0.05);
 }
 
+.skip-link {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.75rem;
+    z-index: 1090;
+    padding: 0.55rem 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    background: var(--p-800);
+    border-radius: 0.5rem;
+    transform: translateY(-160%);
+    transition: transform 0.15s ease;
+}
+
+.skip-link:focus-visible {
+    transform: translateY(0);
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
 .app-header__inner {
     max-width: 1180px;
     padding: 0.7rem 1.25rem 0.55rem;
@@ -449,6 +470,52 @@ p { color: inherit; }
     order: 2;
     margin-left: auto;
     gap: 0.6rem;
+}
+
+.app-header__profile {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.6rem;
+    padding: 0.2rem 0.4rem 0.2rem 0.2rem;
+    color: inherit;
+    text-decoration: none;
+    border-radius: 999px;
+    transition: background-color 0.15s ease;
+}
+
+.app-header__profile:hover {
+    background-color: rgba(var(--p-rgb), 0.08);
+}
+
+.app-header__profile:focus-visible {
+    outline: 2px solid var(--p-500);
+    outline-offset: 2px;
+}
+
+/* Mostrar / ocultar contraseña --------------------------------------- */
+
+.password-field .password-field__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.9rem;
+    color: var(--muted);
+    background: var(--surface-2);
+    border-color: var(--border);
+}
+
+.password-field .password-field__toggle:hover,
+.password-field .password-field__toggle:focus-visible {
+    color: var(--p-800);
+    background: rgba(var(--p-rgb), 0.08);
+    border-color: var(--p-200);
+}
+
+/* Bloqueo de fondo mientras hay una ventana modal propia abierta. */
+html.modal-abierto,
+body.modal-abierto {
+    overflow: hidden;
 }
 
 .app-header__avatar {
@@ -1693,15 +1760,30 @@ html[data-mode="dark"] .dock-menu__logout {
 }
 
 @media (max-width: 991.98px) {
+    /* En móvil y tablet la barra inferior (dock) ya concentra la navegación:
+       se oculta la barra superior para no duplicar enlaces ni cortar el scroll. */
     .app-nav {
-        display: flex;
-        padding-top: 0.25rem;
-        padding-bottom: 0.45rem;
+        display: none;
     }
 
-    .app-nav__link {
-        padding: 0.42rem 0.65rem;
-        font-size: 0.8rem;
+    .app-header__inner {
+        padding: 0.55rem 1rem 0.5rem;
+    }
+
+    .app-header__brand {
+        font-size: 1.02rem;
+    }
+
+    .brand-mark {
+        width: 34px;
+        height: 34px;
+        font-size: 0.95rem;
+    }
+
+    .app-header__logout {
+        min-width: 2.6rem;
+        min-height: 2.6rem;
+        justify-content: center;
     }
 
     .app-dock {

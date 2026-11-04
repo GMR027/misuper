@@ -293,9 +293,9 @@ function init(tabla) {
         const tr = document.createElement('tr');
         tr.dataset.userId = String(Number(usuario.id ?? 0));
 
-        tr.append(celda(String(Number(usuario.id ?? 0))));
+        tr.append(celda(String(Number(usuario.id ?? 0)), 'd-none d-md-table-cell'));
         tr.append(celda(String(usuario.nombre ?? ''), 'fw-semibold'));
-        tr.append(celda(String(usuario.email ?? '')));
+        tr.append(celda(String(usuario.email ?? ''), 'd-none d-md-table-cell'));
 
         const rolTd = document.createElement('td');
         const esAdmin = usuario.rol === 'admin';
@@ -306,6 +306,7 @@ function init(tabla) {
         tr.append(rolTd);
 
         const flagTd = document.createElement('td');
+        flagTd.className = 'd-none d-lg-table-cell';
 
         if (usuario.debe_cambiar_password === true) {
             flagTd.append(badge('Sí', 'badge bg-warning text-dark'));
@@ -316,7 +317,7 @@ function init(tabla) {
         tr.append(flagTd);
 
         const fechaTd = document.createElement('td');
-        fechaTd.className = 'text-muted small';
+        fechaTd.className = 'text-muted small d-none d-md-table-cell';
         fechaTd.textContent = formatearFecha(usuario.created_at);
         tr.append(fechaTd);
 
@@ -335,7 +336,8 @@ function init(tabla) {
         const editar = document.createElement('button');
         editar.type = 'button';
         editar.className = 'btn btn-sm btn-outline-primary';
-        editar.innerHTML = '<i class="bi bi-pencil-square" aria-hidden="true"></i> Editar';
+        editar.innerHTML = '<i class="bi bi-pencil-square" aria-hidden="true"></i> <span class="btn-label">Editar</span>';
+        editar.setAttribute('aria-label', `Editar ${nombre}`);
         editar.title = 'Editar nombre, email y rol';
         editar.dataset.editId = id;
         editar.dataset.nombre = nombre;
@@ -345,7 +347,8 @@ function init(tabla) {
         const resetear = document.createElement('button');
         resetear.type = 'button';
         resetear.className = 'btn btn-sm btn-outline-warning btn-reset';
-        resetear.innerHTML = '<i class="bi bi-key-fill" aria-hidden="true"></i> Resetear contraseña';
+        resetear.innerHTML = '<i class="bi bi-key-fill" aria-hidden="true"></i> <span class="btn-label">Resetear contraseña</span>';
+        resetear.setAttribute('aria-label', `Resetear contraseña de ${nombre}`);
         resetear.disabled = esPropio;
         resetear.dataset.resetId = id;
         resetear.dataset.nombre = nombre;
@@ -364,7 +367,8 @@ function init(tabla) {
         const eliminar = document.createElement('button');
         eliminar.type = 'button';
         eliminar.className = 'btn btn-sm btn-outline-danger';
-        eliminar.innerHTML = '<i class="bi bi-trash3" aria-hidden="true"></i> Eliminar';
+        eliminar.innerHTML = '<i class="bi bi-trash3" aria-hidden="true"></i> <span class="btn-label">Eliminar</span>';
+        eliminar.setAttribute('aria-label', `Eliminar ${nombre}`);
         eliminar.disabled = esPropio;
         eliminar.dataset.deleteId = id;
         eliminar.dataset.nombre = nombre;

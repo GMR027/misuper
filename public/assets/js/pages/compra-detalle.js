@@ -3,6 +3,7 @@
  */
 
 import { fetchApi } from '../modules/api.js';
+import { confirmar } from '../modules/confirm.js';
 import {
     formatCurrency,
     formatQuantity,
@@ -280,7 +281,13 @@ function init(root) {
             return;
         }
 
-        if (!window.confirm(`¿Borrar "${item.nombre}" de esta compra?`)) {
+        const confirmado = await confirmar({
+            title: 'Borrar ítem',
+            message: `¿Borrar «${item.nombre}» de esta compra?`,
+            confirmText: 'Borrar ítem',
+        });
+
+        if (!confirmado) {
             return;
         }
 
@@ -330,11 +337,13 @@ function init(root) {
         }
 
         el.borrarCompra.addEventListener('click', async () => {
-            if (
-                !window.confirm(
-                    '¿Borrar esta compra y todos sus ítems? Esta acción no se puede deshacer.',
-                )
-            ) {
+            const confirmado = await confirmar({
+                title: 'Borrar compra',
+                message: 'Se borrarán la compra y todos sus ítems. Esta acción no se puede deshacer.',
+                confirmText: 'Borrar compra',
+            });
+
+            if (!confirmado) {
                 return;
             }
 

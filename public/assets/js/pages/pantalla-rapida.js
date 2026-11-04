@@ -3,6 +3,7 @@
  */
 
 import { fetchApi } from '../modules/api.js';
+import { confirmar } from '../modules/confirm.js';
 import {
     addProduct,
     clearCart,
@@ -741,7 +742,7 @@ async function init(root) {
             }
         });
 
-        el.cartItems.addEventListener('click', (event) => {
+        el.cartItems.addEventListener('click', async (event) => {
             const target = event.target;
 
             if (!(target instanceof Element)) {
@@ -758,7 +759,13 @@ async function init(root) {
                     return;
                 }
 
-                if (window.confirm(`¿Quitar "${item.nombre}" del carrito?`)) {
+                const confirmado = await confirmar({
+                    title: 'Quitar del carrito',
+                    message: `«${item.nombre}» dejará de formar parte de esta compra.`,
+                    confirmText: 'Quitar',
+                });
+
+                if (confirmado) {
                     removeItem(index);
                     render();
                     showToast('Ítem eliminado del carrito.', 'info');
@@ -1047,6 +1054,7 @@ async function init(root) {
             closeModal(el.modalLibre);
             closeModal(el.modalCalc);
             closeModal(el.modalFecha);
+            closeModal(el.modalContinuar);
         });
     }
 
@@ -1093,7 +1101,7 @@ async function init(root) {
         }
 
         const anterior = select.value;
-        select.replaceChildren(new Option('Selecciona una categoría', ''));
+        select.replaceChildren(new Option('Elige categoría', ''));
 
         for (const categoria of categorias) {
             select.append(new Option(String(categoria.nombre), String(categoria.id)));

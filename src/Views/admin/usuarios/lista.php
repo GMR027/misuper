@@ -55,12 +55,12 @@ ob_start();
         >
             <thead class="table-light">
                 <tr>
-                    <th scope="col">ID</th>
+                    <th scope="col" class="d-none d-md-table-cell">ID</th>
                     <th scope="col">Nombre</th>
-                    <th scope="col">Email</th>
+                    <th scope="col" class="d-none d-md-table-cell">Email</th>
                     <th scope="col">Rol</th>
-                    <th scope="col">Debe cambiar</th>
-                    <th scope="col">Creado</th>
+                    <th scope="col" class="d-none d-lg-table-cell">Debe cambiar</th>
+                    <th scope="col" class="d-none d-md-table-cell">Creado</th>
                     <th class="text-end" scope="col">Acciones</th>
                 </tr>
             </thead>

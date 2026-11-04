@@ -28,6 +28,8 @@ ob_start();
     </h2>
     <p class="text-muted mb-4">Administra tus datos, tu contraseña y tu cuenta.</p>
 
+    <div class="row">
+        <div class="col-12 col-lg-9 mx-auto">
     <section class="card card--bs shadow-sm mb-4 theme-picker" aria-labelledby="tema-title">
         <div class="card-body p-4">
             <h3 class="h5 card-title mb-1" id="tema-title">
@@ -169,7 +171,7 @@ ob_start();
     </section>
 
     <div class="row">
-        <div class="col-12 col-lg-8 offset-lg-2">
+        <div class="col-12">
             <section class="card card--bs shadow-sm mb-4" aria-labelledby="perfil-title">
                 <div class="card-body p-4">
                     <h3 class="h5 card-title mb-1" id="perfil-title">
@@ -412,6 +414,8 @@ ob_start();
                     </div>
                 </div>
             </section>
+        </div>
+    </div>
         </div>
     </div>
 </div>

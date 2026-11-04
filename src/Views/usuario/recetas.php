@@ -54,7 +54,7 @@ ob_start();
     <section class="card recipe-filters mb-4" aria-label="Filtros de recetas">
         <div class="card-body">
             <div class="row g-3 align-items-end">
-                <div class="col-12 col-lg-5">
+                <div class="col-12 col-lg-6">
                     <label class="form-label" for="receta-q">Buscar</label>
                     <div class="recipe-search">
                         <i class="bi bi-search" aria-hidden="true"></i>
@@ -79,18 +79,17 @@ ob_start();
                     </select>
                 </div>
 
-                <div class="col-12 col-lg-5">
-                    <div class="d-flex flex-column gap-2">
+                <div class="col-12 col-lg-4">
+                    <div class="recipe-switches" role="group" aria-label="Preferencias de recetas">
                         <div class="form-check form-switch recipe-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="receta-solo-despensa" data-receta-solo>
-                            <label class="form-check-label" for="receta-solo-despensa">
+                            <label class="form-check-label" for="receta-solo-despensa" title="Usa los productos de tu última compra">
                                 Solo con lo que he comprado
                             </label>
-                            <span class="form-text d-block">Usa los productos de tu última compra.</span>
                         </div>
                         <div class="form-check form-switch recipe-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="receta-favoritas" data-receta-favoritas>
-                            <label class="form-check-label" for="receta-favoritas">
+                            <label class="form-check-label" for="receta-favoritas" title="Muestra únicamente tus recetas favoritas">
                                 Solo mis favoritas
                             </label>
                         </div>

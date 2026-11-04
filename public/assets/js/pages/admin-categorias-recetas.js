@@ -3,6 +3,7 @@
  */
 
 import { fetchApi } from '../modules/api.js';
+import { confirmar } from '../modules/confirm.js';
 import { showToast } from '../modules/toast.js';
 
 const root = document.querySelector('[data-admin-categorias]');
@@ -108,32 +109,34 @@ function init(root) {
         nombre.append(wrapper);
 
         const slug = document.createElement('td');
-        slug.className = 'text-muted small';
+        slug.className = 'text-muted small d-none d-md-table-cell';
         slug.textContent = String(categoria.slug ?? '');
 
         const descripcion = document.createElement('td');
-        descripcion.className = 'text-muted small';
+        descripcion.className = 'text-muted small d-none d-lg-table-cell';
         descripcion.textContent = String(categoria.descripcion ?? '');
 
         const orden = document.createElement('td');
-        orden.className = 'text-center text-muted small';
+        orden.className = 'text-center text-muted small d-none d-sm-table-cell';
         orden.textContent = String(categoria.orden ?? 0);
 
         const acciones = document.createElement('td');
-        acciones.className = 'text-end';
+        acciones.className = 'text-end admin-actions';
         const grupo = document.createElement('div');
         grupo.className = 'admin-actions d-flex flex-wrap justify-content-end gap-2';
 
         const editar = document.createElement('button');
         editar.type = 'button';
         editar.className = 'btn btn-sm btn-outline-primary';
-        editar.innerHTML = '<i class="bi bi-pencil" aria-hidden="true"></i> Editar';
+        editar.setAttribute('aria-label', `Editar ${String(categoria.nombre ?? 'categoría')}`);
+        editar.innerHTML = '<i class="bi bi-pencil" aria-hidden="true"></i> <span class="btn-label">Editar</span>';
         editar.addEventListener('click', () => abrirModal(categoria));
 
         const eliminar = document.createElement('button');
         eliminar.type = 'button';
         eliminar.className = 'btn btn-sm btn-outline-danger';
-        eliminar.innerHTML = '<i class="bi bi-trash3" aria-hidden="true"></i> Eliminar';
+        eliminar.setAttribute('aria-label', `Eliminar ${String(categoria.nombre ?? 'categoría')}`);
+        eliminar.innerHTML = '<i class="bi bi-trash3" aria-hidden="true"></i> <span class="btn-label">Eliminar</span>';
         eliminar.addEventListener('click', () => eliminarCategoria(categoria));
 
         grupo.append(editar, eliminar);
@@ -216,7 +219,13 @@ function init(root) {
     }
 
     async function eliminarCategoria(categoria) {
-        if (!window.confirm(`¿Eliminar la categoría "${categoria.nombre}"?`)) {
+        const confirmado = await confirmar({
+            title: 'Eliminar categoría',
+            message: `Se eliminará «${categoria.nombre}». Las recetas que la usen quedarán sin categoría.`,
+            confirmText: 'Eliminar categoría',
+        });
+
+        if (!confirmado) {
             return;
         }
 

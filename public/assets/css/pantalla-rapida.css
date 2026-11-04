@@ -580,6 +580,15 @@
     border-radius: 0.8rem;
 }
 
+.cart-save:disabled {
+    color: var(--muted-2);
+    background: var(--surface-3);
+    background-image: none;
+    border-color: var(--border);
+    box-shadow: none;
+    opacity: 1;
+}
+
 .cart-total {
     display: flex;
     align-items: flex-end;

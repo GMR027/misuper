@@ -62,6 +62,17 @@ ob_start();
                         <p class="display-6 fw-bold mb-2" data-anual-total>—</p>
                         <p class="small mb-1" data-anual-variacion></p>
                         <p class="text-muted small mb-0" data-anual-promedio></p>
+
+                        <div class="metrics-summary__stats">
+                            <div>
+                                <span class="metrics-summary__caption">Promedio mensual</span>
+                                <strong class="metrics-summary__value" data-anual-mensual>—</strong>
+                            </div>
+                            <div>
+                                <span class="metrics-summary__caption">Mes más alto</span>
+                                <strong class="metrics-summary__value" data-anual-mejor>—</strong>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

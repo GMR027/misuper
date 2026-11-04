@@ -35,11 +35,24 @@
     padding-left: 2.4rem;
 }
 
-.recipe-switch {
-    padding: 0.55rem 0.75rem;
+.recipe-switches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.25rem;
+    padding: 0.55rem 0.8rem;
+    background: var(--surface-2);
     border: 1px solid var(--border);
     border-radius: var(--bs-border-radius);
-    background: var(--surface-2);
+}
+
+.recipe-switch {
+    margin: 0;
+    padding-left: 2.6rem;
+    font-size: 0.86rem;
+}
+
+.recipe-switch .form-check-input {
+    margin-left: -2.6rem;
 }
 
 .recipe-type-chips {
@@ -685,11 +698,23 @@
 
 @media (max-width: 767.98px) {
     .receta-form__ingrediente {
+        position: relative;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding-right: 2.7rem;
     }
 
     .receta-form__ingrediente > :first-child {
         grid-column: 1 / -1;
+    }
+
+    .receta-form__ingrediente > button:last-child {
+        position: absolute;
+        top: 0.45rem;
+        right: 0.45rem;
+    }
+
+    .receta-form__check {
+        font-size: 0.8rem;
     }
 }
 

@@ -49,9 +49,9 @@ ob_start();
             <thead class="table-light">
                 <tr>
                     <th scope="col">Categoría</th>
-                    <th scope="col">Slug</th>
-                    <th scope="col">Descripción</th>
-                    <th scope="col" class="text-center">Orden</th>
+                    <th scope="col" class="d-none d-md-table-cell">Slug</th>
+                    <th scope="col" class="d-none d-lg-table-cell">Descripción</th>
+                    <th scope="col" class="d-none d-sm-table-cell text-center">Orden</th>
                     <th class="text-end" scope="col">Acciones</th>
                 </tr>
             </thead>

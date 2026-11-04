@@ -3,6 +3,7 @@
  */
 
 import { fetchApi } from '../modules/api.js';
+import { confirmar } from '../modules/confirm.js';
 import { showToast } from '../modules/toast.js';
 
 const root = document.querySelector('[data-admin-recetas]');
@@ -80,7 +81,7 @@ function init(root) {
         if (visibles.length === 0) {
             const row = document.createElement('tr');
             const cell = document.createElement('td');
-            cell.colSpan = 6;
+            cell.colSpan = 7;
             cell.className = 'text-center text-muted py-4';
             cell.textContent = 'No hay recetas que coincidan.';
             row.append(cell);
@@ -110,6 +111,7 @@ function init(root) {
         nombre.append(titulo, slug);
 
         const categoria = document.createElement('td');
+        categoria.className = 'd-none d-md-table-cell';
         const categoriaBadge = document.createElement('span');
         categoriaBadge.className = 'badge text-bg-success';
         categoriaBadge.textContent = item.categoria
@@ -118,6 +120,7 @@ function init(root) {
         categoria.append(categoriaBadge);
 
         const tipos = document.createElement('td');
+        tipos.className = 'd-none d-lg-table-cell';
         const badges = document.createElement('div');
         badges.className = 'd-flex flex-wrap gap-1';
         for (const tipo of (Array.isArray(item.tipos_nombres) ? item.tipos_nombres : [])) {
@@ -135,10 +138,11 @@ function init(root) {
         estadoCell.append(estadoBadge);
 
         const autor = document.createElement('td');
-        autor.className = 'text-muted small';
+        autor.className = 'text-muted small d-none d-lg-table-cell';
         autor.textContent = item.creador_nombre ? String(item.creador_nombre) : 'Sistema';
 
         const video = document.createElement('td');
+        video.className = 'd-none d-lg-table-cell';
         if (item.video?.thumbnail_url) {
             const img = document.createElement('img');
             img.src = String(item.video.thumbnail_url);
@@ -154,7 +158,7 @@ function init(root) {
         }
 
         const acciones = document.createElement('td');
-        acciones.className = 'text-end';
+        acciones.className = 'text-end admin-actions';
         const grupo = document.createElement('div');
         grupo.className = 'admin-actions d-flex flex-wrap justify-content-end gap-2';
 
@@ -162,7 +166,8 @@ function init(root) {
             const publicar = document.createElement('button');
             publicar.type = 'button';
             publicar.className = 'btn btn-sm btn-outline-success';
-            publicar.innerHTML = '<i class="bi bi-check2-circle" aria-hidden="true"></i> Publicar';
+            publicar.setAttribute('aria-label', `Publicar ${String(item.nombre ?? 'receta')}`);
+            publicar.innerHTML = '<i class="bi bi-check2-circle" aria-hidden="true"></i> <span class="btn-label">Publicar</span>';
             publicar.addEventListener('click', () => publicarReceta(item, publicar));
             grupo.append(publicar);
         }
@@ -170,12 +175,14 @@ function init(root) {
         const editar = document.createElement('a');
         editar.className = 'btn btn-sm btn-outline-primary';
         editar.href = `/admin/recetas/${Number(item.id)}`;
-        editar.innerHTML = '<i class="bi bi-pencil" aria-hidden="true"></i> Editar';
+        editar.setAttribute('aria-label', `Editar ${String(item.nombre ?? 'receta')}`);
+        editar.innerHTML = '<i class="bi bi-pencil" aria-hidden="true"></i> <span class="btn-label">Editar</span>';
 
         const eliminar = document.createElement('button');
         eliminar.type = 'button';
         eliminar.className = 'btn btn-sm btn-outline-danger';
-        eliminar.innerHTML = '<i class="bi bi-trash3" aria-hidden="true"></i> Eliminar';
+        eliminar.setAttribute('aria-label', `Eliminar ${String(item.nombre ?? 'receta')}`);
+        eliminar.innerHTML = '<i class="bi bi-trash3" aria-hidden="true"></i> <span class="btn-label">Eliminar</span>';
         eliminar.addEventListener('click', () => eliminarReceta(item, eliminar));
 
         grupo.append(editar, eliminar);
@@ -216,7 +223,13 @@ function init(root) {
             return;
         }
 
-        if (!window.confirm(`¿Eliminar la receta "${item.nombre}"? Esta acción no se puede deshacer.`)) {
+        const confirmado = await confirmar({
+            title: 'Eliminar receta',
+            message: `Se eliminará «${item.nombre}». Esta acción no se puede deshacer.`,
+            confirmText: 'Eliminar receta',
+        });
+
+        if (!confirmado) {
             return;
         }
 

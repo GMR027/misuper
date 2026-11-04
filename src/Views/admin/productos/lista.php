@@ -126,10 +126,10 @@ ob_start();
         <table class="table table-hover align-middle">
             <thead class="table-light">
                 <tr>
-                    <th scope="col">Imagen</th>
+                    <th scope="col" class="d-none d-sm-table-cell">Imagen</th>
                     <th scope="col">Nombre</th>
-                    <th scope="col">Categoría</th>
-                    <th scope="col">Unidad</th>
+                    <th scope="col" class="d-none d-md-table-cell">Categoría</th>
+                    <th scope="col" class="d-none d-lg-table-cell">Unidad</th>
                     <th scope="col">Estado</th>
                     <th class="text-end" scope="col">Acciones</th>
                 </tr>

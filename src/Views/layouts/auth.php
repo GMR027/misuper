@@ -50,6 +50,7 @@ $scripts ??= [];
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/password-toggle.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
     <?php foreach ($scripts as $script): ?>
         <script type="module" src="<?= htmlspecialchars(Asset::url($script), ENT_QUOTES, 'UTF-8') ?>"></script>
     <?php endforeach; ?>

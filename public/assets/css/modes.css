@@ -138,6 +138,37 @@ html[data-mode="dark"] .theme-swatch__check {
     background-image: linear-gradient(135deg, var(--p-400), var(--p-200));
 }
 
+/* Recetario: chips y favoritos legibles sobre fondos oscuros. */
+html[data-mode="dark"] .recipe-type-chip.is-active {
+    color: #fff;
+    background-image: linear-gradient(135deg, var(--p-400), var(--p-100));
+}
+
+html[data-mode="dark"] .recipe-badge {
+    color: #0b1220;
+}
+
+html[data-mode="dark"] .recipe-badge--categoria {
+    color: #fff;
+    background: var(--p-400);
+}
+
+html[data-mode="dark"] .recipe-card__fav {
+    color: #fff;
+    background: rgba(10, 17, 22, 0.72);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+html[data-mode="dark"] .recipe-card__fav:hover {
+    background: rgba(10, 17, 22, 0.9);
+}
+
+html[data-mode="dark"] .recipe-card__fav.is-favorita {
+    color: #ffd166;
+    background: rgba(40, 30, 8, 0.9);
+    border-color: rgba(255, 209, 102, 0.45);
+}
+
 html[data-mode="dark"] .user-avatar--initials {
     background-image: linear-gradient(135deg, var(--p-400), var(--p-200));
 }
