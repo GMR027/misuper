@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-importar-analizar-pdf"
+description = "Enables the importar_analizar_pdf command without any pre-configured scope."
+commands.allow = ["importar_analizar_pdf"]
+
+[[permission]]
+identifier = "deny-importar-analizar-pdf"
+description = "Denies the importar_analizar_pdf command without any pre-configured scope."
+commands.deny = ["importar_analizar_pdf"]

@@ -1,0 +1,61 @@
+/*
+ * auth.css — overrides mínimos tras adoptar Bootstrap.
+ * Bootstrap aporta tipografía, tarjeta, formularios, botones, alertas y grid.
+ * Aquí solo queda el fondo, el centrado y la marca "Mi Súper".
+ */
+
+:root {
+    --auth-bg: #f4f1e9;
+    --auth-bg-accent: #e7efe7;
+    --auth-accent: #2f7d4f;
+}
+
+body {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 15% 20%, var(--auth-bg-accent), transparent 45%),
+        radial-gradient(circle at 85% 80%, #f3e9d8, transparent 50%),
+        var(--auth-bg);
+}
+
+.auth {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1.5rem 1rem;
+}
+
+/* El layout envuelve el contenido en <section class="auth__card">;
+   la tarjeta visual real es la .card de Bootstrap de cada vista. */
+.auth__card {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+/* El layout imprime su cabecera; el título y subtítulo viven ahora en la card. */
+.auth__header {
+    display: none;
+}
+
+.auth__brand {
+    margin: 0 0 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--auth-accent);
+}
+
+/* Los mensajes usan .alert de Bootstrap; el JS solo cambia data-type. */
+.form__message[data-type="success"] {
+    color: #0f5132;
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+}

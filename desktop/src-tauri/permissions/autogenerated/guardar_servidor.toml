@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-guardar-servidor"
+description = "Enables the guardar_servidor command without any pre-configured scope."
+commands.allow = ["guardar_servidor"]
+
+[[permission]]
+identifier = "deny-guardar-servidor"
+description = "Denies the guardar_servidor command without any pre-configured scope."
+commands.deny = ["guardar_servidor"]

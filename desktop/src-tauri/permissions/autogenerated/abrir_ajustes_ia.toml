@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-abrir-ajustes-ia"
+description = "Enables the abrir_ajustes_ia command without any pre-configured scope."
+commands.allow = ["abrir_ajustes_ia"]
+
+[[permission]]
+identifier = "deny-abrir-ajustes-ia"
+description = "Denies the abrir_ajustes_ia command without any pre-configured scope."
+commands.deny = ["abrir_ajustes_ia"]

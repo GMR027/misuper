@@ -75,7 +75,7 @@ if ($avatarEsPreset) {
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/avatars.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/modes.css'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
-<body class="app<?= $active === 'inicio' ? ' app--quick' : '' ?>">
+<body class="app<?= $active === 'inicio' ? ' app--quick' : '' ?>" data-user-role="<?= htmlspecialchars((string) ($usuario['rol'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
     <header class="app-header">
         <div class="app-header__inner">
@@ -114,6 +114,12 @@ if ($avatarEsPreset) {
                         <i class="bi bi-bar-chart-line-fill" aria-hidden="true"></i>
                         <span>Métricas</span>
                     </a>
+                    <?php if ($esAdmin): ?>
+                        <a class="app-nav__link<?= $active === 'chef' ? ' is-active' : '' ?>" href="/chef">
+                            <i class="bi bi-journal-richtext" aria-hidden="true"></i>
+                            <span>Chef</span>
+                        </a>
+                    <?php endif; ?>
                     <a class="app-nav__link<?= $active === 'ajustes' ? ' is-active' : '' ?>" href="/ajustes">
                         <i class="bi bi-sliders2" aria-hidden="true"></i>
                         <span>Ajustes</span>
@@ -137,6 +143,9 @@ if ($avatarEsPreset) {
             <?php endif; ?>
 
             <div class="app-header__account">
+                <?php if ($esAdmin): ?>
+                    <span class="app-header__ia" data-ia-badge hidden></span>
+                <?php endif; ?>
                 <a class="app-header__profile" href="/ajustes" aria-label="Abrir los ajustes de tu cuenta" title="Ajustes de la cuenta">
                     <span class="<?= htmlspecialchars($avatarClases, ENT_QUOTES, 'UTF-8') ?>" data-header-avatar aria-hidden="true">
                         <?php if ($avatarEsFoto): ?>

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-importar-extraer-receta"
+description = "Enables the importar_extraer_receta command without any pre-configured scope."
+commands.allow = ["importar_extraer_receta"]
+
+[[permission]]
+identifier = "deny-importar-extraer-receta"
+description = "Denies the importar_extraer_receta command without any pre-configured scope."
+commands.deny = ["importar_extraer_receta"]

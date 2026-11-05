@@ -4,30 +4,55 @@
  * la textura cambie de color junto con el tema elegido.
  */
 
-/* Grano global muy fino: da sensación de papel impreso en toda la app. */
+/*
+ * Grano global muy fino: da sensación de papel impreso en toda la app.
+ * Se mantiene como capa fija (se rasteriza una vez), pero sin
+ * mix-blend-mode: mezclar contra el contenido que pasa por debajo en cada
+ * frame obliga a repintar el viewport y provoca scroll a tirones.
+ */
 body::after {
     content: "";
     position: fixed;
     inset: 0;
     z-index: 60;
     pointer-events: none;
-    opacity: 0.42;
+    opacity: 0.3;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
     background-size: 180px 180px;
-    mix-blend-mode: multiply;
+    contain: layout paint style;
 }
 
-/* Fondo: lavados de color + retícula de puntos + halo cálido. */
-body,
-body.app {
-    background-color: var(--page-bg);
+/*
+ * Fondo: lavados de color + retícula de puntos + halo cálido.
+ * Vive en una capa fija independiente en lugar de usar
+ * background-attachment: fixed (que repinta todo el fondo en cada frame).
+ */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
     background-image:
         radial-gradient(calc(1100px * var(--focus-spread, 1)) calc(620px * var(--focus-spread, 1)) at 8% -12%, rgba(var(--focus-rgb), var(--focus-alpha-1, 0.13)), transparent 60%),
         radial-gradient(calc(900px * var(--focus-spread, 1)) calc(520px * var(--focus-spread, 1)) at 102% 4%, rgba(var(--focus-rgb), var(--focus-alpha-2, 0.15)), transparent 58%),
         radial-gradient(calc(700px * var(--focus-spread, 1)) calc(420px * var(--focus-spread, 1)) at 50% 112%, rgba(var(--focus-rgb), var(--focus-alpha-3, 0.08)), transparent 65%),
         radial-gradient(rgba(var(--ink-rgb), 0.07) 1px, transparent 1.35px);
     background-size: auto, auto, auto, 22px 22px;
-    background-attachment: fixed;
+    contain: layout paint style;
+}
+
+/*
+ * El color de fondo se pinta en <html> para que la capa decorativa
+ * (z-index: -1) quede por encima de él y por debajo del contenido.
+ */
+html {
+    background-color: var(--page-bg);
+}
+
+body,
+body.app {
+    background-color: transparent;
 }
 
 /* Cabecera: cristal tibio con trama de puntos y filo inferior luminoso. */
@@ -339,13 +364,12 @@ h5:hover .title-icon {
 }
 
 @media (max-width: 720px) {
-    body,
-    body.app {
+    body::before {
         background-size: auto, auto, auto, 18px 18px;
     }
 
     body::after {
-        opacity: 0.32;
+        opacity: 0.22;
     }
 }
 

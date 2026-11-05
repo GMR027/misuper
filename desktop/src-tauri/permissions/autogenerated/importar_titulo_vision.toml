@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-importar-titulo-vision"
+description = "Enables the importar_titulo_vision command without any pre-configured scope."
+commands.allow = ["importar_titulo_vision"]
+
+[[permission]]
+identifier = "deny-importar-titulo-vision"
+description = "Denies the importar_titulo_vision command without any pre-configured scope."
+commands.deny = ["importar_titulo_vision"]

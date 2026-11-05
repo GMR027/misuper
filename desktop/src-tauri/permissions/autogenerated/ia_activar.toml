@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ia-activar"
+description = "Enables the ia_activar command without any pre-configured scope."
+commands.allow = ["ia_activar"]
+
+[[permission]]
+identifier = "deny-ia-activar"
+description = "Denies the ia_activar command without any pre-configured scope."
+commands.deny = ["ia_activar"]

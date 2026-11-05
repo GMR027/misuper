@@ -1,0 +1,146 @@
+/*
+ * lista-compras.css — CRUD de Productos por comprar.
+ */
+
+.lista-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.lista-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.75rem 0.85rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    box-shadow: 0 6px 16px rgba(var(--shadow-rgb), 0.04);
+}
+
+.lista-item.is-enviado {
+    border-color: var(--a-300);
+    background: var(--a-50);
+}
+
+.lista-item.is-cargado {
+    opacity: 0.72;
+}
+
+.lista-item__avatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--p-800);
+    background: var(--p-100);
+    border-radius: 0.65rem;
+}
+
+.lista-item__body {
+    flex: 1 1 14rem;
+    min-width: 0;
+}
+
+.lista-item__name {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 750;
+    overflow-wrap: anywhere;
+}
+
+.lista-item__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.lista-item__origen {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.lista-item__badge {
+    padding: 0.12rem 0.42rem;
+    font-size: 0.66rem;
+    font-weight: 750;
+    border-radius: 999px;
+    color: var(--muted);
+    background: var(--surface-4);
+}
+
+.lista-item__badge--pendiente {
+    color: var(--p-800);
+    background: var(--p-100);
+}
+
+.lista-item__badge--enviado {
+    color: var(--a-900);
+    background: var(--a-200);
+}
+
+.lista-item__badge--cargado {
+    color: var(--muted);
+    background: var(--surface-4);
+}
+
+.lista-item__controls {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.4rem;
+}
+
+.lista-item__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.lista-item__field label {
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.lista-item__field input,
+.lista-item__field select {
+    width: 6rem;
+    padding: 0.3rem 0.4rem;
+    font-size: 0.84rem;
+}
+
+.lista-item__field input {
+    text-align: right;
+}
+
+.lista-item__remove {
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    color: var(--muted);
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+}
+
+.lista-item__remove:hover {
+    color: #a82f2a;
+    background: #fdeeec;
+}
+
+@media (max-width: 575.98px) {
+    .lista-item__controls {
+        flex: 1 1 100%;
+        justify-content: flex-end;
+    }
+}

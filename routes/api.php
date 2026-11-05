@@ -7,6 +7,7 @@ use App\Controllers\AdminProductoController;
 use App\Controllers\AdminRecetaController;
 use App\Controllers\AdminUsuarioController;
 use App\Controllers\AuthController;
+use App\Controllers\ImportacionController;
 use App\Controllers\CategoriaController;
 use App\Controllers\CompraController;
 use App\Controllers\ListaCompraController;
@@ -151,6 +152,11 @@ return static function (string $method, string $path): void {
 
             case 'POST /api/recetas/preview-lista':
                 (new RecetaController())->previewLista();
+
+                return;
+
+            case 'POST /api/chef/lotes':
+                (new ImportacionController())->guardarLote();
 
                 return;
 
@@ -544,6 +550,20 @@ return static function (string $method, string $path): void {
         ) {
             if ($method === 'POST') {
                 (new AdminUsuarioController())->resetPassword((int) $matches[1]);
+
+                return;
+            }
+        }
+
+        if (preg_match('#^/api/admin/lotes/([a-f0-9]{32})/(publicar|descartar)$#', $path, $matches) === 1) {
+            if ($method === 'POST') {
+                $controlador = new ImportacionController();
+
+                if ($matches[2] === 'publicar') {
+                    $controlador->publicarLote($matches[1]);
+                } else {
+                    $controlador->descartarLote($matches[1]);
+                }
 
                 return;
             }

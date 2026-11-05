@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Controllers\AdminRecetaController;
 use App\Controllers\HistorialController;
+use App\Controllers\ImportacionController;
 use App\Controllers\ListaCompraController;
 use App\Controllers\MetricaController;
 use App\Controllers\NotaController;
@@ -163,6 +164,12 @@ HTML;
 
             return;
 
+        case 'GET /chef':
+            header('Content-Type: text/html; charset=utf-8');
+            require BASE_PATH . '/src/Views/usuario/chef.php';
+
+            return;
+
         case 'GET /admin/recetas':
             (new AdminRecetaController())->vista();
 
@@ -170,6 +177,11 @@ HTML;
 
         case 'GET /admin/recetas/nuevo':
             (new AdminRecetaController())->form();
+
+            return;
+
+        case 'GET /admin/recetas/lotes':
+            (new ImportacionController())->vista();
 
             return;
 

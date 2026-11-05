@@ -1,0 +1,20 @@
+/*
+ * admin-usuarios.css — overrides mínimos sobre Bootstrap.
+ * Tabla, badges, botones y modal usan clases de Bootstrap.
+ */
+
+/* El wrapper mantiene visible el tooltip del botón deshabilitado. */
+.admin-usuarios__action {
+    display: inline-flex;
+}
+
+.admin-usuarios__modal-message {
+    margin-top: 1rem;
+}
+
+.admin-usuarios__temp {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    letter-spacing: 0.06em;
+    word-break: break-all;
+    user-select: all;
+}

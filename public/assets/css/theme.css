@@ -48,12 +48,7 @@ body.app {
     font-family: var(--bs-body-font-family);
     color: var(--bs-body-color);
     background-color: var(--bs-body-bg);
-    background-image:
-        radial-gradient(calc(1100px * var(--focus-spread, 1)) calc(620px * var(--focus-spread, 1)) at 8% -12%, rgba(var(--focus-rgb), var(--focus-alpha-1, 0.1)), transparent 60%),
-        radial-gradient(calc(900px * var(--focus-spread, 1)) calc(520px * var(--focus-spread, 1)) at 102% 4%, rgba(var(--focus-rgb), var(--focus-alpha-2, 0.12)), transparent 58%);
-    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {

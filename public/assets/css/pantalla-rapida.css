@@ -957,9 +957,8 @@ body.quick-sheet-open {
         z-index: 30;
         padding-block: 0.5rem;
         margin-bottom: 0;
-        background: color-mix(in srgb, var(--page-bg) 94%, transparent);
+        background: var(--page-bg);
         border-bottom: 1px solid var(--border);
-        backdrop-filter: blur(10px);
     }
 
     .quick-toolbar__menu {
@@ -1146,9 +1145,8 @@ body.quick-sheet-open {
         z-index: 30;
         padding-block: 0.4rem;
         margin-bottom: 0;
-        background: color-mix(in srgb, var(--page-bg) 94%, transparent);
+        background: var(--page-bg);
         border-bottom: 1px solid var(--border);
-        backdrop-filter: blur(10px);
     }
 
     .quick-toolbar__menu {

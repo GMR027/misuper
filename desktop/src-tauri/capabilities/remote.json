@@ -1,0 +1,25 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "web-misuper",
+  "description": "Puente de Chef para la web de Mi Súper dentro del escritorio",
+  "windows": [
+    "main"
+  ],
+  "remote": {
+    "urls": [
+      "https://misuper.iguzman.com.mx/*",
+      "http://127.0.0.1:8010/*",
+      "http://localhost:8010/*",
+      "http://localhost:1420/*"
+    ]
+  },
+  "permissions": [
+    "core:default",
+    "dialog:default",
+    "allow-app-state",
+    "allow-importar-elegir-pdf",
+    "allow-importar-analizar-pdf",
+    "allow-importar-titulo-vision",
+    "allow-importar-extraer-receta"
+  ]
+}

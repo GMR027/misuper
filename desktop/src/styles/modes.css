@@ -1,0 +1,437 @@
+/*
+ * modes.css — modo claro / oscuro.
+ * Se carga al final: ajusta las superficies, las texturas blancas y los
+ * componentes cuya mezcla de color no se resuelve solo con los tokens.
+ * El atributo <html data-mode="light|dark"> lo fija theme.js antes de pintar.
+ */
+
+/* Base ---------------------------------------------------------------- */
+
+html[data-mode="dark"] {
+    color-scheme: dark;
+}
+
+html[data-mode="dark"] {
+    --card: var(--surface);
+    --bs-pagination-bg: var(--surface);
+    --bs-pagination-disabled-bg: var(--surface-2);
+    --bs-pagination-disabled-color: var(--muted-3);
+    --bs-dropdown-bg: var(--surface);
+    --bs-dropdown-link-color: var(--body-ink);
+    --bs-dropdown-link-hover-bg: var(--surface-3);
+    --bs-dropdown-link-active-bg: var(--p-400);
+    --bs-secondary-bg: var(--surface-3);
+    --bs-tertiary-bg: var(--surface-3);
+    --bs-border-color: var(--border);
+    --bs-table-color: var(--body-ink);
+    --bs-table-hover-color: var(--ink);
+    --bs-light-rgb: 255, 255, 255;
+}
+
+/* El grano en modo oscuro aclara en lugar de oscurecer. */
+html[data-mode="dark"] body::after {
+    opacity: 0.16;
+    mix-blend-mode: screen;
+}
+
+/* Cabecera ------------------------------------------------------------ */
+
+html[data-mode="dark"] .app-header {
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012)),
+        radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1.2px);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.05) inset,
+        0 12px 34px rgba(0, 0, 0, 0.42);
+}
+
+html[data-mode="dark"] .app-header__logout {
+    background: rgba(255, 255, 255, 0.06);
+    background-image: none;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+html[data-mode="dark"] .app-header__logout:hover:not(:disabled) {
+    color: #ffb4ae;
+    border-color: rgba(255, 150, 140, 0.35);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* Tarjetas, tablas y modales ----------------------------------------- */
+
+html[data-mode="dark"] .card,
+html[data-mode="dark"] .search-box,
+html[data-mode="dark"] .frequent-card,
+html[data-mode="dark"] .list-group-item,
+html[data-mode="dark"] .table-responsive,
+html[data-mode="dark"] .app-modal .modal-content {
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 55%),
+        repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 6px);
+}
+
+html[data-mode="dark"] .card--bs,
+html[data-mode="dark"] .product-card,
+html[data-mode="dark"] .frequent-card,
+html[data-mode="dark"] .search-box {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.045) inset,
+        0 1px 2px rgba(0, 0, 0, 0.35),
+        var(--shadow-card);
+}
+
+html[data-mode="dark"] .card--bs {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-mode="dark"] .title-icon {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.06) inset,
+        0 5px 12px rgba(0, 0, 0, 0.35);
+}
+
+html[data-mode="dark"] .table > thead th {
+    color: var(--muted);
+}
+
+html[data-mode="dark"] .table-light {
+    --bs-table-bg: var(--surface-3);
+    --bs-table-color: var(--muted);
+}
+
+/* Rellenos con la paleta --------------------------------------------- */
+
+html[data-mode="dark"] .btn-primary,
+html[data-mode="dark"] .btn-success {
+    color: #fff;
+    background-image: linear-gradient(135deg, var(--p-400), var(--p-200));
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.4);
+}
+
+html[data-mode="dark"] .btn-primary:hover:not(:disabled),
+html[data-mode="dark"] .btn-primary:focus-visible:not(:disabled),
+html[data-mode="dark"] .btn-success:hover:not(:disabled) {
+    background-image: linear-gradient(135deg, var(--p-300), var(--p-100));
+    box-shadow: 0 14px 26px rgba(0, 0, 0, 0.45);
+}
+
+html[data-mode="dark"] .badge.bg-primary,
+html[data-mode="dark"] .history-row__total {
+    background-image: linear-gradient(135deg, var(--p-400), var(--p-200)) !important;
+}
+
+html[data-mode="dark"] .app-nav__link.is-active,
+html[data-mode="dark"] .brand-mark,
+html[data-mode="dark"] .chip.btn-primary,
+html[data-mode="dark"] [data-categorias] .chip.btn-primary {
+    background-image: linear-gradient(135deg, var(--p-400), var(--p-100));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.14) inset,
+        0 10px 22px rgba(0, 0, 0, 0.42);
+}
+
+html[data-mode="dark"] .progress-bar {
+    background-image: linear-gradient(90deg, var(--p-500), var(--p-300));
+}
+
+html[data-mode="dark"] .theme-swatch__check {
+    background-image: linear-gradient(135deg, var(--p-400), var(--p-200));
+}
+
+/* Recetario: chips y favoritos legibles sobre fondos oscuros. */
+html[data-mode="dark"] .recipe-type-chip.is-active {
+    color: #fff;
+    background-image: linear-gradient(135deg, var(--p-400), var(--p-100));
+}
+
+html[data-mode="dark"] .recipe-badge {
+    color: #0b1220;
+}
+
+html[data-mode="dark"] .recipe-badge--categoria {
+    color: #fff;
+    background: var(--p-400);
+}
+
+html[data-mode="dark"] .recipe-card__fav {
+    color: #fff;
+    background: rgba(10, 17, 22, 0.72);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+html[data-mode="dark"] .recipe-card__fav:hover {
+    background: rgba(10, 17, 22, 0.9);
+}
+
+html[data-mode="dark"] .recipe-card__fav.is-favorita {
+    color: #ffd166;
+    background: rgba(40, 30, 8, 0.9);
+    border-color: rgba(255, 209, 102, 0.45);
+}
+
+html[data-mode="dark"] .user-avatar--initials {
+    background-image: linear-gradient(135deg, var(--p-400), var(--p-200));
+}
+
+html[data-mode="dark"] .hero-card {
+    background-image:
+        radial-gradient(600px 300px at 92% 10%, rgba(255, 255, 255, 0.1), transparent 60%),
+        linear-gradient(135deg, var(--p-50) 0%, var(--p-200) 58%, var(--p-400) 100%);
+    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.55);
+}
+
+html[data-mode="dark"] .hero-eyebrow {
+    color: var(--p-900);
+}
+
+html[data-mode="dark"] .hero-eyebrow {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Selector de tema y editor de avatar -------------------------------- */
+
+html[data-mode="dark"] .theme-swatch {
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+}
+
+html[data-mode="dark"] .theme-swatch:hover,
+html[data-mode="dark"] .theme-swatch:focus-visible {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.06) inset,
+        0 8px 18px rgba(0, 0, 0, 0.4);
+}
+
+html[data-mode="dark"] .theme-swatch.is-selected {
+    background-image: linear-gradient(135deg, rgba(var(--p-rgb), 0.24), rgba(var(--p-rgb), 0.08));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.06) inset,
+        0 0 0 2px rgba(var(--p-rgb), 0.42),
+        0 10px 22px rgba(0, 0, 0, 0.35);
+}
+
+html[data-mode="dark"] .theme-swatch__preview {
+    box-shadow:
+        inset 0 0 0 2px rgba(255, 255, 255, 0.18),
+        0 4px 10px rgba(0, 0, 0, 0.45);
+}
+
+html[data-mode="dark"] .avatar-editor {
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+        linear-gradient(135deg, rgba(var(--p-rgb), 0.14), rgba(var(--p-rgb), 0.04));
+}
+
+html[data-mode="dark"] .avatar-tab.is-active {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.05) inset,
+        0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Carrito ------------------------------------------------------------ */
+
+html[data-mode="dark"] .cart-panel {
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 55%),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 7px),
+        linear-gradient(180deg, var(--surface), var(--surface-2));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.05) inset,
+        0 24px 48px rgba(0, 0, 0, 0.45);
+}
+
+html[data-mode="dark"] .cart-item {
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 70%),
+        linear-gradient(135deg, rgba(var(--p-rgb), 0.22), rgba(var(--p-rgb), 0.07));
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+html[data-mode="dark"] .cart-item__avatar {
+    color: var(--p-950);
+    background-image: linear-gradient(135deg, var(--p-300), var(--p-500));
+    border-color: rgba(var(--p-rgb), 0.45);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.12) inset,
+        0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+html[data-mode="dark"] .cart-item__control {
+    background: var(--surface-2);
+}
+
+html[data-mode="dark"] .cart-item__control:hover,
+html[data-mode="dark"] .cart-item__control:focus-within {
+    background: var(--surface-3);
+}
+
+/* Utilidades de Bootstrap -------------------------------------------- */
+
+html[data-mode="dark"] .bg-light {
+    background-color: var(--surface-3) !important;
+}
+
+html[data-mode="dark"] .bg-white {
+    background-color: var(--surface) !important;
+}
+
+html[data-mode="dark"] .text-bg-light {
+    color: var(--body-ink) !important;
+    background-color: var(--surface-3) !important;
+}
+
+html[data-mode="dark"] .text-dark {
+    color: var(--ink) !important;
+}
+
+html[data-mode="dark"] .border,
+html[data-mode="dark"] .border-top,
+html[data-mode="dark"] .border-bottom,
+html[data-mode="dark"] .border-start,
+html[data-mode="dark"] .border-end {
+    border-color: var(--border) !important;
+}
+
+html[data-mode="dark"] .btn-light {
+    --bs-btn-color: #12201a;
+    --bs-btn-bg: #f3f7f4;
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-bg: #e4ece7;
+    --bs-btn-hover-color: #0d1712;
+    --bs-btn-hover-border-color: transparent;
+    color: #12201a;
+    background-image: none;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+
+html[data-mode="dark"] .btn-light:hover:not(:disabled) {
+    color: #0d1712;
+    background-image: none;
+}
+
+/* Sin brillo blanco en los botones de contorno: sobre fondo oscuro lavan. */
+html[data-mode="dark"] .btn-outline-primary,
+html[data-mode="dark"] .btn-outline-success,
+html[data-mode="dark"] .btn-outline-danger,
+html[data-mode="dark"] .btn-outline-secondary,
+html[data-mode="dark"] .btn-outline-warning,
+html[data-mode="dark"] .admin-actions .btn-outline-primary,
+html[data-mode="dark"] .admin-actions .btn-outline-success,
+html[data-mode="dark"] .admin-actions .btn-outline-danger,
+html[data-mode="dark"] .admin-actions .btn-outline-warning,
+html[data-mode="dark"] .admin-actions .btn-outline-secondary {
+    background-image: none;
+}
+
+html[data-mode="dark"] {
+    scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+html[data-mode="dark"] .avatar-grid {
+    scrollbar-color: var(--scroll-thumb-hover) transparent;
+}
+
+html[data-mode="dark"] .btn-close {
+    filter: invert(1) grayscale(1) brightness(1.7);
+}
+
+html[data-mode="dark"] .form-check-input {
+    background-color: var(--surface-3);
+    border-color: var(--border-strong);
+}
+
+html[data-mode="dark"] .form-control::file-selector-button {
+    color: var(--body-ink);
+    background-color: var(--surface-3);
+}
+
+html[data-mode="dark"] .list-group {
+    --bs-list-group-color: var(--body-ink);
+    --bs-list-group-bg: var(--surface);
+}
+
+/* Mensajes y botones de estado --------------------------------------- */
+
+html[data-mode="dark"] .btn-outline-primary,
+html[data-mode="dark"] .btn-outline-success {
+    --bs-btn-color: var(--p-700);
+    --bs-btn-border-color: rgba(var(--p-rgb), 0.55);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--p-400);
+    --bs-btn-hover-border-color: var(--p-400);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--p-300);
+    --bs-btn-active-border-color: var(--p-300);
+}
+
+html[data-mode="dark"] .btn-outline-danger {
+    --bs-btn-color: #ffb0aa;
+    --bs-btn-border-color: rgba(220, 90, 80, 0.4);
+    --bs-btn-hover-bg: #c0453d;
+    --bs-btn-hover-border-color: #c0453d;
+    --bs-btn-active-bg: #a83a33;
+    --bs-btn-active-border-color: #a83a33;
+}
+
+html[data-mode="dark"] .form__message {
+    color: #ffb4ae;
+    background: rgba(190, 60, 55, 0.18);
+    border-color: rgba(220, 90, 80, 0.35);
+}
+
+html[data-mode="dark"] .form__message[data-type="success"] {
+    color: #a9e9c3;
+    background: rgba(40, 150, 90, 0.18);
+    border-color: rgba(65, 180, 115, 0.35);
+}
+
+html[data-mode="dark"] .alert-info {
+    color: #c4e9f6;
+    background-color: rgba(60, 160, 205, 0.18);
+    box-shadow: inset 0 0 0 1px rgba(80, 180, 220, 0.3);
+}
+
+html[data-mode="dark"] .admin-actions .btn-outline-primary,
+html[data-mode="dark"] .admin-actions .btn-outline-success {
+    color: var(--p-800);
+    background-color: var(--p-100);
+    border-color: var(--p-200);
+}
+
+html[data-mode="dark"] .admin-actions .btn-outline-primary:hover,
+html[data-mode="dark"] .admin-actions .btn-outline-primary:focus-visible,
+html[data-mode="dark"] .admin-actions .btn-outline-success:hover,
+html[data-mode="dark"] .admin-actions .btn-outline-success:focus-visible {
+    color: #fff;
+    background-image: linear-gradient(135deg, var(--p-400), var(--p-200));
+}
+
+html[data-mode="dark"] .admin-actions .btn-outline-danger {
+    color: #ffb0aa;
+    background-color: rgba(190, 60, 55, 0.16);
+    border-color: rgba(220, 90, 80, 0.32);
+}
+
+html[data-mode="dark"] .admin-actions .btn-outline-danger:hover,
+html[data-mode="dark"] .admin-actions .btn-outline-danger:focus-visible {
+    color: #fff;
+    background-image: linear-gradient(135deg, #cf4b44, #a82f2a);
+}
+
+html[data-mode="dark"] .admin-actions .btn-outline-warning {
+    color: var(--a-300);
+    background-color: rgba(var(--a-rgb), 0.14);
+    border-color: rgba(var(--a-rgb), 0.34);
+}
+
+html[data-mode="dark"] .admin-actions .btn-outline-warning:hover,
+html[data-mode="dark"] .admin-actions .btn-outline-warning:focus-visible {
+    color: #28190a;
+    background-image: linear-gradient(135deg, var(--a-300), var(--a-500));
+}
+
+html[data-mode="dark"] .admin-actions .btn-outline-secondary {
+    color: var(--muted);
+    background-color: var(--surface-3);
+    border-color: var(--border);
+}

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ia-eliminar-conexion"
+description = "Enables the ia_eliminar_conexion command without any pre-configured scope."
+commands.allow = ["ia_eliminar_conexion"]
+
+[[permission]]
+identifier = "deny-ia-eliminar-conexion"
+description = "Denies the ia_eliminar_conexion command without any pre-configured scope."
+commands.deny = ["ia_eliminar_conexion"]

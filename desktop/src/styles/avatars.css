@@ -1,0 +1,153 @@
+/*
+ * avatars.css — avatares predefinidos y foto de perfil.
+ * Los 30 avatares son emoji sobre degradados; el identificador coincide
+ * con src/Support/AvatarCatalog.php.
+ */
+
+.user-avatar {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    overflow: hidden;
+    font-size: 1.05rem;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    border-radius: 50%;
+    background-image: linear-gradient(135deg, var(--av-1, var(--p-400)), var(--av-2, var(--p-800)));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.35) inset,
+        0 6px 14px rgba(var(--shadow-rgb), 0.22);
+    user-select: none;
+}
+
+.user-avatar > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* La foto del encabezado se recorta siempre dentro del círculo. */
+.app-header__avatar {
+    overflow: hidden;
+}
+
+.app-header__avatar > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.user-avatar--initials {
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    background-image: linear-gradient(135deg, var(--p-400), var(--p-800));
+}
+
+.user-avatar--photo {
+    padding: 0;
+    background-image: none;
+    background-color: var(--surface-3);
+    box-shadow:
+        0 0 0 2px var(--surface),
+        0 6px 14px rgba(var(--shadow-rgb), 0.2);
+}
+
+/* Avatar del encabezado: hereda el círculo de .app-header__avatar. */
+.app-header__avatar.user-avatar,
+.app-header__avatar.user-avatar--initials {
+    color: #fff;
+    font-size: 1.02rem;
+    background-image: linear-gradient(135deg, var(--av-1, var(--p-400)), var(--av-2, var(--p-800)));
+}
+
+.app-header__avatar--photo {
+    padding: 0;
+    background-image: none;
+    background-color: var(--surface-3);
+    box-shadow:
+        0 0 0 2px var(--surface),
+        0 6px 14px rgba(var(--shadow-rgb), 0.2);
+}
+
+/* Vista previa grande del editor. */
+.user-avatar--preview {
+    width: 104px;
+    height: 104px;
+    font-size: 2.8rem;
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 4px var(--surface),
+        0 0 0 5px var(--border),
+        0 18px 36px rgba(var(--shadow-rgb), 0.18);
+}
+
+.user-avatar--preview.user-avatar--initials {
+    font-size: 2rem;
+}
+
+.user-avatar--preview.user-avatar--photo {
+    box-shadow:
+        0 0 0 4px var(--surface),
+        0 0 0 5px var(--border),
+        0 18px 36px rgba(var(--shadow-rgb), 0.18);
+}
+
+/* Catálogo de 30 avatares con degradados propios. */
+.user-avatar--a01 { --av-1: #fbbf24; --av-2: #b45309; }
+.user-avatar--a02 { --av-1: #d6a06a; --av-2: #713f12; }
+.user-avatar--a03 { --av-1: #94a3b8; --av-2: #1f2937; }
+.user-avatar--a04 { --av-1: #b6c2cf; --av-2: #475569; }
+.user-avatar--a05 { --av-1: #f59e0b; --av-2: #92400e; }
+.user-avatar--a06 { --av-1: #facc15; --av-2: #a16207; }
+.user-avatar--a07 { --av-1: #4ade80; --av-2: #15803d; }
+.user-avatar--a08 { --av-1: #a78bfa; --av-2: #6d28d9; }
+.user-avatar--a09 { --av-1: #34d399; --av-2: #047857; }
+.user-avatar--a10 { --av-1: #475569; --av-2: #0f172a; }
+.user-avatar--a11 { --av-1: #c27a3a; --av-2: #78350f; }
+.user-avatar--a12 { --av-1: #2dd4bf; --av-2: #0f766e; }
+.user-avatar--a13 { --av-1: #fde047; --av-2: #a16207; }
+.user-avatar--a14 { --av-1: #f472b6; --av-2: #be185d; }
+.user-avatar--a15 { --av-1: #38bdf8; --av-2: #0369a1; }
+.user-avatar--a16 { --av-1: #22d3ee; --av-2: #0e7490; }
+.user-avatar--a17 { --av-1: #c084fc; --av-2: #7e22ce; }
+.user-avatar--a18 { --av-1: #4ade80; --av-2: #166534; }
+.user-avatar--a19 { --av-1: #fb7185; --av-2: #be123c; }
+.user-avatar--a20 { --av-1: #fb923c; --av-2: #c2410c; }
+.user-avatar--a21 { --av-1: #a3e635; --av-2: #4d7c0f; }
+.user-avatar--a22 { --av-1: #fb923c; --av-2: #9a3412; }
+.user-avatar--a23 { --av-1: #fbbf24; --av-2: #92400e; }
+.user-avatar--a24 { --av-1: #b07a3c; --av-2: #572c11; }
+.user-avatar--a25 { --av-1: #34d399; --av-2: #166534; }
+.user-avatar--a26 { --av-1: #facc15; --av-2: #ca8a04; }
+.user-avatar--a27 { --av-1: #22d3ee; --av-2: #7c3aed; }
+.user-avatar--a28 { --av-1: #fbbf24; --av-2: #d97706; }
+.user-avatar--a29 { --av-1: #94a3b8; --av-2: #1e293b; }
+.user-avatar--a30 { --av-1: #a78bfa; --av-2: #4c1d95; }
+.user-avatar--a31 { --av-1: #fcd34d; --av-2: #b45309; }
+.user-avatar--a32 { --av-1: #e5e7eb; --av-2: #374151; }
+.user-avatar--a33 { --av-1: #cbd5e1; --av-2: #475569; }
+.user-avatar--a34 { --av-1: #d6a06a; --av-2: #6b4a2a; }
+.user-avatar--a35 { --av-1: #c08457; --av-2: #5b3a1e; }
+.user-avatar--a36 { --av-1: #94a3b8; --av-2: #334155; }
+.user-avatar--a37 { --av-1: #f9a8d4; --av-2: #be185d; }
+.user-avatar--a38 { --av-1: #f5f5f4; --av-2: #78716c; }
+.user-avatar--a39 { --av-1: #fca5a5; --av-2: #b91c1c; }
+.user-avatar--a40 { --av-1: #93c5fd; --av-2: #1d4ed8; }
+.user-avatar--a41 { --av-1: #fb923c; --av-2: #be123c; }
+.user-avatar--a42 { --av-1: #7dd3fc; --av-2: #0c4a6e; }
+.user-avatar--a43 { --av-1: #4ade80; --av-2: #14532d; }
+.user-avatar--a44 { --av-1: #fda4af; --av-2: #9f1239; }
+.user-avatar--a45 { --av-1: #fbcfe8; --av-2: #db2777; }
+.user-avatar--a46 { --av-1: #fef08a; --av-2: #ca8a04; }
+.user-avatar--a47 { --av-1: #c4b5fd; --av-2: #5b21b6; }
+.user-avatar--a48 { --av-1: #fcd34d; --av-2: #7c2d12; }
+.user-avatar--a49 { --av-1: #60a5fa; --av-2: #7c3aed; }
+.user-avatar--a50 { --av-1: #fb923c; --av-2: #7c2d12; }

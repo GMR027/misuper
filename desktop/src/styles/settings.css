@@ -1,0 +1,250 @@
+/* Página local de ajustes, primera configuración y sección de IA. */
+
+.settings-body {
+  min-height: 100vh;
+}
+
+.settings-page {
+  width: min(100%, 76rem);
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.settings-page--setup {
+  width: min(100%, 34rem);
+  padding-top: clamp(2rem, 10vh, 7rem);
+}
+
+.settings-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.settings-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.35rem;
+  color: var(--p-700);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.settings-head__title {
+  margin: 0;
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--body-ink);
+}
+
+.settings-session {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 12rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+}
+
+.settings-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.settings-session__avatar {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--p-700);
+  font-size: 1rem;
+}
+
+.settings-session strong {
+  display: block;
+  font-size: 0.86rem;
+  line-height: 1.2;
+}
+
+.settings-session span {
+  display: block;
+  color: var(--muted, #6b7a72);
+  font-size: 0.74rem;
+}
+
+.settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+  padding: 0.3rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+}
+
+.settings-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.9rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0.65rem;
+  color: var(--muted, #5d6b63);
+  font-size: 0.88rem;
+  font-weight: 700;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.settings-tab:hover {
+  color: var(--body-ink);
+  background: var(--surface);
+}
+
+.settings-tab.is-active {
+  color: var(--p-900, #0b4d38);
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(var(--shadow-rgb, 15 40 30), 0.08);
+}
+
+.settings-tab:focus-visible {
+  outline: 2px solid var(--p-500);
+  outline-offset: 2px;
+}
+
+.settings-tab__admin {
+  padding: 0.08rem 0.38rem;
+  background: var(--p-100, #d9f2e7);
+  border-radius: 999px;
+  color: var(--p-800, #0d5f45);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.settings-panel {
+  animation: settings-in 0.18s ease-out;
+}
+
+@keyframes settings-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.settings-card {
+  width: 100%;
+  margin-inline: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.settings-card--wide {
+  max-width: 100%;
+}
+
+.settings-setup__head {
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.settings-setup__title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--body-ink);
+}
+
+.settings-setup__text {
+  margin: 0;
+  color: var(--muted, #617168);
+  font-size: 0.92rem;
+}
+
+.settings-section__title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.35rem;
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+
+.settings-section__text {
+  margin: 0 0 1rem;
+  color: var(--muted, #617168);
+  font-size: 0.88rem;
+}
+
+.settings-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 1rem 0 0;
+  color: var(--muted, #617168);
+  font-size: 0.8rem;
+}
+
+.settings-ia-callout {
+  margin-top: 1rem;
+}
+
+.settings-card code {
+  padding: 0.05rem 0.35rem;
+  background: var(--surface-4, #f2f5f4);
+  border-radius: 0.35rem;
+}
+
+.settings-card kbd {
+  padding: 0.05rem 0.35rem;
+  background: var(--surface-4, #eef2f0);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 0.35rem;
+  font-size: 0.75rem;
+}
+
+.settings-card .form-range {
+  accent-color: var(--p-700);
+}
+
+.settings-card output {
+  color: var(--p-700);
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .settings-page {
+    padding: 1.35rem 0.85rem 3rem;
+  }
+
+  .settings-head {
+    align-items: stretch;
+  }
+
+  .settings-session {
+    width: 100%;
+  }
+
+  .settings-head__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

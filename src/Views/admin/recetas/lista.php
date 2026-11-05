@@ -31,6 +31,10 @@ ob_start();
                 <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
                 Ver recetario
             </a>
+            <a class="btn btn-outline-primary" href="/admin/recetas/lotes">
+                <i class="bi bi-collection" aria-hidden="true"></i>
+                Lotes
+            </a>
             <a class="btn btn-outline-primary" href="/admin/recetas/categorias">
                 <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
                 Categorías

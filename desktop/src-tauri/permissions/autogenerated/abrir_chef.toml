@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-abrir-chef"
+description = "Enables the abrir_chef command without any pre-configured scope."
+commands.allow = ["abrir_chef"]
+
+[[permission]]
+identifier = "deny-abrir-chef"
+description = "Denies the abrir_chef command without any pre-configured scope."
+commands.deny = ["abrir_chef"]

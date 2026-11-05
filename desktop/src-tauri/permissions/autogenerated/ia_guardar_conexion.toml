@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ia-guardar-conexion"
+description = "Enables the ia_guardar_conexion command without any pre-configured scope."
+commands.allow = ["ia_guardar_conexion"]
+
+[[permission]]
+identifier = "deny-ia-guardar-conexion"
+description = "Denies the ia_guardar_conexion command without any pre-configured scope."
+commands.deny = ["ia_guardar_conexion"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ia-detectar"
+description = "Enables the ia_detectar command without any pre-configured scope."
+commands.allow = ["ia_detectar"]
+
+[[permission]]
+identifier = "deny-ia-detectar"
+description = "Denies the ia_detectar command without any pre-configured scope."
+commands.deny = ["ia_detectar"]
