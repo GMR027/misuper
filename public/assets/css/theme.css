@@ -1012,6 +1012,8 @@ body.modal-abierto {
 
 /* Modales y toasts --------------------------------------------------- */
 
+/* La base va aquí porque hay vistas que usan .app-modal sin cargar
+   pantalla-rapida.css (listas, admin de productos, recetas, tipos…). */
 .app-modal {
     position: fixed;
     inset: 0;
