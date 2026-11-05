@@ -22,11 +22,13 @@ async function arrancar() {
     const estado = await api.state();
 
     let sesion: Sesion | null = null;
+    let errorSesion: string | null = null;
 
     if (estado.configured) {
       try {
         sesion = await api.sesionActual();
-      } catch {
+      } catch (error) {
+        errorSesion = errorMessage(error);
         sesion = {
           autenticado: false,
           admin: false,
@@ -37,7 +39,7 @@ async function arrancar() {
       }
     }
 
-    render(estado, sesion);
+    render(estado, sesion, errorSesion);
   } catch (error) {
     app.innerHTML = tarjeta(
       "No se pudo abrir la app",
@@ -46,7 +48,11 @@ async function arrancar() {
   }
 }
 
-function render(estado: AppState, sesion: Sesion | null) {
+function render(
+  estado: AppState,
+  sesion: Sesion | null,
+  errorSesion: string | null = null,
+): void {
   document.body.className = "settings-body";
 
   if (!estado.configured) {
@@ -62,7 +68,7 @@ function render(estado: AppState, sesion: Sesion | null) {
     return;
   }
 
-  renderAjustes(estado, sesion);
+  renderAjustes(estado, sesion, errorSesion);
 }
 
 function renderPrimeraConfiguracion(estado: AppState): void {
@@ -126,7 +132,11 @@ function renderPrimeraConfiguracion(estado: AppState): void {
   });
 }
 
-function renderAjustes(estado: AppState, sesion: Sesion | null): void {
+function renderAjustes(
+  estado: AppState,
+  sesion: Sesion | null,
+  errorSesion: string | null = null,
+): void {
   const admiteIa = sesion?.admin === true;
   const tabInicial = new URLSearchParams(window.location.search).get("tab") === "ia" && admiteIa
     ? "ia"
@@ -167,6 +177,8 @@ function renderAjustes(estado: AppState, sesion: Sesion | null): void {
         </div>
       </header>
 
+      <p class="alert alert-danger py-2 px-3" data-error-volver hidden></p>
+
       <nav class="settings-tabs" role="tablist" aria-label="Secciones de ajustes">
         <button class="settings-tab" type="button" role="tab" data-tab="general">
           <i class="bi bi-sliders2" aria-hidden="true"></i> General
@@ -181,6 +193,14 @@ function renderAjustes(estado: AppState, sesion: Sesion | null): void {
         }
       </nav>
 
+      ${
+        errorSesion
+          ? `<p class="alert alert-warning py-2 px-3" data-error-sesion>
+               No se pudo comprobar tu sesión: ${escapar(errorSesion)}
+             </p>`
+          : ""
+      }
+
       <section class="settings-panel" data-panel></section>
     </main>`;
 
@@ -188,7 +208,13 @@ function renderAjustes(estado: AppState, sesion: Sesion | null): void {
   const tabs = Array.from(app.querySelectorAll<HTMLButtonElement>("[data-tab]"));
 
   app.querySelector("[data-volver]")?.addEventListener("click", () => {
-    void api.volverWeb();
+    void api.volverWeb().catch((error) => {
+      const aviso = document.querySelector<HTMLElement>("[data-error-volver]");
+      if (aviso) {
+        aviso.textContent = `No se pudo volver a Mi Súper: ${errorMessage(error)}`;
+        aviso.hidden = false;
+      }
+    });
   });
 
   const mostrar = (tab: string) => {

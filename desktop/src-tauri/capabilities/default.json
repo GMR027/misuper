@@ -1,7 +1,28 @@
 {
-  "$schema": "https://schema.tauri.app/config/2",
+  "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Página local de ajustes, primera configuración y ventana Chef",
   "windows": ["main", "chef"],
-  "permissions": ["core:default", "dialog:default"]
+  "permissions": [
+    "core:default",
+    "dialog:default",
+    "allow-app-state",
+    "allow-guardar-servidor",
+    "allow-abrir-ajustes",
+    "allow-abrir-ajustes-ia",
+    "allow-volver-web",
+    "allow-aplicar-zoom",
+    "allow-sesion-actual",
+    "allow-ia-estado",
+    "allow-ia-detectar",
+    "allow-ia-guardar-conexion",
+    "allow-ia-eliminar-conexion",
+    "allow-ia-activar",
+    "allow-ia-probar",
+    "allow-importar-elegir-pdf",
+    "allow-importar-analizar-pdf",
+    "allow-importar-titulo-vision",
+    "allow-importar-extraer-receta",
+    "allow-abrir-chef"
+  ]
 }
