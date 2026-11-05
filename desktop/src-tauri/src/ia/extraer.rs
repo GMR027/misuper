@@ -3,35 +3,12 @@
 //! El modelo propone; el código valida. Si el JSON no cumple el esquema se
 //! pide una sola reparación y, si vuelve a fallar, se devuelve el error.
 
+use super::dietas::{self, CATEGORIAS, TIPOS};
 use super::gateway;
 use super::model::ConexionIa;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-
-const CATEGORIAS: &[&str] = &[
-    "bebidas",
-    "desayunos",
-    "ensaladas",
-    "sopas",
-    "guisados",
-    "platos-fuertes",
-    "pastas",
-    "complementos",
-    "antojitos",
-    "postres",
-];
-
-const TIPOS: &[&str] = &[
-    "general",
-    "diabetico",
-    "kosher",
-    "vegetariano",
-    "sin_gluten",
-    "mediterranea",
-    "dash",
-    "baja_carbohidratos",
-    "keto",
-];
+use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IngredienteExtraido {
@@ -60,7 +37,11 @@ pub struct RecetaExtraida {
     #[serde(default)]
     pub categoria: String,
     #[serde(default)]
+    pub categoria_motivo: String,
+    #[serde(default)]
     pub tipos: Vec<String>,
+    #[serde(default)]
+    pub tipos_motivos: BTreeMap<String, String>,
     #[serde(default)]
     pub ingredientes: Vec<IngredienteExtraido>,
     #[serde(default)]
@@ -117,7 +98,7 @@ pub async fn extraer(texto: &str, conexion: &ConexionIa) -> Result<RecetaExtraid
 
 fn construir_prompt(texto: &str) -> String {
     format!(
-        r#"Eres un chef y editor de recetas. Extrae UNA receta del siguiente texto de un libro de cocina.
+        r#"Eres un chef y nutriólogo experto en salud alimenticia. Extrae UNA receta del siguiente texto de un libro de cocina.
 
 Devuelve únicamente un objeto JSON válido, sin markdown ni explicaciones, con esta forma exacta:
 {{
@@ -127,7 +108,9 @@ Devuelve únicamente un objeto JSON válido, sin markdown ni explicaciones, con 
   "tiempo_min": 30,
   "dificultad": "facil",
   "categoria": "guisados",
-  "tipos": ["general"],
+  "categoria_motivo": "por qué corresponde a esa categoría",
+  "tipos": ["general", "vegetariano"],
+  "tipos_motivos": {{"vegetariano": "no contiene carne, pescado ni mariscos"}},
   "ingredientes": [
     {{"nombre": "jitomate", "cantidad": 2, "unidad": "pza", "producto": "Jitomate", "nota": null}}
   ],
@@ -141,13 +124,19 @@ Reglas obligatorias:
 - Si el libro usa medidas caseras, conviértelas a ml: 1 cucharada = 15 ml, 1 cucharadita = 5 ml, 1 taza = 240 ml, 1 vaso = 250 ml.
 - "cantidad" debe ser un número mayor que 0, o null solo para al_gusto.
 - "categoria" solo puede ser: {categorias}.
-- "tipos" solo puede contener: {tipos}. Usa ["general"] si no hay una dieta clara.
+- "tipos" solo puede contener: {tipos}.
+- Incluye siempre "general" en "tipos" y añade TODAS las dietas que cumplan los criterios.
+- No inventes dietas: cada dieta debe estar justificada en "tipos_motivos" con los ingredientes escritos.
 - "dificultad" solo puede ser: facil, media, dificil.
 - Reescribe los pasos con voz propia, en español, sin copiar literalmente el libro, pero CONSERVANDO exactamente las cantidades, temperaturas, tiempos y técnica.
 - No inventes ingredientes ni cantidades que no estén en el texto.
 - Si un dato falta, usa un valor razonable y anótalo en "avisos".
 - "producto" es el nombre normalizado del ingrediente para el catálogo; puede ser null.
-- No incluyas campos adicionales.
+- Las dietas son orientativas: si dudas de un ingrediente, no pongas esa dieta y anótalo en "avisos".
+
+{reglas_categorias}
+
+{reglas_dietas}
 
 Texto de la receta:
 ---
@@ -155,6 +144,8 @@ Texto de la receta:
 ---"#,
         categorias = CATEGORIAS.join(", "),
         tipos = TIPOS.join(", "),
+        reglas_categorias = dietas::REGLAS_CATEGORIAS,
+        reglas_dietas = dietas::REGLAS_DIETAS,
     )
 }
 
@@ -182,21 +173,6 @@ fn normalizar(receta: &mut RecetaExtraida) -> Result<(), String> {
 
     if !["facil", "media", "dificil"].contains(&receta.dificultad.as_str()) {
         receta.dificultad = "facil".to_string();
-    }
-
-    if !CATEGORIAS.contains(&receta.categoria.as_str()) {
-        receta.categoria = "guisados".to_string();
-    }
-
-    receta.tipos = receta
-        .tipos
-        .iter()
-        .map(|tipo| tipo.trim().to_lowercase())
-        .filter(|tipo| TIPOS.contains(&tipo.as_str()))
-        .collect();
-
-    if receta.tipos.is_empty() {
-        receta.tipos.push("general".to_string());
     }
 
     if receta.ingredientes.is_empty() {
@@ -234,6 +210,42 @@ fn normalizar(receta: &mut RecetaExtraida) -> Result<(), String> {
             .map(str::to_string);
     }
 
+    receta.tipos = receta
+        .tipos
+        .iter()
+        .map(|tipo| tipo.trim().to_lowercase())
+        .filter(|tipo| TIPOS.contains(&tipo.as_str()))
+        .collect();
+
+    receta.categoria = dietas::categoria(&receta.nombre, &receta.ingredientes, &receta.categoria);
+
+    let (tipos, avisos_dietas) =
+        dietas::ajustar(receta.tipos.clone(), &receta.nombre, &receta.ingredientes);
+
+    receta.tipos = tipos;
+
+    for aviso in avisos_dietas {
+        if !receta.avisos.contains(&aviso) {
+            receta.avisos.push(aviso);
+        }
+    }
+
+    let motivos: BTreeMap<String, String> = receta
+        .tipos_motivos
+        .iter()
+        .filter(|(tipo, _)| receta.tipos.iter().any(|elegido| elegido == *tipo))
+        .map(|(tipo, motivo)| {
+            (
+                tipo.clone(),
+                motivo.trim().chars().take(200).collect::<String>(),
+            )
+        })
+        .filter(|(_, motivo)| !motivo.is_empty())
+        .collect();
+
+    receta.tipos_motivos = motivos;
+    receta.categoria_motivo = receta.categoria_motivo.trim().chars().take(200).collect();
+
     receta.pasos = receta
         .pasos
         .iter()
@@ -244,6 +256,18 @@ fn normalizar(receta: &mut RecetaExtraida) -> Result<(), String> {
     if receta.pasos.is_empty() {
         return Err("La receta no tiene pasos.".to_string());
     }
+
+    let mut avisos: Vec<String> = Vec::new();
+
+    for aviso in receta.avisos.drain(..) {
+        let aviso = aviso.trim().chars().take(500).collect::<String>();
+
+        if !aviso.is_empty() && !avisos.contains(&aviso) {
+            avisos.push(aviso);
+        }
+    }
+
+    receta.avisos = avisos;
 
     Ok(())
 }
@@ -308,7 +332,9 @@ mod tests {
             tiempo_min: 30,
             dificultad: "facil".to_string(),
             categoria: "guisados".to_string(),
+            categoria_motivo: String::new(),
             tipos: vec![],
+            tipos_motivos: BTreeMap::new(),
             ingredientes: vec![
                 IngredienteExtraido {
                     nombre: "Harina".to_string(),
@@ -332,7 +358,8 @@ mod tests {
         normalizar(&mut receta).unwrap();
         assert_eq!(receta.ingredientes[0].unidad, "g");
         assert_eq!(receta.ingredientes[1].unidad, "al_gusto");
-        assert_eq!(receta.tipos, vec!["general"]);
+        assert!(receta.tipos.contains(&"general".to_string()));
+        assert!(receta.tipos.contains(&"vegetariano".to_string()));
     }
 
     #[tokio::test]
@@ -381,6 +408,47 @@ Preparación
         assert!(receta.tiempo_min > 0);
     }
 
+    #[tokio::test]
+    #[ignore = "envía una petición real al modelo local"]
+    async fn extrae_una_receta_vegetariana_real() {
+        let conexion = ConexionIa {
+            id: "prueba".to_string(),
+            nombre: "Ollama local".to_string(),
+            proveedor: crate::ia::model::Proveedor::Ollama,
+            modelo: "qwen2.5:7b".to_string(),
+            endpoint: Some("http://127.0.0.1:11434".to_string()),
+            comando: None,
+            tamano_bytes: None,
+            parametros: None,
+            cuantizacion: None,
+            capacidades: Vec::new(),
+            gratis: true,
+            ultima_prueba: None,
+            creada_ms: 0,
+        };
+
+        let texto = r#"
+Calabacitas con jitomate
+INGREDIENTES
+· 800 g de calabacita
+· 450 g de jitomate
+· 150 g de cebolla blanca
+· 15 ml de aceite de oliva
+· Sal al gusto
+Preparación
+1 Lava y corta la calabacita y el jitomate en trozos.
+2 Calienta el aceite de oliva y sofríe la cebolla.
+3 Agrega la calabacita y el jitomate y cocina 15 minutos.
+4 Ajusta la sal y sirve.
+"#;
+
+        let receta = extraer(texto, &conexion).await.expect("debe extraer");
+        println!("{}", serde_json::to_string_pretty(&receta).unwrap());
+        assert!(receta.tipos.contains(&"general".to_string()));
+        assert!(receta.tipos.contains(&"vegetariano".to_string()));
+        assert!(receta.tipos.contains(&"sin_gluten".to_string()));
+    }
+
     #[test]
     fn detecta_numeros_conservados() {
         let receta = RecetaExtraida {
@@ -390,7 +458,9 @@ Preparación
             tiempo_min: 30,
             dificultad: "facil".to_string(),
             categoria: "guisados".to_string(),
+            categoria_motivo: String::new(),
             tipos: vec!["general".to_string()],
+            tipos_motivos: BTreeMap::new(),
             ingredientes: vec![IngredienteExtraido {
                 nombre: "Harina".to_string(),
                 cantidad: Some(200.0),

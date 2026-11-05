@@ -2,6 +2,7 @@
 
 pub mod badge;
 pub mod bridge;
+pub mod dietas;
 pub mod extraer;
 pub mod gateway;
 pub mod hardware;

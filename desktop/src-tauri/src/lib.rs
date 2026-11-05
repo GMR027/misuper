@@ -73,6 +73,10 @@ pub fn run() {
                     })
                     .build()?;
 
+            if let Some(icono) = app.default_window_icon().cloned() {
+                let _ = ventana.set_icon(icono);
+            }
+
             let _ = ventana.set_zoom(zoom_inicial as f64 / 100.0);
 
             if abrir_ia {
@@ -214,6 +218,10 @@ pub fn abrir_chef(app: &tauri::AppHandle, pdf: Option<String>) -> Result<(), Str
         })
         .build()
         .map_err(|error| format!("No se pudo abrir la ventana Chef: {error}"))?;
+
+    if let Some(icono) = app.default_window_icon().cloned() {
+        let _ = ventana.set_icon(icono);
+    }
 
     if let Some(ruta) = pdf {
         if let Ok(mut url) = ventana.url() {
