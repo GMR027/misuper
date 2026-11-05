@@ -29,6 +29,7 @@ $mensajes = [
     'creado' => 'Producto creado correctamente.',
     'actualizado' => 'Producto actualizado correctamente.',
     'desactivado' => 'Producto desactivado. Ya no aparece en el catálogo público.',
+    'activado' => 'Producto reactivado. Ya aparece en el catálogo público.',
 ];
 
 $ok = isset($_GET['ok']) && is_string($_GET['ok']) ? $_GET['ok'] : '';

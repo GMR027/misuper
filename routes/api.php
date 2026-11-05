@@ -500,6 +500,15 @@ return static function (string $method, string $path): void {
             }
         }
 
+        // Reactivar producto inactivo: /api/admin/productos/{id}/activar
+        if (preg_match('#^/api/admin/productos/([1-9][0-9]*)/activar$#', $path, $matches) === 1) {
+            if ($method === 'POST') {
+                (new AdminProductoController())->activar((int) $matches[1]);
+
+                return;
+            }
+        }
+
         // Rutas con identificador: /api/admin/productos/{id}
         if (preg_match('#^/api/admin/productos/([1-9][0-9]*)$#', $path, $matches) === 1) {
             $id = (int) $matches[1];

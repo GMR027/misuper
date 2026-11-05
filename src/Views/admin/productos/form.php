@@ -139,7 +139,11 @@ ob_start();
                             <a class="btn btn-secondary" href="/admin/productos">Cancelar</a>
 
                             <?php if ($esEdicion): ?>
-                                <button class="btn btn-outline-danger" type="button" data-deactivate>Desactivar</button>
+                                <?php if ($producto->estado === 'activo'): ?>
+                                    <button class="btn btn-outline-danger" type="button" data-deactivate>Desactivar</button>
+                                <?php else: ?>
+                                    <button class="btn btn-outline-success" type="button" data-reactivate>Reactivar</button>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </div>
 

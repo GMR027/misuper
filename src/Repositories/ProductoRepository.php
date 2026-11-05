@@ -222,6 +222,14 @@ final class ProductoRepository
         $statement->execute([$id]);
     }
 
+    public function reactivate(int $id): void
+    {
+        $statement = $this->pdo->prepare(
+            "UPDATE productos SET estado = 'activo' WHERE id = ?"
+        );
+        $statement->execute([$id]);
+    }
+
     /**
      * Catálogo mínimo de productos activos para relacionar tickets:
      * productos globales más los propios del usuario.

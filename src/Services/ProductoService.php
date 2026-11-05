@@ -212,6 +212,22 @@ final class ProductoService
         return true;
     }
 
+    /**
+     * Reactiva un producto desactivado previamente.
+     *
+     * @return bool false si el producto no existe.
+     */
+    public function reactivar(int $id): bool
+    {
+        if ($this->productos->findGlobalById($id) === null) {
+            return false;
+        }
+
+        $this->productos->reactivate($id);
+
+        return true;
+    }
+
     public function obtenerParaAdmin(int $id): ?Producto
     {
         return $this->productos->findGlobalById($id);

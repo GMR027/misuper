@@ -663,6 +663,7 @@ function initFormulario(form) {
     const mensaje = form.querySelector('[data-message]');
     const submit = form.querySelector('button[type="submit"]');
     const desactivar = form.querySelector('[data-deactivate]');
+    const reactivar = form.querySelector('[data-reactivate]');
     const preview = form.querySelector('#imagen-preview');
 
     /**
@@ -832,6 +833,42 @@ function initFormulario(form) {
         } catch (error) {
             if (desactivar instanceof HTMLButtonElement) {
                 desactivar.disabled = false;
+            }
+
+            if (!redirectIfSessionLost(error)) {
+                showMessage(mensaje, firstValidationMessage(error));
+            }
+        }
+    });
+
+    reactivar?.addEventListener('click', async () => {
+        const nombre = nombreInput instanceof HTMLInputElement ? nombreInput.value.trim() : '';
+        const confirmado = await confirmar({
+            title: 'Reactivar producto',
+            message: `«${nombre}» volverá a aparecer en el catálogo público.`,
+            confirmText: 'Reactivar',
+            tone: 'primary',
+        });
+
+        if (!confirmado) {
+            return;
+        }
+
+        if (reactivar instanceof HTMLButtonElement) {
+            reactivar.disabled = true;
+        }
+
+        clearMessage(mensaje);
+
+        try {
+            await fetchApi(`/api/admin/productos/${encodeURIComponent(productoId)}/activar`, {
+                method: 'POST',
+            });
+
+            window.location.assign('/admin/productos?ok=activado');
+        } catch (error) {
+            if (reactivar instanceof HTMLButtonElement) {
+                reactivar.disabled = false;
             }
 
             if (!redirectIfSessionLost(error)) {

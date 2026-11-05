@@ -113,6 +113,21 @@ final class AdminProductoController
     }
 
     /**
+     * POST /api/admin/productos/{id}/activar — reactiva un producto inactivo.
+     */
+    public function activar(int $id): void
+    {
+        AdminMiddleware::require();
+        CsrfMiddleware::enforce();
+
+        if (!$this->productos->reactivar($id)) {
+            Response::fail('NOT_FOUND', 'Producto no encontrado.', 404);
+        }
+
+        Response::ok(['activated' => true]);
+    }
+
+    /**
      * Cuerpo JSON de la petición. 400 si el JSON es inválido.
      *
      * @return array<string, mixed>
