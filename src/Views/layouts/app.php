@@ -75,7 +75,7 @@ if ($avatarEsPreset) {
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/avatars.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/modes.css'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
-<body class="app">
+<body class="app<?= $active === 'inicio' ? ' app--quick' : '' ?>">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
     <header class="app-header">
         <div class="app-header__inner">

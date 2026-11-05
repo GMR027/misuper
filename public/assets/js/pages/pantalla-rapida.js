@@ -51,6 +51,7 @@ async function init(root) {
         searchForm: root.querySelector('[data-search-form]'),
         search: root.querySelector('[data-buscador]'),
         chips: root.querySelector('[data-categorias]'),
+        chipsSheet: root.querySelector('[data-categorias-sheet-grid]'),
         results: root.querySelector('[data-resultados]'),
         resultsStatus: root.querySelector('[data-resultados-status]'),
         toggleVista: root.querySelector('[data-toggle-vista]'),
@@ -58,12 +59,18 @@ async function init(root) {
         frequentSection: root.querySelector('[data-frecuentes]'),
         frequentGrid: root.querySelector('[data-frecuentes-grid]'),
         cartItems: root.querySelector('[data-carrito-items]'),
-        cartCount: root.querySelector('[data-carrito-count]'),
-        cartHeroCount: root.querySelector('[data-carrito-hero-count]'),
-        cartTotal: root.querySelector('[data-carrito-total]'),
-        cartHeroTotal: root.querySelector('[data-carrito-hero-total]'),
+        cartCounts: Array.from(root.querySelectorAll('[data-carrito-count]')),
+        cartHeroCounts: Array.from(root.querySelectorAll('[data-carrito-hero-count]')),
+        cartTotals: Array.from(root.querySelectorAll('[data-carrito-total]')),
+        cartHeroTotals: Array.from(root.querySelectorAll('[data-carrito-hero-total]')),
         cartEmpty: root.querySelector('[data-carrito-vacio]'),
         save: root.querySelector('[data-guardar]'),
+        cartSheet: root.querySelector('[data-cart-sheet]'),
+        cartClose: root.querySelector('[data-cart-close]'),
+        cartBackdrop: document.querySelector('[data-cart-backdrop]'),
+        categoriasSheet: document.querySelector('[data-categorias-sheet]'),
+        categoriasBackdrop: document.querySelector('[data-categorias-backdrop]'),
+        categoriasClose: document.querySelector('[data-categorias-close]'),
         modalContinuar: document.querySelector('[data-modal-continuar]'),
         modalLibre: document.querySelector('[data-modal-libre]'),
         modalCalc: document.querySelector('[data-modal-calc]'),
@@ -71,10 +78,14 @@ async function init(root) {
     };
 
     let categorias = [];
+    /** @type {any[]|null} */
+    let frecuentesCache = null;
     let searchTimer = null;
     let searchSequence = 0;
     let productoCalculo = null;
     let vistaLista = leerVistaLista();
+    /** @type {HTMLElement|null} */
+    let ultimoFoco = null;
 
     loadCart();
     await importarListaSiAplica();
@@ -92,6 +103,7 @@ async function init(root) {
 
     bindLogout();
     bindSearch();
+    bindSheets();
     bindVista();
     bindCart();
     bindModals();
@@ -164,6 +176,121 @@ async function init(root) {
         });
     }
 
+    function bindSheets() {
+        root.querySelector('[data-quick-menu]')?.addEventListener('click', () => {
+            const menu = document.querySelector('[data-dock-menu]');
+
+            if (menu instanceof HTMLElement) {
+                menu.click();
+            }
+        });
+
+        const abrirSheet = (sheet, backdrop, trigger) => {
+            if (!(sheet instanceof HTMLElement) || !(backdrop instanceof HTMLElement)) {
+                return;
+            }
+
+            ultimoFoco = trigger instanceof HTMLElement ? trigger : null;
+            backdrop.hidden = false;
+            sheet.hidden = false;
+            document.body.classList.add('quick-sheet-open');
+
+            const focusable = sheet.querySelector('button, input, select, textarea, a[href]');
+
+            if (focusable instanceof HTMLElement) {
+                focusable.focus();
+            }
+        };
+
+        const cerrarSheet = (sheet, backdrop) => {
+            if (sheet instanceof HTMLElement) {
+                sheet.hidden = true;
+            }
+
+            if (backdrop instanceof HTMLElement) {
+                backdrop.hidden = true;
+            }
+
+            document.body.classList.remove('quick-sheet-open');
+
+            if (ultimoFoco instanceof HTMLElement) {
+                ultimoFoco.focus();
+            }
+        };
+
+        const abrirCarrito = (trigger) => {
+            if (!(el.cartSheet instanceof HTMLElement) || !(el.cartBackdrop instanceof HTMLElement)) {
+                return;
+            }
+
+            const esCelularHorizontal = window.matchMedia('(orientation: landscape) and (max-width: 767.98px)').matches;
+
+            if (!esCelularHorizontal) {
+                el.cartSheet.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                return;
+            }
+
+            ultimoFoco = trigger instanceof HTMLElement ? trigger : null;
+            el.cartSheet.classList.add('is-open');
+            el.cartBackdrop.hidden = false;
+            document.body.classList.add('quick-sheet-open');
+            el.cartClose?.focus();
+        };
+
+        const cerrarCarrito = () => {
+            if (el.cartSheet instanceof HTMLElement) {
+                el.cartSheet.classList.remove('is-open');
+            }
+
+            if (el.cartBackdrop instanceof HTMLElement) {
+                el.cartBackdrop.hidden = true;
+            }
+
+            document.body.classList.remove('quick-sheet-open');
+
+            if (ultimoFoco instanceof HTMLElement) {
+                ultimoFoco.focus();
+            }
+        };
+
+        root.querySelectorAll('[data-cart-open]').forEach((button) => {
+            button.addEventListener('click', () => abrirCarrito(button));
+        });
+
+        el.cartClose?.addEventListener('click', cerrarCarrito);
+        el.cartBackdrop?.addEventListener('click', cerrarCarrito);
+
+        root.querySelector('[data-categorias-open]')?.addEventListener('click', (event) => {
+            abrirSheet(
+                el.categoriasSheet,
+                el.categoriasBackdrop,
+                event.currentTarget instanceof HTMLElement ? event.currentTarget : null,
+            );
+        });
+
+        el.categoriasClose?.addEventListener('click', () => {
+            cerrarSheet(el.categoriasSheet, el.categoriasBackdrop);
+        });
+
+        el.categoriasBackdrop?.addEventListener('click', () => {
+            cerrarSheet(el.categoriasSheet, el.categoriasBackdrop);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') {
+                return;
+            }
+
+            if (el.cartSheet instanceof HTMLElement && el.cartSheet.classList.contains('is-open')) {
+                cerrarCarrito();
+            }
+
+            if (el.categoriasSheet instanceof HTMLElement && !el.categoriasSheet.hidden) {
+                cerrarSheet(el.categoriasSheet, el.categoriasBackdrop);
+            }
+        });
+    }
+
     async function buscar() {
         if (!(el.search instanceof HTMLInputElement)) {
             return;
@@ -172,6 +299,11 @@ async function init(root) {
         const q = el.search.value.trim();
         const categoria = state.categoria_activa;
         state.busqueda = q;
+
+        if (state.frecuentes_activo) {
+            state.frecuentes_activo = false;
+            actualizarChips();
+        }
 
         if (q === '' && categoria === null) {
             setState({ items: [] });
@@ -230,15 +362,18 @@ async function init(root) {
     }
 
     function renderChips() {
-        if (!(el.chips instanceof HTMLElement)) {
-            return;
-        }
+        for (const contenedor of [el.chips, el.chipsSheet]) {
+            if (!(contenedor instanceof HTMLElement)) {
+                continue;
+            }
 
-        el.chips.replaceChildren();
-        el.chips.append(crearChip('Todas', null));
+            contenedor.replaceChildren();
+            contenedor.append(crearChipFrecuentes());
+            contenedor.append(crearChip('Todas', null));
 
-        for (const categoria of categorias) {
-            el.chips.append(crearChip(String(categoria.nombre), Number(categoria.id)));
+            for (const categoria of categorias) {
+                contenedor.append(crearChip(String(categoria.nombre), Number(categoria.id)));
+            }
         }
     }
 
@@ -258,10 +393,11 @@ async function init(root) {
         icon.setAttribute('aria-hidden', 'true');
 
         button.append(icon, document.createTextNode(label));
-        aplicarEstadoChip(button, state.categoria_activa === id);
+        aplicarEstadoChip(button, !state.frecuentes_activo && state.categoria_activa === id);
 
         button.addEventListener('click', () => {
             state.categoria_activa = id;
+            state.frecuentes_activo = false;
             actualizarChips();
 
             if (state.busqueda !== '' || id !== null) {
@@ -269,9 +405,83 @@ async function init(root) {
             } else {
                 setState({ items: [] });
             }
+
+            cerrarSheetCategorias();
         });
 
         return button;
+    }
+
+    /**
+     * Chip que muestra las compras frecuentes dentro de la cuadrícula.
+     *
+     * @returns {HTMLButtonElement}
+     */
+    function crearChipFrecuentes() {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'chip chip--frecuentes btn btn-sm flex-shrink-0';
+        button.dataset.frecuentesChip = '';
+
+        const icon = document.createElement('i');
+        icon.className = 'bi bi-stars';
+        icon.setAttribute('aria-hidden', 'true');
+
+        button.append(icon, document.createTextNode('Frecuentes'));
+        aplicarEstadoChip(button, state.frecuentes_activo);
+
+        button.addEventListener('click', () => {
+            void activarFrecuentes();
+        });
+
+        return button;
+    }
+
+    function cerrarSheetCategorias() {
+        if (el.categoriasSheet instanceof HTMLElement) {
+            el.categoriasSheet.hidden = true;
+        }
+
+        if (el.categoriasBackdrop instanceof HTMLElement) {
+            el.categoriasBackdrop.hidden = true;
+        }
+
+        document.body.classList.remove('quick-sheet-open');
+    }
+
+    async function activarFrecuentes() {
+        state.frecuentes_activo = true;
+        state.categoria_activa = null;
+        state.busqueda = '';
+
+        if (el.search instanceof HTMLInputElement) {
+            el.search.value = '';
+        }
+
+        actualizarChips();
+        cerrarSheetCategorias();
+
+        if (frecuentesCache === null) {
+            try {
+                const data = await fetchApi('/api/productos/frecuentes');
+                frecuentesCache = Array.isArray(data) ? data : [];
+            } catch (error) {
+                frecuentesCache = [];
+
+                if (!redirectIfSessionLost(error)) {
+                    showToast('No se pudieron cargar las compras frecuentes.', 'error');
+                }
+            }
+        }
+
+        setState({ items: frecuentesCache, categoria_activa: null, busqueda: '', frecuentes_activo: true });
+
+        if (el.resultsStatus instanceof HTMLElement) {
+            const total = frecuentesCache.length;
+            el.resultsStatus.textContent = total === 0
+                ? 'Aún no hay compras frecuentes.'
+                : `${total} ${total === 1 ? 'producto frecuente' : 'productos frecuentes'}`;
+        }
     }
 
     /**
@@ -285,18 +495,25 @@ async function init(root) {
     }
 
     function actualizarChips() {
-        if (!(el.chips instanceof HTMLElement)) {
-            return;
-        }
-
-        for (const chip of el.chips.querySelectorAll('.chip')) {
-            if (!(chip instanceof HTMLElement)) {
+        for (const contenedor of [el.chips, el.chipsSheet]) {
+            if (!(contenedor instanceof HTMLElement)) {
                 continue;
             }
 
-            const raw = chip.dataset.categoriaId ?? '';
-            const id = raw === '' ? null : Number(raw);
-            aplicarEstadoChip(chip, id === state.categoria_activa);
+            for (const chip of contenedor.querySelectorAll('.chip')) {
+                if (!(chip instanceof HTMLElement)) {
+                    continue;
+                }
+
+                if (chip.hasAttribute('data-frecuentes-chip')) {
+                    aplicarEstadoChip(chip, state.frecuentes_activo);
+                    continue;
+                }
+
+                const raw = chip.dataset.categoriaId ?? '';
+                const id = raw === '' ? null : Number(raw);
+                aplicarEstadoChip(chip, !state.frecuentes_activo && id === state.categoria_activa);
+            }
         }
     }
 
@@ -305,8 +522,9 @@ async function init(root) {
     async function loadFrecuentes() {
         try {
             const data = await fetchApi('/api/productos/frecuentes');
+            frecuentesCache = Array.isArray(data) ? data : [];
 
-            if (!Array.isArray(data) || data.length === 0) {
+            if (frecuentesCache.length === 0) {
                 if (el.frequentSection instanceof HTMLElement) {
                     el.frequentSection.hidden = true;
                 }
@@ -317,7 +535,7 @@ async function init(root) {
             if (el.frequentGrid instanceof HTMLElement) {
                 el.frequentGrid.replaceChildren();
 
-                for (const product of data) {
+                for (const product of frecuentesCache) {
                     el.frequentGrid.append(crearFrecuente(product));
                 }
             }
@@ -378,7 +596,9 @@ async function init(root) {
             const empty = document.createElement('div');
             empty.className = 'quick-empty col-12';
 
-            if (state.busqueda !== '' || state.categoria_activa !== null) {
+            if (state.frecuentes_activo) {
+                empty.textContent = 'Aún no tienes compras frecuentes. Agrega productos y vuelve a revisar.';
+            } else if (state.busqueda !== '' || state.categoria_activa !== null) {
                 const texto = document.createElement('p');
                 texto.className = 'mb-3';
                 texto.textContent = 'No encontramos productos con esa búsqueda.';
@@ -399,7 +619,9 @@ async function init(root) {
             el.results.append(empty);
 
             if (el.resultsStatus instanceof HTMLElement) {
-                if (state.busqueda !== '' || state.categoria_activa !== null) {
+                if (state.frecuentes_activo) {
+                    el.resultsStatus.textContent = 'Sin frecuentes.';
+                } else if (state.busqueda !== '' || state.categoria_activa !== null) {
                     el.resultsStatus.textContent = 'Sin resultados.';
                 } else {
                     el.resultsStatus.textContent = 'Escribe un producto o elige una categoría.';
@@ -418,7 +640,10 @@ async function init(root) {
         el.results.append(fragment);
 
         if (el.resultsStatus instanceof HTMLElement) {
-            el.resultsStatus.textContent = `${items.length} ${items.length === 1 ? 'producto' : 'productos'}`;
+            const singular = items.length === 1;
+            el.resultsStatus.textContent = state.frecuentes_activo
+                ? `${items.length} ${singular ? 'producto frecuente' : 'productos frecuentes'}`
+                : `${items.length} ${singular ? 'producto' : 'productos'}`;
         }
     }
 
@@ -844,20 +1069,28 @@ async function init(root) {
         const totalLabel = formatCurrency(cartTotal());
         const countLabel = `${n} ${n === 1 ? 'ítem' : 'ítems'}`;
 
-        if (el.cartCount instanceof HTMLElement) {
-            el.cartCount.textContent = countLabel;
+        for (const slot of el.cartCounts) {
+            if (slot instanceof HTMLElement) {
+                slot.textContent = countLabel;
+            }
         }
 
-        if (el.cartHeroCount instanceof HTMLElement) {
-            el.cartHeroCount.textContent = countLabel;
+        for (const slot of el.cartHeroCounts) {
+            if (slot instanceof HTMLElement) {
+                slot.textContent = countLabel;
+            }
         }
 
-        if (el.cartTotal instanceof HTMLElement) {
-            el.cartTotal.textContent = totalLabel;
+        for (const slot of el.cartTotals) {
+            if (slot instanceof HTMLElement) {
+                slot.textContent = totalLabel;
+            }
         }
 
-        if (el.cartHeroTotal instanceof HTMLElement) {
-            el.cartHeroTotal.textContent = totalLabel;
+        for (const slot of el.cartHeroTotals) {
+            if (slot instanceof HTMLElement) {
+                slot.textContent = totalLabel;
+            }
         }
 
         if (el.cartEmpty instanceof HTMLElement) {
@@ -1029,8 +1262,10 @@ async function init(root) {
     /* Modales ----------------------------------------------------------- */
 
     function bindModals() {
-        root.querySelector('[data-libre-open]')?.addEventListener('click', () => {
-            abrirNuevoProducto('');
+        root.querySelectorAll('[data-libre-open]').forEach((button) => {
+            button.addEventListener('click', () => {
+                abrirNuevoProducto('');
+            });
         });
 
         document.querySelector('[data-close-libre]')?.addEventListener('click', () => {

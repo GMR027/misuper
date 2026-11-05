@@ -27,6 +27,8 @@ function init(root) {
         despensa: root.querySelector('[data-recetas-despensa]'),
         status: root.querySelector('[data-recetas-status]'),
         grid: root.querySelector('[data-recetas-grid]'),
+        paginacion: root.querySelector('[data-recetas-paginacion]'),
+        paginas: root.querySelector('[data-recetas-paginas]'),
         empty: root.querySelector('[data-recetas-empty]'),
         listaCount: root.querySelector('[data-lista-count]'),
         seleccion: root.querySelector('[data-seleccion]'),
@@ -47,8 +49,10 @@ function init(root) {
         previewNueva: document.querySelector('[data-preview-nueva]'),
     };
 
+    const POR_PAGINA = 20;
     /** @type {Array<any>} */
     let recetas = [];
+    let paginaActual = 1;
     /** @type {Array<any>} */
     let tipos = [];
     /** @type {Array<any>} */
@@ -162,6 +166,7 @@ function init(root) {
         try {
             const data = await fetchApi(`/api/recetas?${params.toString()}`);
             recetas = Array.isArray(data?.items) ? data.items : [];
+            paginaActual = 1;
             tipos = Array.isArray(data?.tipos) ? data.tipos : [];
             categorias = Array.isArray(data?.categorias) ? data.categorias : [];
 
@@ -187,9 +192,7 @@ function init(root) {
                 }
             }
 
-            if (el.status instanceof HTMLElement) {
-                el.status.textContent = `${recetas.length} ${recetas.length === 1 ? 'receta' : 'recetas'}`;
-            }
+            // El estado y la paginación se actualizan en renderRecetas().
         } catch (error) {
             if (redirectIfSessionLost(error)) {
                 return;
@@ -323,8 +326,18 @@ function init(root) {
         }
 
         el.grid.replaceChildren();
+        const total = recetas.length;
+        const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA));
 
-        if (recetas.length === 0) {
+        if (paginaActual > totalPaginas) {
+            paginaActual = totalPaginas;
+        }
+
+        const inicio = (paginaActual - 1) * POR_PAGINA;
+        const fin = Math.min(inicio + POR_PAGINA, total);
+        const visibles = recetas.slice(inicio, fin);
+
+        if (total === 0) {
             if (el.empty instanceof HTMLElement) {
                 el.empty.hidden = false;
                 el.empty.textContent = el.solo instanceof HTMLInputElement && el.solo.checked
@@ -332,16 +345,119 @@ function init(root) {
                     : 'No hay recetas que coincidan con los filtros. Prueba con otro tipo o limpia la búsqueda.';
             }
 
+            renderPaginacion(0, 1);
+        } else {
+            if (el.empty instanceof HTMLElement) {
+                el.empty.hidden = true;
+            }
+
+            for (const receta of visibles) {
+                el.grid.append(crearTarjeta(receta));
+            }
+
+            renderPaginacion(total, totalPaginas);
+        }
+
+        if (el.status instanceof HTMLElement) {
+            el.status.textContent = total === 0
+                ? '0 recetas'
+                : `${inicio + 1}–${fin} de ${total} ${total === 1 ? 'receta' : 'recetas'} · página ${paginaActual} de ${totalPaginas}`;
+        }
+    }
+
+    /**
+     * @param {number} total
+     * @param {number} totalPaginas
+     */
+    function renderPaginacion(total, totalPaginas) {
+        if (!(el.paginacion instanceof HTMLElement) || !(el.paginas instanceof HTMLElement)) {
             return;
         }
 
-        if (el.empty instanceof HTMLElement) {
-            el.empty.hidden = true;
+        el.paginas.replaceChildren();
+
+        if (total <= POR_PAGINA) {
+            el.paginacion.hidden = true;
+
+            return;
         }
 
-        for (const receta of recetas) {
-            el.grid.append(crearTarjeta(receta));
+        el.paginacion.hidden = false;
+
+        const crearItem = (contenido, pagina, opciones = {}) => {
+            const li = document.createElement('li');
+            li.className = 'page-item';
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'page-link';
+            button.innerHTML = contenido;
+
+            if (opciones.activa) {
+                li.classList.add('active');
+                button.setAttribute('aria-current', 'page');
+            }
+
+            if (opciones.deshabilitada) {
+                li.classList.add('disabled');
+                button.disabled = true;
+            }
+
+            if (!opciones.deshabilitada && pagina !== null) {
+                button.addEventListener('click', () => {
+                    paginaActual = pagina;
+                    renderRecetas();
+                    el.grid?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            }
+
+            if (opciones.etiqueta) {
+                button.setAttribute('aria-label', opciones.etiqueta);
+            }
+
+            li.append(button);
+
+            return li;
+        };
+
+        el.paginas.append(crearItem(
+            '<i class="bi bi-chevron-left" aria-hidden="true"></i>',
+            Math.max(1, paginaActual - 1),
+            { deshabilitada: paginaActual === 1, etiqueta: 'Página anterior' },
+        ));
+
+        const paginas = new Set([1, totalPaginas]);
+
+        for (let pagina = Math.max(1, paginaActual - 2); pagina <= Math.min(totalPaginas, paginaActual + 2); pagina++) {
+            paginas.add(pagina);
         }
+
+        const ordenadas = Array.from(paginas).sort((a, b) => a - b);
+        let anterior = 0;
+
+        for (const pagina of ordenadas) {
+            if (anterior !== 0 && pagina - anterior > 1) {
+                const separador = document.createElement('li');
+                separador.className = 'page-item disabled';
+                const span = document.createElement('span');
+                span.className = 'page-link';
+                span.textContent = '…';
+                separador.append(span);
+                el.paginas.append(separador);
+            }
+
+            el.paginas.append(crearItem(
+                String(pagina),
+                pagina,
+                { activa: pagina === paginaActual, etiqueta: `Página ${pagina}` },
+            ));
+            anterior = pagina;
+        }
+
+        el.paginas.append(crearItem(
+            '<i class="bi bi-chevron-right" aria-hidden="true"></i>',
+            Math.min(totalPaginas, paginaActual + 1),
+            { deshabilitada: paginaActual === totalPaginas, etiqueta: 'Página siguiente' },
+        ));
     }
 
     /**

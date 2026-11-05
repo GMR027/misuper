@@ -141,6 +141,10 @@ ob_start();
 
     <div class="row g-3" data-recetas-grid></div>
 
+    <nav class="recipe-pagination mt-4" data-recetas-paginacion aria-label="Paginación de recetas" hidden>
+        <ul class="pagination justify-content-center mb-0" data-recetas-paginas></ul>
+    </nav>
+
     <div class="recipe-empty alert alert-info mt-3" data-recetas-empty hidden></div>
 
 </div>

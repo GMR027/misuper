@@ -629,3 +629,30 @@ STATE_HANDOFF — Fase 22 (Auditoría UX/UI mobile-first) — 2026-11-04
 - Corrección funcional detectada durante las pruebas: `ListaCompraService::normalizarItem()` llamaba a `mb_substr(null)` cuando el ítem no traía `origen`, lo que devolvía 500 al agregar productos manualmente a una lista. Ahora `origen` se normaliza a `''` antes del recorte.
 - Verificado con Playwright en 1440, 768 y 390 px, tema claro y oscuro: sin errores de consola, sin desbordes no intencionados, sin controles sin etiqueta. Flujos probados: login con ojo de contraseña, búsqueda y guardado de compra, alta/edición/borrado de nota, listas (crear/agregar/eliminar), recetas (detalle/selección/preview), tickets (OCR real con Tesseract: 3 artículos, total $101.00), admin de usuarios, categorías, tipos, recetas y productos, confirmaciones propias y modales con foco atrapado.
 - BD local limpia después de las pruebas: 1 admin, 200 productos, 3 compras originales, 0 notas, 1 lista y 10 ítems de recetas. Sin migraciones nuevas.
+
+STATE_HANDOFF — Fase 23 (ampliación revertida) — 2026-11-04
+- Se generaron 400 recetas y 66 productos adicionales, pero el contenido no cumplió la calidad esperada. Se revirtieron por completo.
+- Migraciones `027_remove_recetas_ampliadas.sql` y `028_remove_productos_ampliados.sql`: eliminan las 400 recetas y los 66 productos nuevos en local y clúster. El catálogo vuelve a 100 recetas y 200 productos.
+- Se conservan las imágenes originales de los productos existentes (181 en el clúster) y las portadas de las 100 recetas base. Se eliminaron las 400 portadas generadas para las recetas retiradas.
+- Las migraciones `025` y `026` se retiraron para que una base nueva no vuelva a cargar el contenido descartado.
+- Se conservan los tipos de dieta `mediterranea`, `dash`, `baja_carbohidratos` y `keto` en `tipos_recetas`, sin recetas asociadas por ahora.
+- La paginación de `/recetas` a 20 recetas por página se mantiene y queda lista para validarse.
+
+STATE_HANDOFF — Fase 24 (Pantalla rápida landscape mobile-first) — 2026-11-05
+- Rediseño de `/` (pantalla rápida) para celular y tableta en horizontal, enfocado en uso dentro del supermercado.
+- En landscape se oculta el hero y el dock/header global; se agrega una topbar compacta con menú, total del carrito e ítems.
+- Buscador sticky de 44 px con botones compactos para nuevo producto y categorías.
+- Tableta horizontal: resultados en 3 columnas, chips de categorías inline y carrito como rail derecho sticky.
+- Celular horizontal: resultados en 2 columnas (lista en alturas menores a 400 px), categorías en bottom sheet y carrito en bottom sheet.
+- Barra inferior fija en celular con total e ítems para abrir el carrito en cualquier momento.
+- Compras frecuentes se movieron a un bottom sheet accesible desde el botón «Frecuentes» en landscape; se conserva la sección inline en portrait/escritorio.
+- El modal de nuevo producto y la calculadora usan un ancho mayor y padding compacto en landscape para que el teclado no tape los campos.
+- Verificado: `php -l` en vistas/layout, `node --check` en JS, render HTTP 200 de `/` con sesión y presencia de todos los nuevos puntos de interacción.
+
+STATE_HANDOFF — Fase 25 (Pantalla rápida landscape: ajuste senior) — 2026-11-05
+- Se eliminó la topbar con «Captura rápida / ¿Qué compraste hoy?» en celular y tableta horizontal. Ahora hay una sola barra sticky con menú, buscador, nuevo producto, categorías y total del carrito.
+- «Frecuentes» pasó a ser un chip dentro de categorías (fila inline en tableta y sheet en celular). Al elegirlo, los productos frecuentes se muestran en la misma cuadrícula de resultados con sus botones de agregar/calcular.
+- Se retiró el botón y el bottom sheet independiente de frecuentes en landscape; la sección inline se conserva solo en portrait/escritorio.
+- Resultados en 3 columnas tanto en celular como en tableta horizontal, con tarjetas compactas: imagen 16:9, nombre a 2 líneas, metadatos en una línea y acciones en una sola fila.
+- Se ajustaron paddings, tipografía y alturas de botones por breakpoint; el modo lista sigue disponible y ahora ocupa una sola columna en landscape.
+- Sin despliegue: cambios únicamente locales, pendientes de revisión visual.

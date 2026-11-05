@@ -52,11 +52,16 @@ final class CsrfMiddleware
         $recibido = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['_csrf'] ?? null;
         $esperado = $_SESSION[self::SESSION_KEY] ?? null;
 
+        // Sin token en sesión no hay sesión válida: se trata como sesión
+        // expirada para que el cliente redirija al login en lugar de mostrar
+        // un error de CSRF que el usuario no puede resolver.
+        if (!is_string($esperado) || $esperado === '') {
+            Response::fail('SESSION_EXPIRED', 'Tu sesión expiró. Inicia sesión de nuevo.', 401);
+        }
+
         if (
             !is_string($recibido)
             || $recibido === ''
-            || !is_string($esperado)
-            || $esperado === ''
             || !hash_equals($esperado, $recibido)
         ) {
             Response::fail('CSRF_INVALID', 'Token CSRF inválido o ausente.', 403);

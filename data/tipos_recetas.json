@@ -33,5 +33,33 @@
     "descripcion": "Recetas elaboradas sin trigo ni pasta.",
     "icono": "bi-shield-check",
     "aviso": "Revisa las etiquetas de los productos envasados y evita la contaminación cruzada si tienes enfermedad celíaca."
+  },
+  {
+    "slug": "mediterranea",
+    "nombre": "Dieta mediterránea",
+    "descripcion": "Recetas con aceite de oliva, pescado, legumbres, verduras y granos integrales.",
+    "icono": "bi-sun",
+    "aviso": "Etiqueta orientativa. Ajusta porciones y alimentos según tu plan nutricional."
+  },
+  {
+    "slug": "dash",
+    "nombre": "Dieta DASH",
+    "descripcion": "Opciones bajas en sodio, con verduras, frutas, proteínas magras y granos integrales.",
+    "icono": "bi-heart-pulse",
+    "aviso": "Etiqueta orientativa. Si sigues DASH por hipertensión, revisa el sodio de los productos envasados y consulta a tu médico."
+  },
+  {
+    "slug": "baja_carbohidratos",
+    "nombre": "Baja en carbohidratos",
+    "descripcion": "Recetas con menos carbohidratos y más proteína, verduras y grasas saludables.",
+    "icono": "bi-egg",
+    "aviso": "Etiqueta orientativa. No sustituye la valoración de tu médico o nutriólogo."
+  },
+  {
+    "slug": "keto",
+    "nombre": "Keto",
+    "descripcion": "Recetas altas en grasas saludables y muy bajas en carbohidratos.",
+    "icono": "bi-fire",
+    "aviso": "Etiqueta orientativa. La dieta keto debe supervisarse por un profesional de la salud, especialmente si tienes alguna condición médica."
   }
 ]

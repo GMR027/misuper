@@ -8,8 +8,8 @@ $usuario = AuthMiddleware::require();
 
 ob_start();
 ?>
-<div class="container py-4" data-quick>
-    <section class="hero-card mb-4" aria-labelledby="hero-title">
+<div class="container-fluid quick-page py-3 py-lg-4" data-quick>
+    <section class="hero-card quick-hero mb-4" aria-labelledby="hero-title">
         <div class="hero-content">
             <span class="hero-eyebrow">
                 <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
@@ -42,10 +42,20 @@ ob_start();
         <i class="bi bi-basket2-fill hero-art" aria-hidden="true"></i>
     </section>
 
-    <section aria-label="Buscador de productos">
-        <form class="mb-3" data-search-form role="search" novalidate>
+    <section class="quick-toolbar" aria-label="Buscador de productos">
+        <form class="quick-toolbar__search mb-3" data-search-form role="search" novalidate>
+            <button
+                class="btn quick-toolbar__menu"
+                type="button"
+                data-quick-menu
+                aria-label="Abrir menú"
+                title="Menú"
+            >
+                <i class="bi bi-list" aria-hidden="true"></i>
+            </button>
+
             <label class="visually-hidden" for="buscador">Buscar producto</label>
-            <div class="input-group input-group-lg search-box">
+            <div class="input-group input-group-lg search-box quick-search-box">
                 <span class="input-group-text" aria-hidden="true"><i class="bi bi-search"></i></span>
                 <input
                     class="form-control"
@@ -58,10 +68,38 @@ ob_start();
                     data-buscador
                 >
             </div>
+
+            <button
+                class="btn btn-primary quick-toolbar__new"
+                type="button"
+                data-libre-open
+                aria-label="Nuevo producto"
+                title="Nuevo producto"
+            >
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            </button>
+
+            <button
+                class="btn btn-outline-secondary quick-toolbar__toggle quick-toolbar__categorias"
+                type="button"
+                data-categorias-open
+                aria-label="Abrir categorías"
+            >
+                <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+                <span>Categorías</span>
+            </button>
+
+            <button class="quick-toolbar__cart" type="button" data-cart-open aria-label="Abrir carrito">
+                <span class="quick-toolbar__cart-meta">
+                    <i class="bi bi-bag-check-fill" aria-hidden="true"></i>
+                    <span data-carrito-hero-count>0 ítems</span>
+                </span>
+                <strong data-carrito-hero-total>$0.00</strong>
+            </button>
         </form>
 
         <div
-            class="d-flex overflow-auto gap-2 mb-4 pb-2"
+            class="quick-chips d-flex overflow-auto gap-2 mb-4 pb-2"
             data-categorias
             role="group"
             aria-label="Filtrar por categoría"
@@ -70,7 +108,7 @@ ob_start();
         </div>
     </section>
 
-    <section class="mb-4" data-frecuentes hidden aria-labelledby="frecuentes-title">
+    <section class="quick-frequent-inline mb-4" data-frecuentes hidden aria-labelledby="frecuentes-title">
         <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-2">
             <h5 class="mb-0" id="frecuentes-title">
                 <span class="title-icon"><i class="bi bi-stars" aria-hidden="true"></i></span>
@@ -81,10 +119,10 @@ ob_start();
         <div class="d-flex overflow-auto gap-2 pb-2" data-frecuentes-grid></div>
     </section>
 
-    <div class="row g-4">
-        <div class="col-12 col-lg-8">
+    <div class="quick-layout">
+        <div class="quick-results-col">
             <section aria-labelledby="resultados-title">
-                <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-2">
+                <div class="quick-results-head">
                     <h5 class="mb-0" id="resultados-title">
                         <button
                             class="title-icon title-icon--button"
@@ -103,12 +141,12 @@ ob_start();
                     </p>
                 </div>
 
-                <div class="row g-3" data-resultados></div>
+                <div class="row g-3 quick-results" data-resultados></div>
             </section>
         </div>
 
-        <div class="col-12 col-lg-4">
-            <aside class="card card--bs cart-panel" id="carrito" data-carrito aria-labelledby="carrito-title">
+        <div class="quick-cart-col">
+            <aside class="card card--bs cart-panel quick-cart" id="carrito" data-carrito data-cart-sheet aria-labelledby="carrito-title">
                 <div class="card-body">
                     <div class="cart-panel__head">
                         <div class="cart-panel__heading">
@@ -120,7 +158,12 @@ ob_start();
                                 <p class="cart-panel__subtitle">Ajusta cantidades y precios con un toque.</p>
                             </div>
                         </div>
-                        <span class="badge cart-panel__badge" data-carrito-count>0 ítems</span>
+                        <div class="quick-cart__head-actions">
+                            <span class="badge cart-panel__badge" data-carrito-count>0 ítems</span>
+                            <button class="quick-cart__close" type="button" data-cart-close aria-label="Cerrar carrito">
+                                <i class="bi bi-x-lg" aria-hidden="true"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="cart-panel__body">
@@ -158,7 +201,42 @@ ob_start();
             </aside>
         </div>
     </div>
+
+    <button class="quick-bottom-bar" type="button" data-cart-open aria-label="Abrir carrito">
+        <span class="quick-bottom-bar__summary">
+            <i class="bi bi-bag-check-fill" aria-hidden="true"></i>
+            <span data-carrito-hero-count>0 ítems</span>
+        </span>
+        <strong data-carrito-hero-total>$0.00</strong>
+        <span class="quick-bottom-bar__cta">
+            Ver carrito
+            <i class="bi bi-chevron-up" aria-hidden="true"></i>
+        </span>
+    </button>
 </div>
+
+<div class="quick-sheet-backdrop" data-cart-backdrop hidden></div>
+<div class="quick-sheet-backdrop" data-categorias-backdrop hidden></div>
+
+<section class="quick-sheet quick-sheet--categorias" data-categorias-sheet hidden role="dialog" aria-modal="true" aria-labelledby="quick-categorias-title">
+    <div class="quick-sheet__panel">
+        <span class="quick-sheet__grabber" aria-hidden="true"></span>
+        <header class="quick-sheet__head">
+            <h2 class="quick-sheet__title" id="quick-categorias-title">
+                <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+                Categorías
+            </h2>
+            <button class="quick-sheet__close" type="button" data-categorias-close aria-label="Cerrar categorías">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </header>
+        <div class="quick-sheet__body">
+            <div class="quick-chips quick-chips--sheet" data-categorias-sheet-grid role="group" aria-label="Filtrar por categoría">
+                <span class="text-muted small py-2">Cargando categorías…</span>
+            </div>
+        </div>
+    </div>
+</section>
 
 <div class="toast-stack" data-toast-stack aria-live="polite"></div>
 
@@ -180,7 +258,7 @@ ob_start();
     </div>
 </div>
 
-<div class="app-modal" data-modal-libre hidden role="dialog" aria-modal="true" aria-labelledby="libre-title">
+<div class="app-modal quick-form-modal" data-modal-libre hidden role="dialog" aria-modal="true" aria-labelledby="libre-title">
     <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content" data-form-libre novalidate>
             <div class="modal-body p-4">
@@ -269,7 +347,7 @@ ob_start();
     </div>
 </div>
 
-<div class="app-modal" data-modal-calc hidden role="dialog" aria-modal="true" aria-labelledby="calc-title">
+<div class="app-modal quick-form-modal" data-modal-calc hidden role="dialog" aria-modal="true" aria-labelledby="calc-title">
     <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content" data-form-calc novalidate>
             <div class="modal-body p-4">

@@ -10,6 +10,7 @@ export const state = {
     items: [],
     categoria_activa: null,
     busqueda: '',
+    frecuentes_activo: false,
     carrito_abierto: true,
 };
 

@@ -862,3 +862,14 @@
     object-fit: cover;
     display: block;
 }
+
+/* Paginación del recetario --------------------------------------------- */
+
+.recipe-pagination .page-link {
+    min-width: 2.4rem;
+    text-align: center;
+}
+
+.recipe-pagination .page-item.active .page-link {
+    font-weight: 600;
+}
