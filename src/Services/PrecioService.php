@@ -284,10 +284,37 @@ final class PrecioService
      */
     public function costoReceta(int $usuarioId, array $receta, ?int $porciones = null): array
     {
-        $porcionesBase = max(1, (int) ($receta['porciones_base'] ?? 4));
-        $porciones = $porciones === null ? $porcionesBase : max(1, min(50, $porciones));
-        $factor = $porciones / $porcionesBase;
+        return $this->costoRecetaConContexto($receta, $porciones, $this->contextoCosto($usuarioId));
+    }
 
+    /**
+     * Costo de varias recetas compartiendo una sola carga de precios.
+     *
+     * @param array<int|string, array{receta: array<string, mixed>, porciones?: int|null}> $entradas
+     * @return array<int|string, array<string, mixed>>
+     */
+    public function costosRecetas(int $usuarioId, array $entradas): array
+    {
+        $contexto = $this->contextoCosto($usuarioId);
+        $costos = [];
+
+        foreach ($entradas as $clave => $entrada) {
+            if (!is_array($entrada) || !is_array($entrada['receta'] ?? null)) {
+                continue;
+            }
+
+            $porciones = isset($entrada['porciones']) ? (int) $entrada['porciones'] : null;
+            $costos[$clave] = $this->costoRecetaConContexto($entrada['receta'], $porciones, $contexto);
+        }
+
+        return $costos;
+    }
+
+    /**
+     * @return array{indice: array<string, array<string, mixed>>, mapa: array<int, array<string, mixed>>, pantry: array<string, bool>}
+     */
+    private function contextoCosto(int $usuarioId): array
+    {
         $productos = $this->productos->catalogoActivo($usuarioId);
         $indice = [];
 
@@ -295,8 +322,26 @@ final class PrecioService
             $indice[NormalizadorService::normalizar($producto['nombre'])] = $producto;
         }
 
-        $mapa = $this->mapaPrecios($usuarioId);
-        $pantry = $this->indiceDespensa($this->compras->despensa($usuarioId));
+        return [
+            'indice' => $indice,
+            'mapa' => $this->mapaPrecios($usuarioId),
+            'pantry' => $this->indiceDespensa($this->compras->despensa($usuarioId)),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $receta
+     * @param array{indice: array<string, array<string, mixed>>, mapa: array<int, array<string, mixed>>, pantry: array<string, bool>} $contexto
+     * @return array<string, mixed>
+     */
+    private function costoRecetaConContexto(array $receta, ?int $porciones, array $contexto): array
+    {
+        $porcionesBase = max(1, (int) ($receta['porciones_base'] ?? 4));
+        $porciones = $porciones === null ? $porcionesBase : max(1, min(50, $porciones));
+        $factor = $porciones / $porcionesBase;
+        $indice = $contexto['indice'];
+        $mapa = $contexto['mapa'];
+        $pantry = $contexto['pantry'];
         $items = [];
         $total = 0.0;
         $faltaComprar = 0.0;

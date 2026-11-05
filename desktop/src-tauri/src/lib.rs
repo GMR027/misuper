@@ -166,6 +166,7 @@ pub fn run() {
             commands::importar_elegir_pdf,
             commands::importar_extraer_receta,
             commands::importar_titulo_vision,
+            commands::menu_completar,
             commands::abrir_chef,
         ])
         .run(tauri::generate_context!())

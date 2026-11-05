@@ -328,6 +328,32 @@ pub async fn importar_extraer_receta(
     crate::ia::extraer::extraer(&texto, &conexion).await
 }
 
+/// Completion libre para sugerir un menú semanal. Solo administradores.
+#[tauri::command]
+pub async fn menu_completar(app: AppHandle, prompt: String) -> Result<String, String> {
+    exigir_admin(&app).await?;
+
+    let prompt = prompt.trim().to_string();
+
+    if prompt.is_empty() {
+        return Err("La solicitud para la IA está vacía.".to_string());
+    }
+
+    if prompt.len() > 200_000 {
+        return Err("La solicitud para la IA es demasiado grande.".to_string());
+    }
+
+    let conexion = {
+        let state = app.state::<AppState>();
+        let ia = state.ia();
+        ia.activa().cloned().ok_or_else(|| {
+            "Configura y activa una conexión de IA antes de generar el menú.".to_string()
+        })?
+    };
+
+    ia::gateway::completar(&conexion, &prompt).await
+}
+
 #[tauri::command]
 pub async fn importar_titulo_vision(
     app: AppHandle,

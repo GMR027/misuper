@@ -12,6 +12,8 @@ use App\Controllers\CategoriaController;
 use App\Controllers\CompraController;
 use App\Controllers\ListaCompraController;
 use App\Controllers\MeController;
+use App\Controllers\MenuController;
+use App\Controllers\MenuIaController;
 use App\Controllers\MetricaController;
 use App\Controllers\NotaController;
 use App\Controllers\PrecioController;
@@ -136,6 +138,51 @@ return static function (string $method, string $path): void {
 
                 return;
 
+            case 'GET /api/menu':
+                (new MenuController())->show();
+
+                return;
+
+            case 'POST /api/menu/items':
+                (new MenuController())->storeItem();
+
+                return;
+
+            case 'DELETE /api/menu':
+                (new MenuController())->clear();
+
+                return;
+
+            case 'POST /api/menu/copiar':
+                (new MenuController())->copiar();
+
+                return;
+
+            case 'POST /api/menu/lista/preview':
+                (new MenuController())->previewLista();
+
+                return;
+
+            case 'POST /api/menu/lista':
+                (new MenuController())->crearLista();
+
+                return;
+
+            case 'POST /api/menu/ia/preparar':
+                (new MenuIaController())->preparar();
+
+                return;
+
+            case 'POST /api/menu/ia/validar':
+                (new MenuIaController())->validar();
+
+                return;
+
+            case 'POST /api/menu/ia/aplicar':
+                (new MenuIaController())->aplicar();
+
+                return;
+
             case 'GET /api/precios':
                 (new PrecioController())->index();
 
@@ -250,6 +297,23 @@ return static function (string $method, string $path): void {
                 (new AdminUsuarioController())->store();
 
                 return;
+        }
+
+        // Platillo del menú: /api/menu/items/{id}
+        if (preg_match('#^/api/menu/items/([1-9][0-9]*)$#', $path, $matches) === 1) {
+            $itemId = (int) $matches[1];
+
+            if ($method === 'PUT') {
+                (new MenuController())->updateItem($itemId);
+
+                return;
+            }
+
+            if ($method === 'DELETE') {
+                (new MenuController())->destroyItem($itemId);
+
+                return;
+            }
         }
 
         // Precio manual: /api/precios/{productoId}/manual

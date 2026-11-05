@@ -25,6 +25,7 @@ pub const SCRIPT: &str = r#"(function () {
     extraerReceta: (texto) => invocar("importar_extraer_receta", { texto }),
     buscarTituloVision: (ruta, pagina) =>
       invocar("importar_titulo_vision", { ruta, pagina }),
+    menuCompletar: (prompt) => invocar("menu_completar", { prompt }),
   };
 
   try {

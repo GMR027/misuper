@@ -6,6 +6,7 @@ use App\Controllers\AdminRecetaController;
 use App\Controllers\HistorialController;
 use App\Controllers\ImportacionController;
 use App\Controllers\ListaCompraController;
+use App\Controllers\MenuController;
 use App\Controllers\MetricaController;
 use App\Controllers\NotaController;
 use App\Controllers\PrecioController;
@@ -152,6 +153,11 @@ HTML;
 
         case 'GET /costos':
             (new PrecioController())->vista();
+
+            return;
+
+        case 'GET /menu':
+            (new MenuController())->vista();
 
             return;
 

@@ -20,7 +20,7 @@ use RuntimeException;
  */
 final class RecetaService
 {
-    public const MAX_RECETAS_PREVIEW = 20;
+    public const MAX_RECETAS_PREVIEW = 100;
     public const MAX_PORCIONES = 50;
 
     private const UNIDADES = ['g', 'ml', 'kg', 'L', 'pza', 'al_gusto'];
@@ -337,13 +337,23 @@ final class RecetaService
                         $unidad,
                         (string) $producto['unidad_base']
                     );
-                    $unidadBase = (string) $producto['unidad_base'];
-                    $productoId = (int) $producto['id'];
-                    $nombre = (string) $producto['nombre'];
-                    $categoria = (string) $producto['categoria_nombre'];
 
                     if ($cantidadBase === null) {
-                        $cantidadBase = 1.0;
+                        // La unidad no se puede convertir: se conserva el
+                        // ingrediente con su unidad original en lugar de
+                        // inventar una cantidad en la unidad del producto.
+                        $productoId = null;
+                        $nombre = $nombreIngrediente !== ''
+                            ? $nombreIngrediente
+                            : (string) $producto['nombre'];
+                        $unidadBase = $this->unidadCarrito($unidad);
+                        $cantidadBase = $cantidadEscalada;
+                        $categoria = null;
+                    } else {
+                        $unidadBase = (string) $producto['unidad_base'];
+                        $productoId = (int) $producto['id'];
+                        $nombre = (string) $producto['nombre'];
+                        $categoria = (string) $producto['categoria_nombre'];
                     }
                 } else {
                     $productoId = null;

@@ -6,8 +6,8 @@ ve cuánto gasta al mes y en qué 10 productos se le va el dinero.
 Stack: PHP 8.1+, MySQL 8, PDO, HTML + CSS + JS vanilla (módulos ES6). Sin frameworks.
 
 ## Estado
-- Fase actual: MVP COMPLETO + LECTURA DE TICKETS + RECETAS EDITABLES + AUDITORÍA UX/UI + PRECIOS Y COSTOS
-- Fases completadas: Fase 1 a Fase 11.4, Fase 12.0 a Fase 12.9, Fase 13 a Fase 22
+- Fase actual: MVP COMPLETO + LECTURA DE TICKETS + RECETAS EDITABLES + AUDITORÍA UX/UI + PRECIOS Y COSTOS + MENÚ SEMANAL
+- Fases completadas: Fase 1 a Fase 11.4, Fase 12.0 a Fase 12.9, Fase 13 a Fase 26
 - Próximo chunk: post-MVP. Sin fases pendientes.
 
 ## Alcance del MVP (resumen)
@@ -25,7 +25,7 @@ Stack: PHP 8.1+, MySQL 8, PDO, HTML + CSS + JS vanilla (módulos ES6). Sin frame
 - Recetas: catálogo editable de 100 recetas base con tipos (general, diabético, kosher, vegetariano, sin gluten), favoritos por usuario, filtros, escalado por porciones, CRUD de recetas y videos para el Admin, propuestas de usuarios y lista «Productos por comprar» que se envía a la pantalla rápida.
 
 ## Fuera del alcance (NO implementar)
-- Planes alimenticios y calculadora de despensa.
+- Planes nutricionales con calorías o macros. El menú semanal es un planificador de recetas, no una dieta calculada.
 - Presupuestos, notificaciones internas.
 - Auditoría, familias, cotizaciones, estados múltiples de compra.
 - Import/export CSV desde la app (solo script de importación inicial).
@@ -68,6 +68,16 @@ tickets (id, usuario_id FK ON DELETE CASCADE, compra_id NULL FK ON DELETE SET NU
          estado ENUM('procesado','confirmado','error') DEFAULT 'procesado',
          created_at, updated_at)
 
+menus_semanales (id, usuario_id FK ON DELETE CASCADE, semana DATE UNIQUE por usuario,
+                 nombre NULL, created_at, updated_at)
+-- semana siempre normalizada al lunes.
+
+menu_semanal_items (id, menu_id FK ON DELETE CASCADE, dia 1..7,
+                    momento ENUM('desayuno','comida','cena','colacion','otro'),
+                    tipo ENUM('receta','nota'), etiqueta NULL, receta_id NULL FK
+                    ON DELETE SET NULL, nombre_snapshot, porciones 1..50, orden,
+                    nota NULL, created_at, updated_at)
+
 ## Reglas clave
 - compras.total es caché: se recalcula al crear/editar/borrar ítems.
 - compra_items: producto_id XOR nombre_libre, nunca ambos.
@@ -86,6 +96,11 @@ tickets (id, usuario_id FK ON DELETE CASCADE, compra_id NULL FK ON DELETE SET NU
 - La despensa de recetas es inferida del historial de compras; no es inventario real.
 - Las cantidades de recetas se escalan por porciones y se convierten a la unidad del producto para la lista de compras.
 - La lista «Productos por comprar» es personal; al enviarla, la pantalla rápida la consume y la marca como cargada.
+- Menú semanal: cada usuario solo ve y edita su propio menú. La semana se guarda normalizada al lunes.
+- `menu_semanal_items.receta_id` usa ON DELETE SET NULL y `nombre_snapshot` conserva el nombre de la receta. Un menú viejo muestra «Receta no disponible» en lugar de romperse.
+- El menú reutiliza `RecetaService::previewLista()` para armar la lista y `PrecioService::costosRecetas()` para calcular todos los costos con una sola carga de precios.
+- Si una unidad no se puede convertir, el ingrediente se conserva en su unidad original y se marca como faltante. Nunca se inventa una cantidad.
+- La sugerencia con IA es solo para administradores y solo se ejecuta desde Mi Súper Desktop. El servidor valida slugs, días, momentos y porciones; la IA nunca inventa recetas ni precios y no guarda nada hasta que el usuario aplica la propuesta.
 
 ## Convenciones
 - PHP PSR-12, namespaces App\..., Composer autoload.
@@ -668,3 +683,19 @@ STATE_HANDOFF — Fase 23 (Precios y costos) — 2026-11-05
 - Captura: la calculadora de pantalla rápida usa la mediana (`ultimo_precio` ahora es el precio sugerido) y muestra muestras/fecha. El guardado de compra acepta comercio y unidad real por ítem; el detalle permite editar el comercio y muestra la unidad de los ítems libres. Tickets: se conserva la unidad detectada y se añadió selector de unidad y comercio en la revisión.
 - Verificado en local con Chromium (escritorio y 390 px) y WebKitGTK: `/costos`, historial y precio manual, receta Arroz rojo (total $29.30 para 4 porciones y $58.60 para 8), lista con 2 precios y 1 faltante, guardado de compra con comercio, edición de comercio y calculadora con precio sugerido. Sin errores de consola ni desbordes horizontales. Datos de prueba eliminados: 3 compras, 0 listas y 0 precios manuales.
 - No se desplegó a producción. La corrección pendiente del modal (`1bee640`) sigue sin publicar.
+
+
+STATE_HANDOFF — Fase 26 (Menú semanal + IA de escritorio) — 2026-11-05
+- Migración 031: tablas `menus_semanales` y `menu_semanal_items`. La semana se normaliza al lunes y es única por usuario. Los ítems guardan día, momento, tipo (receta o nota), porciones, orden, nota y `nombre_snapshot`.
+- `MenuRepository`, `MenuService` y `MenuController`: CRUD del menú, copiar semana, vaciar, costo por día/semana y generación de lista. Todo filtrado por usuario.
+- `MenuIaService` y `MenuIaController`: preparar prompt, validar la respuesta del modelo y aplicar sugerencias. Endpoints solo para admin con `AdminMiddleware`.
+- Nuevas rutas: `GET /menu`, `GET /api/menu`, `POST /api/menu/items`, `PUT|DELETE /api/menu/items/{id}`, `DELETE /api/menu`, `POST /api/menu/copiar`, `POST /api/menu/lista/preview`, `POST /api/menu/lista` y `POST /api/menu/ia/preparar|validar|aplicar`.
+- Pantalla `/menu`: semana de lunes a domingo, 3 comidas por defecto, varios platillos por comida, tiempos extra (colación/otro), notas, selector de recetas con filtros, edición de porciones, mover, copiar semana anterior, vaciar y generar lista.
+- Escritorio: arrastrar y soltar solo con mouse en pantallas de 992 px o más. En móvil y teclado se usa el diálogo «Editar / Mover».
+- Costos: cada platillo muestra total o «Parcial»; el resumen muestra total semanal, recetas, platillos sin precio y precios viejos. La lista de la semana se puede revisar, excluir ingredientes y guardar en una lista nueva o existente.
+- IA: botón visible solo para admin y solo dentro de Mi Súper Desktop. Permite completar huecos o reemplazar la semana, con filtros de personas, tiempo, favoritas y evitar repetidos. El servidor descarta slugs inexistentes, días inválidos, recetas no publicadas y huecos ocupados. La propuesta se revisa antes de aplicar.
+- Escritorio: nuevo comando Tauri `menu_completar` y método `window.MiSuperDesktop.menuCompletar(prompt)`, ambos con comprobación de administrador. Requiere recompilar e instalar la app; desplegar solo la web no activa el botón.
+- `RecetaService::previewLista()` subió el límite a 100 recetas y dejó de inventar cantidad 1 cuando una unidad es incompatible: ahora conserva la unidad original y el ingrediente queda como faltante.
+- `PrecioService` ganó `costosRecetas()` para calcular una semana completa con una sola carga de precios; `costoReceta()` mantiene el mismo comportamiento.
+- Verificado: migración desde cero (29 migraciones), permisos de menú ajeno, CRUD, copiar/vaciar, costos con precios manuales temporales, lista nueva y existente, IA con respuesta válida e inválida, botón IA oculto para usuario normal, 403 en endpoints de IA, escritorio 1440/1024 px, móvil 390 px y modo oscuro sin desbordes. `cargo check` y `cargo fmt` pasan. Datos QA eliminados: 0 menús, 0 listas nuevas, 0 precios manuales; se conservan las 3 compras originales.
+- No se desplegó a producción.

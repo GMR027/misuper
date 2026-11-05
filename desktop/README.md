@@ -76,6 +76,18 @@ indicador con el modelo y un punto de color: verde (verificada), ámbar (sin
 probar o antigua) y rojo (error). El indicador solo existe dentro de la app de
 escritorio; al pulsarlo se abre la pestaña de IA.
 
+### Menú semanal con IA
+
+En `/menu`, la web muestra el planificador a cualquier usuario, pero el botón
+**Sugerir con IA** solo aparece para administradores dentro de Mi Súper Desktop.
+La app ejecuta el modelo con la conexión activa y devuelve una propuesta de
+recetas existentes; el servidor valida slugs, días, comidas y porciones antes
+de mostrarla. Nada se guarda hasta que el usuario aprueba la propuesta.
+
+El prompt y la validación viven en la web; la app solo aporta la llamada local
+al modelo mediante `window.MiSuperDesktop.menuCompletar(prompt)`. En un
+navegador normal el botón no aparece.
+
 ### Chef: importar recetas de un libro
 
 Chef es una página real de Mi Súper (`/chef`) que solo aparece para

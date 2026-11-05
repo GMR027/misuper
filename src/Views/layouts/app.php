@@ -98,6 +98,10 @@ if ($avatarEsPreset) {
                         <i class="bi bi-egg-fried" aria-hidden="true"></i>
                         <span>Recetas</span>
                     </a>
+                    <a class="app-nav__link<?= $active === 'menu' ? ' is-active' : '' ?>" href="/menu">
+                        <i class="bi bi-calendar3-week-fill" aria-hidden="true"></i>
+                        <span>Menú semanal</span>
+                    </a>
                     <a class="app-nav__link<?= $active === 'lista-compras' ? ' is-active' : '' ?>" href="/lista-compras">
                         <i class="bi bi-cart-check" aria-hidden="true"></i>
                         <span>Por comprar</span>
@@ -302,6 +306,11 @@ if ($avatarEsPreset) {
                     <a class="dock-menu__link<?= $active === 'recetas' ? ' is-active' : '' ?>" href="/recetas">
                         <span class="dock-menu__icon"><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
                         <span class="dock-menu__text">Recetas</span>
+                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
+                    </a>
+                    <a class="dock-menu__link<?= $active === 'menu' ? ' is-active' : '' ?>" href="/menu">
+                        <span class="dock-menu__icon"><i class="bi bi-calendar3-week-fill" aria-hidden="true"></i></span>
+                        <span class="dock-menu__text">Menú semanal</span>
                         <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
                     </a>
                     <a class="dock-menu__link<?= $active === 'lista-compras' ? ' is-active' : '' ?>" href="/lista-compras">
