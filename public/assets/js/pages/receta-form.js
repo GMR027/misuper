@@ -184,8 +184,12 @@ function init(form) {
 
             if (modo === 'admin') {
                 showToast('Receta guardada.', 'success');
+
+                const volver = new URLSearchParams(window.location.search).get('volver');
+                const destino = volver && volver.startsWith('/admin/') ? volver : '/admin/recetas';
+
                 window.setTimeout(() => {
-                    window.location.assign('/admin/recetas');
+                    window.location.assign(destino);
                 }, 400);
             } else {
                 showToast('Receta enviada para revisión.', 'success');

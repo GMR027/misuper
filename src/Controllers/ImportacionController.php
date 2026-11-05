@@ -162,6 +162,25 @@ final class ImportacionController
     }
 
     /**
+     * DELETE /api/admin/lotes/{id}/recetas/{receta}
+     */
+    public function quitarReceta(string $loteId, int $recetaId): void
+    {
+        AdminMiddleware::require();
+        CsrfMiddleware::enforce();
+
+        if ($this->lotes->find($loteId) === null) {
+            Response::fail('NOT_FOUND', 'El lote no existe.', 404);
+        }
+
+        if (!$this->lotes->quitarReceta($loteId, $recetaId)) {
+            Response::fail('NOT_FOUND', 'La receta no pertenece a este lote.', 404);
+        }
+
+        Response::ok(['lote_id' => $loteId, 'receta_id' => $recetaId]);
+    }
+
+    /**
      * GET /admin/recetas/lotes
      */
     public function vista(): void

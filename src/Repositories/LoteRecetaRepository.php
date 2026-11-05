@@ -105,7 +105,59 @@ final class LoteRecetaRepository
              ORDER BY l.created_at DESC'
         );
 
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+        $lotes = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $porLote = $this->recetasDeLotes();
+
+        foreach ($lotes as &$lote) {
+            $lote['recetas'] = $porLote[(string) $lote['id']] ?? [];
+        }
+        unset($lote);
+
+        return $lotes;
+    }
+
+    /**
+     * Recetas de todos los lotes, agrupadas por identificador de lote.
+     *
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    public function recetasDeLotes(): array
+    {
+        $statement = $this->pdo->query(
+            'SELECT r.id, r.lote_id, r.nombre, r.estado, r.origen, r.tiempo_min,
+                    r.porciones_base, c.nombre AS categoria
+             FROM recetas r
+             LEFT JOIN categorias_recetas c ON c.id = r.categoria_id
+             WHERE r.lote_id IS NOT NULL
+             ORDER BY r.id ASC'
+        );
+
+        $agrupadas = [];
+
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $fila) {
+            $agrupadas[(string) $fila['lote_id']][] = $fila;
+        }
+
+        return $agrupadas;
+    }
+
+    /**
+     * Quita una receta del lote sin publicarla.
+     */
+    public function quitarReceta(string $loteId, int $recetaId): bool
+    {
+        $statement = $this->pdo->prepare(
+            'DELETE FROM recetas WHERE id = ? AND lote_id = ?'
+        );
+        $statement->execute([$recetaId, $loteId]);
+
+        $quitada = $statement->rowCount() > 0;
+
+        if ($quitada) {
+            $this->actualizarTotal($loteId);
+        }
+
+        return $quitada;
     }
 
     /**

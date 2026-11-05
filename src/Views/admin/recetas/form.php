@@ -18,6 +18,13 @@ $tipos = $servicioRecetas->tipos();
 $categorias = $servicioRecetas->categorias();
 $modo = 'admin';
 
+$volver = isset($_GET['volver']) ? (string) $_GET['volver'] : '';
+$volver = preg_match('#^/admin/[A-Za-z0-9/_\-\.\#\?=&%]*$#', $volver) === 1 ? $volver : '';
+$destinoVolver = $volver === '' ? '/admin/recetas' : $volver;
+$textoVolver = str_starts_with($destinoVolver, '/admin/recetas/lotes')
+    ? 'Volver a los lotes'
+    : 'Volver al listado';
+
 ob_start();
 ?>
 <div class="container py-4" data-receta-form-page data-modo="admin">
@@ -31,9 +38,9 @@ ob_start();
                 Completa los datos que alimentan el recetario, los filtros y la lista de compras.
             </p>
         </div>
-        <a class="btn btn-outline-secondary" href="/admin/recetas">
+        <a class="btn btn-outline-secondary" href="<?= htmlspecialchars($destinoVolver, ENT_QUOTES, 'UTF-8') ?>">
             <i class="bi bi-arrow-left" aria-hidden="true"></i>
-            Volver al listado
+            <?= htmlspecialchars($textoVolver, ENT_QUOTES, 'UTF-8') ?>
         </a>
     </div>
 

@@ -569,6 +569,14 @@ return static function (string $method, string $path): void {
             }
         }
 
+        if (preg_match('#^/api/admin/lotes/([a-f0-9]{32})/recetas/([1-9][0-9]*)$#', $path, $matches) === 1) {
+            if ($method === 'DELETE') {
+                (new ImportacionController())->quitarReceta($matches[1], (int) $matches[2]);
+
+                return;
+            }
+        }
+
         // Guarda del espacio de administración: todo /api/admin/* exige rol 'admin'.
         if (str_starts_with($path, '/api/admin/')) {
             AdminMiddleware::require();
