@@ -3,7 +3,7 @@
  */
 
 import { fetchApi } from '../modules/api.js';
-import { formatQuantity } from '../modules/format.js';
+import { formatCurrency, formatQuantity } from '../modules/format.js';
 import { showToast } from '../modules/toast.js';
 
 const root = document.querySelector('[data-recetas]');
@@ -755,6 +755,81 @@ function init(root) {
         }
     }
 
+    /**
+     * @param {any} costo
+     * @param {number} factor
+     * @param {number} porciones
+     * @returns {HTMLElement}
+     */
+    function crearCostoReceta(costo, factor, porciones) {
+        const section = document.createElement('div');
+        section.className = 'recipe-detail__section recipe-cost';
+
+        const title = document.createElement('h6');
+        title.textContent = 'Costo estimado';
+
+        const grid = document.createElement('div');
+        grid.className = 'recipe-cost__grid';
+        const total = Number(costo.total ?? 0) * factor;
+        const falta = Number(costo.falta_comprar ?? 0) * factor;
+        const porcion = Number(costo.porcion ?? 0);
+
+        grid.append(
+            bloqueCosto('Total', formatCurrency(total), `para ${porciones} porciones`),
+            bloqueCosto('Por porción', formatCurrency(porcion), ''),
+            bloqueCosto('Falta comprar', formatCurrency(falta), 'según tu despensa'),
+        );
+
+        section.append(title, grid);
+
+        const faltantes = (Array.isArray(costo.items) ? costo.items : [])
+            .filter((item) => item?.faltante)
+            .map((item) => String(item.nombre ?? ''))
+            .filter((nombre) => nombre !== '');
+
+        if (!costo.completo) {
+            const aviso = document.createElement('p');
+            aviso.className = 'recipe-cost__aviso';
+            aviso.textContent = faltantes.length > 0
+                ? `Cálculo parcial: falta precio de ${faltantes.length} ${faltantes.length === 1 ? 'ingrediente' : 'ingredientes'} (${faltantes.join(', ')}).`
+                : 'Cálculo parcial: hay ingredientes sin cantidad o con unidad incompatible.';
+            section.append(aviso);
+        }
+
+        if (Number(costo.precios_viejos ?? 0) > 0) {
+            const viejo = document.createElement('p');
+            viejo.className = 'recipe-cost__aviso';
+            viejo.textContent = `Hay ${Number(costo.precios_viejos)} precios con más de 60 días.`;
+            section.append(viejo);
+        }
+
+        const nota = document.createElement('p');
+        nota.className = 'text-muted small mb-0';
+        nota.textContent = 'Calculado con tus compras y tickets. La despensa es lo que compraste, no un inventario exacto.';
+        section.append(nota);
+
+        return section;
+    }
+
+    /**
+     * @param {string} label
+     * @param {string} value
+     * @param {string} detail
+     * @returns {HTMLElement}
+     */
+    function bloqueCosto(label, value, detail) {
+        const bloque = document.createElement('div');
+        const caption = document.createElement('span');
+        caption.textContent = label;
+        const strong = document.createElement('strong');
+        strong.textContent = value;
+        const small = document.createElement('small');
+        small.textContent = detail;
+        bloque.append(caption, strong, small);
+
+        return bloque;
+    }
+
     function pintarDetalle() {
         if (!(detalleActual !== null) || !(el.detalleBody instanceof HTMLElement)) {
             return;
@@ -861,6 +936,12 @@ function init(root) {
         steps.append(stepsTitle, stepsList);
 
         el.detalleBody.append(types, desc, meta, ingredients, steps);
+
+        const costo = receta.costo;
+
+        if (costo && typeof costo === 'object') {
+            el.detalleBody.append(crearCostoReceta(costo, factor, detallePorciones));
+        }
 
         if (receta.video?.embed_url) {
             const videoSection = document.createElement('div');

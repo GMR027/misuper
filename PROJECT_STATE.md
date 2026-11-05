@@ -6,7 +6,7 @@ ve cuánto gasta al mes y en qué 10 productos se le va el dinero.
 Stack: PHP 8.1+, MySQL 8, PDO, HTML + CSS + JS vanilla (módulos ES6). Sin frameworks.
 
 ## Estado
-- Fase actual: MVP COMPLETO + LECTURA DE TICKETS + RECETAS EDITABLES + AUDITORÍA UX/UI
+- Fase actual: MVP COMPLETO + LECTURA DE TICKETS + RECETAS EDITABLES + AUDITORÍA UX/UI + PRECIOS Y COSTOS
 - Fases completadas: Fase 1 a Fase 11.4, Fase 12.0 a Fase 12.9, Fase 13 a Fase 22
 - Próximo chunk: post-MVP. Sin fases pendientes.
 
@@ -656,3 +656,15 @@ STATE_HANDOFF — Fase 25 (Pantalla rápida landscape: ajuste senior) — 2026-1
 - Resultados en 3 columnas tanto en celular como en tableta horizontal, con tarjetas compactas: imagen 16:9, nombre a 2 líneas, metadatos en una línea y acciones en una sola fila.
 - Se ajustaron paddings, tipografía y alturas de botones por breakpoint; el modo lista sigue disponible y ahora ocupa una sola columna en landscape.
 - Sin despliegue: cambios únicamente locales, pendientes de revisión visual.
+
+STATE_HANDOFF — Fase 23 (Precios y costos) — 2026-11-05
+- Migración 030: `compras.comercio`, `compra_items.unidad_base`, `compra_items.comercio` y tabla `precios_manuales` por usuario/producto. Se rellenó la unidad de los ítems históricos desde el catálogo.
+- `PrecioService` calcula el precio vigente por usuario y producto con la mediana de las últimas 5 compras válidas (`cantidad > 0`, `precio_total > 0`). Normaliza la unidad a la base del producto (g↔kg, ml↔L); si no es compatible, el ingrediente queda como faltante. Marca precios con más de 60 días y usa el precio manual solo cuando no hay compras.
+- `PrecioRepository` expone muestras, historial, precios manuales y comercios. El precio manual se guarda con `POST /api/precios/{productoId}/manual` y se elimina con `DELETE` sobre la misma ruta.
+- Nuevas rutas: `GET /costos`, `GET /api/precios`, `GET /api/precios/comercios`, `GET /api/precios/{productoId}` y `GET /api/listas-compra/{id}/costo`.
+- Pantalla `/costos`: resumen de productos con/sin precio, precios viejos y manuales; buscador y filtro por estado; historial por producto y comparación por comercio.
+- Costeo de recetas: `RecetaService::detalle()` devuelve `costo` con total, por porción, falta comprar, valor de despensa, ingredientes sin precio y precios viejos. El modal de receta lo muestra y lo escala al cambiar porciones.
+- Costeo de listas: `ListaCompraService` devuelve `costo` al cargar la lista y en su endpoint propio; la página muestra el total estimado, faltantes y precios viejos.
+- Captura: la calculadora de pantalla rápida usa la mediana (`ultimo_precio` ahora es el precio sugerido) y muestra muestras/fecha. El guardado de compra acepta comercio y unidad real por ítem; el detalle permite editar el comercio y muestra la unidad de los ítems libres. Tickets: se conserva la unidad detectada y se añadió selector de unidad y comercio en la revisión.
+- Verificado en local con Chromium (escritorio y 390 px) y WebKitGTK: `/costos`, historial y precio manual, receta Arroz rojo (total $29.30 para 4 porciones y $58.60 para 8), lista con 2 precios y 1 faltante, guardado de compra con comercio, edición de comercio y calculadora con precio sugerido. Sin errores de consola ni desbordes horizontales. Datos de prueba eliminados: 3 compras, 0 listas y 0 precios manuales.
+- No se desplegó a producción. La corrección pendiente del modal (`1bee640`) sigue sin publicar.

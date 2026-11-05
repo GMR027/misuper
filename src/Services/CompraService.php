@@ -36,16 +36,20 @@ final class CompraService
 
     private readonly TicketRepository $tickets;
 
+    private readonly PrecioService $precios;
+
     public function __construct(
         ?CompraRepository $compras = null,
         ?TotalesService $totales = null,
         ?PDO $pdo = null,
-        ?TicketRepository $tickets = null
+        ?TicketRepository $tickets = null,
+        ?PrecioService $precios = null
     ) {
         $this->pdo = $pdo ?? Database::connection();
         $this->compras = $compras ?? new CompraRepository($this->pdo);
         $this->totales = $totales ?? new TotalesService($this->pdo);
         $this->tickets = $tickets ?? new TicketRepository($this->pdo);
+        $this->precios = $precios ?? new PrecioService();
     }
 
     /**
@@ -145,7 +149,11 @@ final class CompraService
         $this->pdo->beginTransaction();
 
         try {
-            $compraId = $this->compras->create($usuarioId, (string) $data['fecha']);
+            $compraId = $this->compras->create(
+                $usuarioId,
+                (string) $data['fecha'],
+                $this->normalizarComercio($data['comercio'] ?? null)
+            );
 
             foreach ($data['items'] as $item) {
                 if (!is_array($item)) {
@@ -223,13 +231,33 @@ final class CompraService
      */
     public function actualizarFecha(int $usuarioId, int $compraId, string $fecha): ?array
     {
+        return $this->actualizarDatos($usuarioId, $compraId, ['fecha' => $fecha]);
+    }
+
+    /**
+     * @param array<string, mixed> $data Ya validado. Claves: fecha, comercio.
+     * @return array{id: int, fecha: string, total: float, comercio: string|null, items_count: int, ticket_id: int|null, ticket_titulo: string|null}|null
+     */
+    public function actualizarDatos(int $usuarioId, int $compraId, array $data): ?array
+    {
         $compra = $this->compras->findOwned($compraId, $usuarioId);
 
         if ($compra === null) {
             return null;
         }
 
-        $this->compras->updateFecha($compraId, $usuarioId, $fecha);
+        if (array_key_exists('fecha', $data)) {
+            $this->compras->updateFecha($compraId, $usuarioId, (string) $data['fecha']);
+        }
+
+        if (array_key_exists('comercio', $data)) {
+            $this->compras->updateComercio(
+                $compraId,
+                $usuarioId,
+                $this->normalizarComercio($data['comercio'])
+            );
+        }
+
         $actualizada = $this->compras->findOwned($compraId, $usuarioId);
 
         if ($actualizada === null) {
@@ -310,6 +338,14 @@ final class CompraService
                 $campos['precio_total'] = $data['precio_total'];
             }
 
+            if (array_key_exists('unidad_base', $data)) {
+                $campos['unidad_base'] = $data['unidad_base'];
+            }
+
+            if (array_key_exists('comercio', $data)) {
+                $campos['comercio'] = $this->normalizarComercio($data['comercio']);
+            }
+
             $this->compras->updateItem($itemId, $campos);
             $this->totales->recalcular($compraId);
 
@@ -362,7 +398,10 @@ final class CompraService
      */
     public function frecuentes(int $usuarioId): array
     {
-        return $this->compras->frecuentes($usuarioId, self::MAX_FRECUENTES);
+        return $this->aplicarPrecios(
+            $this->compras->frecuentes($usuarioId, self::MAX_FRECUENTES),
+            $usuarioId
+        );
     }
 
     /**
@@ -370,12 +409,39 @@ final class CompraService
      */
     public function buscarProductos(int $usuarioId, string $q, ?int $categoriaId): array
     {
-        return $this->compras->buscarActivos(
-            NormalizadorService::normalizar($q),
-            $categoriaId,
-            self::MAX_BUSQUEDA,
+        return $this->aplicarPrecios(
+            $this->compras->buscarActivos(
+                NormalizadorService::normalizar($q),
+                $categoriaId,
+                self::MAX_BUSQUEDA,
+                $usuarioId
+            ),
             $usuarioId
         );
+    }
+
+    /**
+     * Sustituye el último precio suelto por la mediana vigente del usuario.
+     *
+     * @param array<int, array<string, mixed>> $productos
+     * @return array<int, array<string, mixed>>
+     */
+    private function aplicarPrecios(array $productos, int $usuarioId): array
+    {
+        $mapa = $this->precios->mapaPrecios($usuarioId);
+
+        foreach ($productos as &$producto) {
+            $entrada = $mapa[(int) ($producto['id'] ?? 0)] ?? null;
+            $producto['ultimo_precio'] = $entrada['precio'] ?? null;
+            $producto['precio_muestras'] = $entrada['muestras'] ?? 0;
+            $producto['precio_fecha'] = $entrada['fecha'] ?? null;
+            $producto['precio_viejo'] = $entrada['viejo'] ?? false;
+            $producto['precio_origen'] = $entrada['origen'] ?? null;
+        }
+
+        unset($producto);
+
+        return $productos;
     }
 
     /**
@@ -385,10 +451,19 @@ final class CompraService
     {
         $productoId = $this->productoId($item);
         $nombreLibre = null;
+        $unidad = isset($item['unidad_base']) && is_string($item['unidad_base'])
+            ? trim($item['unidad_base'])
+            : null;
 
         if ($productoId !== null) {
-            if ($this->compras->productoActivo($productoId, $usuarioId) === null) {
+            $producto = $this->compras->productoActivo($productoId, $usuarioId);
+
+            if ($producto === null) {
                 throw new InvalidArgumentException('El producto no existe o está inactivo.');
+            }
+
+            if ($unidad === null || $unidad === '') {
+                $unidad = (string) $producto['unidad_base'];
             }
         } else {
             $nombreLibre = trim((string) ($item['nombre_libre'] ?? ''));
@@ -399,8 +474,21 @@ final class CompraService
             $productoId,
             $nombreLibre,
             (string) $item['cantidad'],
-            (string) $item['precio_total']
+            (string) $item['precio_total'],
+            $unidad,
+            $this->normalizarComercio($item['comercio'] ?? null)
         );
+    }
+
+    private function normalizarComercio(mixed $valor): ?string
+    {
+        if (!is_string($valor)) {
+            return null;
+        }
+
+        $texto = trim($valor);
+
+        return $texto === '' ? null : mb_substr($texto, 0, 120);
     }
 
     /**

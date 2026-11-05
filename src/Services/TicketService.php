@@ -157,13 +157,24 @@ final class TicketService
                     (bool) ($item['cantidad_explicita'] ?? false)
                 );
 
+                $unidad = $coincidencia['unidad_base'];
+                $medida = $item['medida'] ?? null;
+
+                if ($unidad === null && is_array($medida) && isset($medida['unidad'])) {
+                    $unidad = UnidadService::normalizar((string) $medida['unidad']);
+                }
+
+                if (!is_string($unidad) || !in_array($unidad, UnidadService::UNIDADES, true)) {
+                    $unidad = 'pza';
+                }
+
                 $items[] = [
                     'nombre' => $item['nombre'],
                     'cantidad' => $coincidencia['cantidad'],
                     'precio_total' => round((float) $item['precio_total'], 2),
                     'producto_id' => $coincidencia['producto_id'],
                     'producto_nombre' => $coincidencia['producto_nombre'],
-                    'unidad_base' => $coincidencia['unidad_base'],
+                    'unidad_base' => $unidad,
                     'confianza' => $coincidencia['confianza'],
                 ];
             }

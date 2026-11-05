@@ -1,0 +1,196 @@
+/*
+ * costos.css — panel de precios por producto y costeo.
+ */
+
+.costos-stat {
+    border-left: 4px solid var(--p-400);
+}
+
+.costos-stat__label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+
+.costos-stat__value {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 1.65rem;
+    line-height: 1.1;
+}
+
+.costos-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.costos-filtros .form-control {
+    min-width: 14rem;
+}
+
+.costos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.costos-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 0.9rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.8rem;
+    box-shadow: 0 6px 16px rgba(var(--shadow-rgb), 0.04);
+}
+
+.costos-item__avatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    overflow: hidden;
+    font-weight: 750;
+    color: var(--p-800);
+    background: var(--p-100);
+    border-radius: 0.65rem;
+}
+
+.costos-item__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.costos-item__body {
+    flex: 1 1 15rem;
+    min-width: 0;
+}
+
+.costos-item__name {
+    margin: 0;
+    font-size: 0.94rem;
+    font-weight: 750;
+    overflow-wrap: anywhere;
+}
+
+.costos-item__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.costos-item__price {
+    flex: 0 0 auto;
+    text-align: right;
+}
+
+.costos-item__price strong {
+    display: block;
+    font-size: 1.05rem;
+}
+
+.costos-item__price small {
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.costos-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.14rem 0.45rem;
+    font-size: 0.68rem;
+    font-weight: 750;
+    border-radius: 999px;
+    color: var(--p-800);
+    background: var(--p-100);
+}
+
+.costos-badge--warning {
+    color: var(--a-900);
+    background: var(--a-200);
+}
+
+.costos-badge--danger {
+    color: var(--bs-danger-text-emphasis);
+    background: var(--bs-danger-bg-subtle);
+}
+
+.costos-badge--muted {
+    color: var(--muted);
+    background: var(--surface-4);
+}
+
+.costos-item__actions {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.costos-detalle__resumen {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 0.9rem;
+    margin-bottom: 1rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+}
+
+.costos-detalle__resumen span {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+
+.costos-detalle__resumen strong {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 1.05rem;
+}
+
+.costos-historial {
+    width: 100%;
+    font-size: 0.82rem;
+}
+
+.costos-historial th {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.costos-manual {
+    padding: 0.9rem;
+    margin-top: 1rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+}
+
+@media (max-width: 575.98px) {
+    .costos-item__price {
+        flex: 1 1 100%;
+        text-align: left;
+    }
+
+    .costos-item__actions {
+        flex: 1 1 100%;
+    }
+}

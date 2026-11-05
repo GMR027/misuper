@@ -306,7 +306,12 @@
 
 .ticket-item__grid {
     display: grid;
-    grid-template-columns: minmax(12rem, 2fr) minmax(12rem, 2fr) minmax(6rem, 0.8fr) minmax(7rem, 0.9fr);
+    grid-template-columns:
+        minmax(11rem, 1.8fr)
+        minmax(11rem, 1.8fr)
+        minmax(5.5rem, 0.7fr)
+        minmax(6.5rem, 0.8fr)
+        minmax(7rem, 0.9fr);
     gap: 0.65rem;
 }
 

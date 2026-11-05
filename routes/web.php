@@ -8,6 +8,7 @@ use App\Controllers\ImportacionController;
 use App\Controllers\ListaCompraController;
 use App\Controllers\MetricaController;
 use App\Controllers\NotaController;
+use App\Controllers\PrecioController;
 use App\Controllers\RecetaController;
 use App\Controllers\TicketController;
 use App\Middleware\AdminMiddleware;
@@ -146,6 +147,11 @@ HTML;
 
         case 'GET /metricas':
             (new MetricaController())->index();
+
+            return;
+
+        case 'GET /costos':
+            (new PrecioController())->vista();
 
             return;
 

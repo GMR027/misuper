@@ -24,6 +24,7 @@ if (root instanceof HTMLElement) {
 function init(root) {
     const el = {
         fecha: root.querySelector('[data-fecha-compra]'),
+        comercio: root.querySelector('[data-comercio-compra]'),
         titulo: root.querySelector('[data-titulo-compra]'),
         total: root.querySelector('[data-total-compra]'),
         items: root.querySelector('[data-items]'),
@@ -55,6 +56,7 @@ function init(root) {
 
     bindLogout();
     bindFecha();
+    bindComercio();
     bindItems();
     bindBorrarCompra();
     bindModal();
@@ -64,6 +66,35 @@ function init(root) {
 
     renderItems();
     actualizarTotal();
+
+    /* Comercio --------------------------------------------------------- */
+
+    function bindComercio() {
+        if (!(el.comercio instanceof HTMLInputElement)) {
+            return;
+        }
+
+        let anterior = el.comercio.value;
+
+        el.comercio.addEventListener('change', async () => {
+            const comercio = el.comercio.value.trim();
+
+            try {
+                await fetchApi(`/api/compras/${compraId}`, {
+                    method: 'PUT',
+                    body: { comercio },
+                });
+                anterior = comercio;
+                showToast('Comercio actualizado.', 'success');
+            } catch (error) {
+                el.comercio.value = anterior;
+
+                if (!redirectIfSessionLost(error)) {
+                    showToast(error?.message ?? 'No se pudo actualizar el comercio.', 'error');
+                }
+            }
+        });
+    }
 
     /* Fecha ------------------------------------------------------------ */
 
@@ -714,7 +745,7 @@ function crearFila(item) {
     const meta = document.createElement('p');
     meta.className = 'detail-item__meta text-muted small mb-0';
     meta.textContent = item.producto_id === null
-        ? 'Ítem libre'
+        ? `Ítem libre · Unidad: ${String(item.unidad_base ?? 'pza')}`
         : `Unidad: ${String(item.unidad_base ?? '')}`;
 
     info.append(name, meta);
@@ -786,9 +817,7 @@ function crearCampoUnitario(item) {
     const precio = Number(item.precio_total);
     const unitario = cantidad > 0 ? precio / cantidad : 0;
 
-    value.textContent = item.producto_id === null
-        ? formatCurrency(unitario)
-        : `${formatCurrency(unitario)} / ${String(item.unidad_base ?? '')}`;
+    value.textContent = `${formatCurrency(unitario)} / ${String(item.unidad_base ?? 'pza')}`;
 
     wrapper.append(caption, value);
 

@@ -19,13 +19,16 @@ final class ListaCompraService
 
     private readonly ListaCompraRepository $lista;
     private readonly ProductoRepository $productos;
+    private readonly PrecioService $precios;
 
     public function __construct(
         ?ListaCompraRepository $lista = null,
-        ?ProductoRepository $productos = null
+        ?ProductoRepository $productos = null,
+        ?PrecioService $precios = null
     ) {
         $this->lista = $lista ?? new ListaCompraRepository();
         $this->productos = $productos ?? new ProductoRepository();
+        $this->precios = $precios ?? new PrecioService();
     }
 
     /**
@@ -72,7 +75,7 @@ final class ListaCompraService
     }
 
     /**
-     * @return array{lista: array<string, mixed>, items: array<int, array<string, mixed>>}|null
+     * @return array{lista: array<string, mixed>, items: array<int, array<string, mixed>>, costo: array<string, mixed>}|null
      */
     public function items(int $usuarioId, int $listId): ?array
     {
@@ -82,10 +85,42 @@ final class ListaCompraService
             return null;
         }
 
+        $items = $this->lista->itemsByList($listId, $usuarioId);
+
         return [
             'lista' => $lista,
-            'items' => $this->lista->itemsByList($listId, $usuarioId),
+            'items' => $items,
+            'costo' => $this->costo($usuarioId, $items),
         ];
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $items
+     * @return array<string, mixed>
+     */
+    public function costo(int $usuarioId, array $items): array
+    {
+        return $this->precios->costoItems(
+            $usuarioId,
+            array_values(array_filter(
+                $items,
+                static fn (array $item): bool => ($item['estado'] ?? 'pendiente') !== 'cargado'
+            ))
+        );
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function costoLista(int $usuarioId, int $listId): ?array
+    {
+        $lista = $this->lista->findListOwned($listId, $usuarioId);
+
+        if ($lista === null) {
+            return null;
+        }
+
+        return $this->costo($usuarioId, $this->lista->itemsByList($listId, $usuarioId));
     }
 
     /**

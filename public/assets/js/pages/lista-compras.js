@@ -4,7 +4,7 @@
 
 import { fetchApi } from '../modules/api.js';
 import { confirmar } from '../modules/confirm.js';
-import { formatQuantity } from '../modules/format.js';
+import { formatCurrency, formatQuantity } from '../modules/format.js';
 import { showToast } from '../modules/toast.js';
 
 const root = document.querySelector('[data-lista-compras]');
@@ -42,6 +42,10 @@ function init(root) {
         modalNombre: document.querySelector('[data-lista-modal-nombre]'),
         modalMensaje: document.querySelector('[data-lista-modal-mensaje]'),
         modalGuardar: document.querySelector('[data-lista-modal-guardar]'),
+        costo: root.querySelector('[data-lista-costo]'),
+        costoTotal: root.querySelector('[data-costo-total]'),
+        costoDetalle: root.querySelector('[data-costo-detalle]'),
+        costoAviso: root.querySelector('[data-costo-aviso]'),
     };
 
     const bootstrap = window.bootstrap;
@@ -100,6 +104,7 @@ function init(root) {
                 listaActual = 0;
                 items = [];
                 render();
+                actualizarCosto(null);
                 return;
             }
 
@@ -179,6 +184,7 @@ function init(root) {
             window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
 
             render();
+            actualizarCosto(data?.costo ?? null);
         } catch (error) {
             if (redirectIfSessionLost(error)) {
                 return;
@@ -189,6 +195,64 @@ function init(root) {
             }
 
             showToast(error?.message ?? 'No se pudo cargar la lista.', 'error');
+        }
+    }
+
+    /**
+     * @param {any|null} costo
+     */
+    function actualizarCosto(costo) {
+        if (!(el.costo instanceof HTMLElement)) {
+            return;
+        }
+
+        el.costo.hidden = listaActual <= 0;
+
+        if (listaActual <= 0 || costo === null || typeof costo !== 'object') {
+            return;
+        }
+
+        if (el.costoTotal instanceof HTMLElement) {
+            el.costoTotal.textContent = formatCurrency(costo.total ?? 0);
+        }
+
+        if (el.costoDetalle instanceof HTMLElement) {
+            const con = Number(costo.items_con_precio ?? 0);
+            const sin = Number(costo.items_sin_precio ?? 0);
+            el.costoDetalle.textContent = `${con} ${con === 1 ? 'producto con precio' : 'productos con precio'}`
+                + (sin > 0 ? ` · ${sin} sin precio` : '');
+        }
+
+        if (el.costoAviso instanceof HTMLElement) {
+            const avisos = [];
+
+            if (!costo.completo) {
+                avisos.push('El total es parcial: faltan precios o unidades compatibles.');
+            }
+
+            if (Number(costo.precios_viejos ?? 0) > 0) {
+                avisos.push(`${Number(costo.precios_viejos)} precios tienen más de 60 días.`);
+            }
+
+            el.costoAviso.textContent = avisos.join(' ');
+            el.costoAviso.hidden = avisos.length === 0;
+        }
+    }
+
+    async function refrescarCosto() {
+        if (listaActual <= 0) {
+            actualizarCosto(null);
+
+            return;
+        }
+
+        try {
+            const costo = await fetchApi(`/api/listas-compra/${listaActual}/costo`);
+            actualizarCosto(costo);
+        } catch (error) {
+            if (!redirectIfSessionLost(error)) {
+                // El costo es informativo; no bloquea la edición de la lista.
+            }
         }
     }
 
@@ -319,6 +383,7 @@ function init(root) {
                 }
 
                 showToast('Producto actualizado.', 'success');
+                refrescarCosto();
             } catch (error) {
                 if (redirectIfSessionLost(error)) {
                     return;
@@ -352,6 +417,7 @@ function init(root) {
                 await fetchApi(`/api/listas-compra/items/${Number(item.id)}`, { method: 'DELETE' });
                 items = items.filter((fila) => Number(fila.id) !== Number(item.id));
                 render();
+                refrescarCosto();
                 showToast('Producto eliminado.', 'info');
             } catch (error) {
                 if (redirectIfSessionLost(error)) {
@@ -417,6 +483,7 @@ function init(root) {
             el.unidad.value = 'pza';
             ocultarMensaje();
             render();
+            refrescarCosto();
             showToast('Producto agregado a la lista.', 'success');
         } catch (error) {
             if (redirectIfSessionLost(error)) {
@@ -484,6 +551,7 @@ function init(root) {
             await fetchApi(`/api/listas-compra/${listaActual}/items`, { method: 'DELETE' });
             items = [];
             render();
+            refrescarCosto();
             showToast('Lista vaciada.', 'info');
         } catch (error) {
             if (redirectIfSessionLost(error)) {

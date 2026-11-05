@@ -16,6 +16,7 @@ final class Compra
         public readonly int $usuarioId,
         public readonly string $fecha,
         public readonly string $total,
+        public readonly ?string $comercio = null,
         public readonly ?int $ticketId = null,
         public readonly ?string $ticketTitulo = null,
         public readonly ?string $createdAt = null,
@@ -33,6 +34,9 @@ final class Compra
             usuarioId: (int) $row['usuario_id'],
             fecha: (string) $row['fecha'],
             total: (string) $row['total'],
+            comercio: isset($row['comercio']) && $row['comercio'] !== ''
+                ? (string) $row['comercio']
+                : null,
             ticketId: isset($row['ticket_id']) && $row['ticket_id'] !== null
                 ? (int) $row['ticket_id']
                 : null,
@@ -45,7 +49,7 @@ final class Compra
     }
 
     /**
-     * @return array{id: int, fecha: string, total: float, items_count: int, ticket_id: int|null, ticket_titulo: string|null}
+     * @return array{id: int, fecha: string, total: float, comercio: string|null, items_count: int, ticket_id: int|null, ticket_titulo: string|null}
      */
     public function toSummaryArray(int $itemsCount): array
     {
@@ -53,6 +57,7 @@ final class Compra
             'id' => $this->id,
             'fecha' => $this->fecha,
             'total' => round((float) $this->total, 2),
+            'comercio' => $this->comercio,
             'items_count' => $itemsCount,
             'ticket_id' => $this->ticketId,
             'ticket_titulo' => $this->ticketTitulo,
@@ -61,7 +66,7 @@ final class Compra
 
     /**
      * @param array<int, array<string, mixed>> $items
-     * @return array{id: int, fecha: string, total: float, ticket_id: int|null, ticket_titulo: string|null, items: array<int, array<string, mixed>>}
+     * @return array{id: int, fecha: string, total: float, comercio: string|null, ticket_id: int|null, ticket_titulo: string|null, items: array<int, array<string, mixed>>}
      */
     public function toDetailArray(array $items): array
     {
@@ -69,6 +74,7 @@ final class Compra
             'id' => $this->id,
             'fecha' => $this->fecha,
             'total' => round((float) $this->total, 2),
+            'comercio' => $this->comercio,
             'ticket_id' => $this->ticketId,
             'ticket_titulo' => $this->ticketTitulo,
             'items' => $items,

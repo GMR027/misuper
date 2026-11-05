@@ -76,13 +76,13 @@ final class CompraController
         CsrfMiddleware::enforce();
 
         $data = $this->jsonBody();
-        $errors = CompraValidator::fecha($data);
+        $errors = CompraValidator::compraParcial($data);
 
         if ($errors !== []) {
             Response::fail('VALIDATION_ERROR', 'Revisa los datos enviados.', 422, $errors);
         }
 
-        $compra = $this->compras->actualizarFecha($usuario['id'], $id, (string) $data['fecha']);
+        $compra = $this->compras->actualizarDatos($usuario['id'], $id, $data);
 
         if ($compra === null) {
             Response::fail('NOT_FOUND', 'Compra no encontrada.', 404);

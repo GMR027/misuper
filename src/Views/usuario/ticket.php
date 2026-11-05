@@ -150,6 +150,18 @@ ob_start();
                     data-ticket-fecha
                 >
             </div>
+            <div class="ticket-review__field">
+                <label class="form-label" for="ticket-comercio">Comercio <span class="text-muted">(opcional)</span></label>
+                <input
+                    class="form-control"
+                    type="text"
+                    id="ticket-comercio"
+                    maxlength="120"
+                    autocomplete="off"
+                    placeholder="Ej. Costco"
+                    data-ticket-comercio
+                >
+            </div>
             <div class="ticket-review__metric">
                 <span class="ticket-review__caption">Total detectado</span>
                 <strong class="ticket-review__value" data-ticket-total-detectado>—</strong>
@@ -220,6 +232,17 @@ ob_start();
                     value="1"
                     data-ticket-cantidad
                 >
+            </label>
+
+            <label class="ticket-item__field">
+                <span>Unidad</span>
+                <select class="form-select" data-ticket-unidad aria-label="Unidad del artículo">
+                    <option value="pza">pza</option>
+                    <option value="kg">kg</option>
+                    <option value="gr">gr</option>
+                    <option value="L">L</option>
+                    <option value="ml">ml</option>
+                </select>
             </label>
 
             <label class="ticket-item__field">

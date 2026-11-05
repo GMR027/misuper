@@ -14,6 +14,7 @@ use App\Controllers\ListaCompraController;
 use App\Controllers\MeController;
 use App\Controllers\MetricaController;
 use App\Controllers\NotaController;
+use App\Controllers\PrecioController;
 use App\Controllers\ProductoController;
 use App\Controllers\RecetaController;
 use App\Controllers\TicketController;
@@ -135,6 +136,16 @@ return static function (string $method, string $path): void {
 
                 return;
 
+            case 'GET /api/precios':
+                (new PrecioController())->index();
+
+                return;
+
+            case 'GET /api/precios/comercios':
+                (new PrecioController())->comercios();
+
+                return;
+
             case 'GET /api/recetas':
                 (new RecetaController())->index();
 
@@ -239,6 +250,41 @@ return static function (string $method, string $path): void {
                 (new AdminUsuarioController())->store();
 
                 return;
+        }
+
+        // Precio manual: /api/precios/{productoId}/manual
+        if (preg_match('#^/api/precios/([1-9][0-9]*)/manual$#', $path, $matches) === 1) {
+            $productoId = (int) $matches[1];
+
+            if ($method === 'POST') {
+                (new PrecioController())->guardarManual($productoId);
+
+                return;
+            }
+
+            if ($method === 'DELETE') {
+                (new PrecioController())->eliminarManual($productoId);
+
+                return;
+            }
+        }
+
+        // Producto con precio: /api/precios/{productoId}
+        if (preg_match('#^/api/precios/([1-9][0-9]*)$#', $path, $matches) === 1) {
+            if ($method === 'GET') {
+                (new PrecioController())->show((int) $matches[1]);
+
+                return;
+            }
+        }
+
+        // Costo de lista: /api/listas-compra/{id}/costo
+        if (preg_match('#^/api/listas-compra/([1-9][0-9]*)/costo$#', $path, $matches) === 1) {
+            if ($method === 'GET') {
+                (new ListaCompraController())->costo((int) $matches[1]);
+
+                return;
+            }
         }
 
         // Favoritos: /api/recetas/{slug}/favorito

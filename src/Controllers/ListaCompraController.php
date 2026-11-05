@@ -104,6 +104,21 @@ final class ListaCompraController
     }
 
     /**
+     * GET /api/listas-compra/{id}/costo
+     */
+    public function costo(int $id): void
+    {
+        $usuario = AuthMiddleware::require();
+        $costo = $this->lista->costoLista($usuario['id'], $id);
+
+        if ($costo === null) {
+            Response::fail('NOT_FOUND', 'Lista no encontrada.', 404);
+        }
+
+        Response::ok($costo);
+    }
+
+    /**
      * GET /api/listas-compra/{id}
      */
     public function show(int $id): void
@@ -118,6 +133,7 @@ final class ListaCompraController
         Response::ok([
             'lista' => $data['lista'],
             'items' => $data['items'],
+            'costo' => $data['costo'],
             'total' => count($data['items']),
         ]);
     }

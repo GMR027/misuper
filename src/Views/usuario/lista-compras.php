@@ -80,6 +80,23 @@ ob_start();
                 <p class="text-muted small mb-0" data-lista-status aria-live="polite">Cargando…</p>
             </div>
 
+            <div class="card lista-costo mb-3" data-lista-costo hidden>
+                <div class="card-body py-3">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <span class="lista-costo__label">Costo estimado</span>
+                            <strong class="lista-costo__total" data-costo-total>—</strong>
+                            <p class="text-muted small mb-0" data-costo-detalle></p>
+                        </div>
+                        <a class="btn btn-sm btn-outline-secondary" href="/costos">
+                            <i class="bi bi-tags-fill" aria-hidden="true"></i>
+                            Ver precios
+                        </a>
+                    </div>
+                    <p class="lista-costo__aviso mb-0" data-costo-aviso hidden></p>
+                </div>
+            </div>
+
             <div class="lista-items" data-lista-items></div>
             <div class="alert alert-info" data-lista-empty hidden>
                 No hay productos en esta lista. Agrega uno manualmente o genera una lista desde Recetas.

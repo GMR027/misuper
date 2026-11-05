@@ -403,6 +403,7 @@ ob_start();
                 </div>
 
                 <p class="calc-hint text-muted small mt-2 mb-0" data-calc-formula></p>
+                <p class="calc-hint text-muted small mt-1 mb-0" data-calc-precio-hint></p>
                 <p class="form__message mt-2 mb-0" data-calc-error hidden></p>
             </div>
 
@@ -426,6 +427,23 @@ ob_start();
                 <div class="mb-3">
                     <label class="form-label" for="fecha-compra">Fecha</label>
                     <input class="form-control" type="date" id="fecha-compra" name="fecha" required max="<?= (new DateTimeImmutable('today'))->format('Y-m-d') ?>" data-fecha>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="comercio-compra">Comercio <span class="text-muted">(opcional)</span></label>
+                    <input
+                        class="form-control"
+                        type="text"
+                        id="comercio-compra"
+                        name="comercio"
+                        maxlength="120"
+                        autocomplete="off"
+                        list="comercios-conocidos"
+                        placeholder="Ej. Mercado, Súper, tienda de la esquina"
+                        data-comercio
+                    >
+                    <datalist id="comercios-conocidos" data-comercios></datalist>
+                    <p class="form-text">Sirve para comparar precios entre tiendas.</p>
                 </div>
 
                 <p class="form__message mb-0" data-fecha-error hidden></p>

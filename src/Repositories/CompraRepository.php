@@ -18,12 +18,12 @@ use PDO;
  */
 final class CompraRepository
 {
-    private const COMPRA_COLUMNS = 'c.id, c.usuario_id, c.fecha, c.total, c.created_at, c.updated_at,
+    private const COMPRA_COLUMNS = 'c.id, c.usuario_id, c.fecha, c.total, c.comercio, c.created_at, c.updated_at,
         (SELECT t.id FROM tickets t WHERE t.compra_id = c.id ORDER BY t.id DESC LIMIT 1) AS ticket_id,
         (SELECT t.titulo FROM tickets t WHERE t.compra_id = c.id ORDER BY t.id DESC LIMIT 1) AS ticket_titulo';
 
     private const ITEM_COLUMNS = 'ci.id, ci.compra_id, ci.producto_id, ci.nombre_libre,
-        ci.cantidad, ci.precio_total,
+        ci.unidad_base, ci.comercio, ci.cantidad, ci.precio_total,
         p.nombre AS producto_nombre, p.unidad_base AS producto_unidad';
 
     private readonly PDO $pdo;
@@ -33,12 +33,12 @@ final class CompraRepository
         $this->pdo = $pdo ?? Database::connection();
     }
 
-    public function create(int $usuarioId, string $fecha): int
+    public function create(int $usuarioId, string $fecha, ?string $comercio = null): int
     {
         $statement = $this->pdo->prepare(
-            'INSERT INTO compras (usuario_id, fecha, total) VALUES (?, ?, 0)'
+            'INSERT INTO compras (usuario_id, fecha, comercio, total) VALUES (?, ?, ?, 0)'
         );
-        $statement->execute([$usuarioId, $fecha]);
+        $statement->execute([$usuarioId, $fecha, $comercio]);
 
         return (int) $this->pdo->lastInsertId();
     }
@@ -100,6 +100,14 @@ final class CompraRepository
             'UPDATE compras SET fecha = ? WHERE id = ? AND usuario_id = ?'
         );
         $statement->execute([$fecha, $id, $usuarioId]);
+    }
+
+    public function updateComercio(int $id, int $usuarioId, ?string $comercio): void
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE compras SET comercio = ? WHERE id = ? AND usuario_id = ?'
+        );
+        $statement->execute([$comercio, $id, $usuarioId]);
     }
 
     public function delete(int $id, int $usuarioId): bool
@@ -180,27 +188,37 @@ final class CompraRepository
         ?int $productoId,
         ?string $nombreLibre,
         string $cantidad,
-        string $precioTotal
+        string $precioTotal,
+        ?string $unidadBase = null,
+        ?string $comercio = null
     ): int {
         $statement = $this->pdo->prepare(
             'INSERT INTO compra_items
-                (compra_id, producto_id, nombre_libre, cantidad, precio_total)
-             VALUES (?, ?, ?, ?, ?)'
+                (compra_id, producto_id, nombre_libre, unidad_base, comercio, cantidad, precio_total)
+             VALUES (?, ?, ?, ?, ?, ?, ?)'
         );
-        $statement->execute([$compraId, $productoId, $nombreLibre, $cantidad, $precioTotal]);
+        $statement->execute([
+            $compraId,
+            $productoId,
+            $nombreLibre,
+            $unidadBase,
+            $comercio,
+            $cantidad,
+            $precioTotal,
+        ]);
 
         return (int) $this->pdo->lastInsertId();
     }
 
     /**
-     * @param array<string, mixed> $campos Claves permitidas: cantidad, precio_total.
+     * @param array<string, mixed> $campos Claves permitidas: cantidad, precio_total, unidad_base, comercio.
      */
     public function updateItem(int $itemId, array $campos): void
     {
         $sets = [];
         $params = [];
 
-        foreach (['cantidad', 'precio_total'] as $columna) {
+        foreach (['cantidad', 'precio_total', 'unidad_base', 'comercio'] as $columna) {
             if (array_key_exists($columna, $campos)) {
                 $sets[] = $columna . ' = ?';
                 $params[] = $campos[$columna];

@@ -36,6 +36,7 @@ function init(root) {
     const dateInput = root.querySelector('[data-ticket-fecha]');
     const initialTitle = root.querySelector('[data-ticket-titulo-inicial]');
     const reviewTitle = root.querySelector('[data-ticket-titulo]');
+    const reviewComercio = root.querySelector('[data-ticket-comercio]');
     const totalDetectado = root.querySelector('[data-ticket-total-detectado]');
     const sumatoria = root.querySelector('[data-ticket-suma]');
     const totalWarning = root.querySelector('[data-ticket-total-warning]');
@@ -340,6 +341,7 @@ function init(root) {
         const nameInput = row.querySelector('[data-ticket-nombre]');
         const productSelect = row.querySelector('[data-ticket-producto]');
         const quantityInput = row.querySelector('[data-ticket-cantidad]');
+        const unitInput = row.querySelector('[data-ticket-unidad]');
         const priceInput = row.querySelector('[data-ticket-precio]');
         const confidence = row.querySelector('[data-ticket-confianza]');
 
@@ -372,6 +374,24 @@ function init(root) {
             quantityInput.value = String(Number.isFinite(cantidad) && cantidad > 0 ? cantidad : 1);
         }
 
+        if (unitInput instanceof HTMLSelectElement) {
+            const unidad = ['kg', 'gr', 'L', 'ml', 'pza'].includes(String(item?.unidad_base))
+                ? String(item.unidad_base)
+                : 'pza';
+            unitInput.value = unidad;
+            unitInput.disabled = item?.producto_id !== null && item?.producto_id !== undefined;
+
+            if (productSelect instanceof HTMLSelectElement && productSelect.value !== '') {
+                const producto = productos.find(
+                    (fila) => Number(fila.id) === Number(productSelect.value),
+                );
+
+                if (producto?.unidad_base) {
+                    unitInput.value = String(producto.unidad_base);
+                }
+            }
+        }
+
         if (priceInput instanceof HTMLInputElement) {
             const precio = Number(item?.precio_total ?? 0);
             priceInput.value = Number.isFinite(precio) && precio >= 0 ? precio.toFixed(2) : '0.00';
@@ -399,6 +419,9 @@ function init(root) {
 
         productSelect?.addEventListener('change', () => {
             const option = productSelect.selectedOptions[0];
+            const producto = productos.find(
+                (fila) => Number(fila.id) === Number(productSelect.value),
+            );
 
             if (
                 productSelect.value !== ''
@@ -407,6 +430,14 @@ function init(root) {
                 && option instanceof HTMLOptionElement
             ) {
                 nameInput.value = option.textContent.split(' · ')[0] ?? '';
+            }
+
+            if (unitInput instanceof HTMLSelectElement) {
+                unitInput.disabled = productSelect.value !== '';
+
+                if (producto?.unidad_base) {
+                    unitInput.value = String(producto.unidad_base);
+                }
             }
         });
 
@@ -464,6 +495,7 @@ function init(root) {
             const nameInput = row.querySelector('[data-ticket-nombre]');
             const productSelect = row.querySelector('[data-ticket-producto]');
             const quantityInput = row.querySelector('[data-ticket-cantidad]');
+            const unitInput = row.querySelector('[data-ticket-unidad]');
             const priceInput = row.querySelector('[data-ticket-precio]');
 
             const nombre = nameInput instanceof HTMLInputElement ? nameInput.value.trim() : '';
@@ -495,16 +527,22 @@ function init(root) {
                 return null;
             }
 
+            const unidad = unitInput instanceof HTMLSelectElement
+                && ['kg', 'gr', 'L', 'ml', 'pza'].includes(unitInput.value)
+                ? unitInput.value
+                : 'pza';
+
             if (productoId !== '') {
                 items.push({
                     producto_id: Number(productoId),
+                    unidad_base: unidad,
                     cantidad,
                     precio_total: precio,
                 });
             } else {
                 items.push({
                     nombre_libre: nombre,
-                    unidad_base: 'pza',
+                    unidad_base: unidad,
                     cantidad,
                     precio_total: precio,
                 });
@@ -548,6 +586,9 @@ function init(root) {
                 body: {
                     fecha: dateInput.value,
                     titulo: reviewTitle.value.trim(),
+                    comercio: reviewComercio instanceof HTMLInputElement
+                        ? reviewComercio.value.trim()
+                        : '',
                     items,
                 },
             });

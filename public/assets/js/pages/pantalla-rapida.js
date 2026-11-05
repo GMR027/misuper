@@ -18,6 +18,7 @@ import {
 } from '../modules/cart.js';
 import {
     formatCurrency,
+    formatDate,
     formatQuantity,
     subtractYearsISO,
     todayISO,
@@ -75,6 +76,9 @@ async function init(root) {
         modalLibre: document.querySelector('[data-modal-libre]'),
         modalCalc: document.querySelector('[data-modal-calc]'),
         modalFecha: document.querySelector('[data-modal-fecha]'),
+        calcHint: document.querySelector('[data-calc-precio-hint]'),
+        comercio: document.querySelector('[data-comercio]'),
+        comercios: document.querySelector('[data-comercios]'),
     };
 
     let categorias = [];
@@ -83,6 +87,7 @@ async function init(root) {
     let searchTimer = null;
     let searchSequence = 0;
     let productoCalculo = null;
+    let comerciosCargados = false;
     let vistaLista = leerVistaLista();
     /** @type {HTMLElement|null} */
     let ultimoFoco = null;
@@ -590,6 +595,11 @@ async function init(root) {
         }
 
         const items = Array.isArray(state.items) ? state.items : [];
+
+        if (document.activeElement instanceof HTMLElement && el.results.contains(document.activeElement)) {
+            document.activeElement.blur();
+        }
+
         el.results.replaceChildren();
 
         if (items.length === 0) {
@@ -795,6 +805,10 @@ async function init(root) {
 
         if (unidadSlot instanceof HTMLElement) {
             unidadSlot.textContent = info.label;
+        }
+
+        if (el.calcHint instanceof HTMLElement) {
+            el.calcHint.textContent = textoPrecioSugerido(product);
         }
 
         if (precioInput instanceof HTMLInputElement) {
@@ -1479,6 +1493,8 @@ async function init(root) {
             return;
         }
 
+        cargarComercios();
+
         const dateInput = el.modalFecha?.querySelector('[data-fecha]');
         const errorSlot = el.modalFecha?.querySelector('[data-fecha-error]');
         const today = todayISO();
@@ -1492,6 +1508,49 @@ async function init(root) {
         limpiarError(errorSlot);
         openModal(el.modalFecha);
         dateInput?.focus();
+    }
+
+    async function cargarComercios() {
+        if (comerciosCargados || !(el.comercios instanceof HTMLElement)) {
+            return;
+        }
+
+        try {
+            const data = await fetchApi('/api/precios/comercios');
+            const items = Array.isArray(data?.items) ? data.items : [];
+
+            el.comercios.replaceChildren();
+
+            for (const comercio of items) {
+                const option = document.createElement('option');
+                option.value = String(comercio);
+                el.comercios.append(option);
+            }
+
+            comerciosCargados = true;
+        } catch {
+            // Sin sugerencias el campo sigue funcionando como texto libre.
+        }
+    }
+
+    function textoPrecioSugerido(product) {
+        const precio = Number(product?.ultimo_precio);
+        const muestras = Number(product?.precio_muestras ?? 0);
+        const origen = String(product?.precio_origen ?? '');
+        const fecha = String(product?.precio_fecha ?? '');
+
+        if (!Number.isFinite(precio) || precio <= 0) {
+            return 'Sin precio registrado. Escríbelo para calcular el importe.';
+        }
+
+        if (origen === 'manual') {
+            return 'Precio manual guardado para este producto.';
+        }
+
+        const base = `Sugerido con ${muestras} ${muestras === 1 ? 'compra reciente' : 'compras recientes'}`;
+        const cuando = fecha !== '' ? ` · último ${formatDate(fecha)}` : '';
+
+        return `${base}${cuando}${product?.precio_viejo ? ' · precio viejo' : ''}.`;
     }
 
     function bindDateForm() {
@@ -1532,6 +1591,7 @@ async function init(root) {
                 item.producto_id !== null
                     ? {
                         producto_id: item.producto_id,
+                        unidad_base: item.unidad_base ?? 'pza',
                         cantidad: item.cantidad,
                         precio_total: item.precio_total,
                     }
@@ -1542,6 +1602,10 @@ async function init(root) {
                         precio_total: item.precio_total,
                     }
             ));
+            const comercioInput = form.querySelector('[data-comercio]');
+            const comercio = comercioInput instanceof HTMLInputElement
+                ? comercioInput.value.trim()
+                : '';
 
             if (items.length === 0) {
                 setError(errorSlot, 'El carrito está vacío.');
@@ -1559,11 +1623,15 @@ async function init(root) {
             try {
                 await fetchApi('/api/compras', {
                     method: 'POST',
-                    body: { fecha, items },
+                    body: { fecha, comercio, items },
                 });
 
                 clearCart();
                 closeModal(el.modalFecha);
+                if (comercioInput instanceof HTMLInputElement) {
+                    comercioInput.value = '';
+                }
+
                 render();
                 showToast('Compra guardada.', 'success');
 

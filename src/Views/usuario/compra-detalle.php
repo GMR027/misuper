@@ -102,18 +102,33 @@ ob_start();
         </div>
     <?php endif; ?>
 
-    <div class="mb-4">
-        <label class="form-label" for="input-fecha">Fecha</label>
-        <input
-            class="form-control detail-date"
-            type="date"
-            id="input-fecha"
-            value="<?= htmlspecialchars((string) $compra['fecha'], ENT_QUOTES, 'UTF-8') ?>"
-            max="<?= htmlspecialchars($hoy, ENT_QUOTES, 'UTF-8') ?>"
-            min="<?= htmlspecialchars($minimo, ENT_QUOTES, 'UTF-8') ?>"
-            data-fecha-compra
-        >
-        <p class="form-text">Al cambiar la fecha se guarda automáticamente.</p>
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-5">
+            <label class="form-label" for="input-fecha">Fecha</label>
+            <input
+                class="form-control detail-date"
+                type="date"
+                id="input-fecha"
+                value="<?= htmlspecialchars((string) $compra['fecha'], ENT_QUOTES, 'UTF-8') ?>"
+                max="<?= htmlspecialchars($hoy, ENT_QUOTES, 'UTF-8') ?>"
+                min="<?= htmlspecialchars($minimo, ENT_QUOTES, 'UTF-8') ?>"
+                data-fecha-compra
+            >
+            <p class="form-text">Al cambiar la fecha se guarda automáticamente.</p>
+        </div>
+        <div class="col-12 col-md-5">
+            <label class="form-label" for="input-comercio">Comercio <span class="text-muted">(opcional)</span></label>
+            <input
+                class="form-control"
+                type="text"
+                id="input-comercio"
+                maxlength="120"
+                autocomplete="off"
+                value="<?= htmlspecialchars((string) ($compra['comercio'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                data-comercio-compra
+            >
+            <p class="form-text">Sirve para comparar precios entre tiendas.</p>
+        </div>
     </div>
 
     <div class="card card--bs bg-light mb-4">

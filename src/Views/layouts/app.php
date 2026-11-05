@@ -114,6 +114,10 @@ if ($avatarEsPreset) {
                         <i class="bi bi-bar-chart-line-fill" aria-hidden="true"></i>
                         <span>Métricas</span>
                     </a>
+                    <a class="app-nav__link<?= $active === 'costos' ? ' is-active' : '' ?>" href="/costos">
+                        <i class="bi bi-tags-fill" aria-hidden="true"></i>
+                        <span>Costos</span>
+                    </a>
                     <?php if ($esAdmin): ?>
                         <a class="app-nav__link<?= $active === 'chef' ? ' is-active' : '' ?>" href="/chef">
                             <i class="bi bi-journal-richtext" aria-hidden="true"></i>
@@ -318,6 +322,11 @@ if ($avatarEsPreset) {
                     <a class="dock-menu__link<?= $active === 'metricas' ? ' is-active' : '' ?>" href="/metricas">
                         <span class="dock-menu__icon"><i class="bi bi-bar-chart-line-fill" aria-hidden="true"></i></span>
                         <span class="dock-menu__text">Métricas</span>
+                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
+                    </a>
+                    <a class="dock-menu__link<?= $active === 'costos' ? ' is-active' : '' ?>" href="/costos">
+                        <span class="dock-menu__icon"><i class="bi bi-tags-fill" aria-hidden="true"></i></span>
+                        <span class="dock-menu__text">Precios y costos</span>
                         <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
                     </a>
                     <a class="dock-menu__link<?= $active === 'ajustes' ? ' is-active' : '' ?>" href="/ajustes">

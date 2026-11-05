@@ -31,6 +31,12 @@ final class CompraValidator
             $errors['fecha'] = $fechaError;
         }
 
+        $comercioError = self::validarComercio($data['comercio'] ?? null);
+
+        if ($comercioError !== null) {
+            $errors['comercio'] = $comercioError;
+        }
+
         $items = $data['items'] ?? null;
 
         if (!is_array($items) || !array_is_list($items)) {
@@ -61,18 +67,42 @@ final class CompraValidator
     }
 
     /**
-     * Validación de PUT /api/compras/{id}: solo fecha.
+     * Validación de PUT /api/compras/{id}: fecha y/o comercio.
      *
      * @param array<string, mixed> $data
      * @return array<string, string>
      */
     public static function fecha(array $data): array
     {
-        $errors = [];
-        $fechaError = self::validarFechaValor($data['fecha'] ?? null);
+        return self::compraParcial($data);
+    }
 
-        if ($fechaError !== null) {
-            $errors['fecha'] = $fechaError;
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, string>
+     */
+    public static function compraParcial(array $data): array
+    {
+        $errors = [];
+
+        if (!array_key_exists('fecha', $data) && !array_key_exists('comercio', $data)) {
+            $errors['_general'] = 'Envía fecha o comercio para actualizar la compra.';
+        }
+
+        if (array_key_exists('fecha', $data)) {
+            $fechaError = self::validarFechaValor($data['fecha'] ?? null);
+
+            if ($fechaError !== null) {
+                $errors['fecha'] = $fechaError;
+            }
+        }
+
+        if (array_key_exists('comercio', $data)) {
+            $comercioError = self::validarComercio($data['comercio'] ?? null);
+
+            if ($comercioError !== null) {
+                $errors['comercio'] = $comercioError;
+            }
         }
 
         return $errors;
@@ -109,8 +139,11 @@ final class CompraValidator
         $errors = [];
 
         if ($parcial) {
-            if (!array_key_exists('cantidad', $data) && !array_key_exists('precio_total', $data)) {
-                $errors['_general'] = 'Envía cantidad o precio_total para actualizar el ítem.';
+            $campos = ['cantidad', 'precio_total', 'unidad_base', 'comercio'];
+            $enviados = array_filter($campos, static fn (string $campo): bool => array_key_exists($campo, $data));
+
+            if ($enviados === []) {
+                $errors['_general'] = 'Envía cantidad, precio_total, unidad_base o comercio para actualizar el ítem.';
             }
 
             if (array_key_exists('cantidad', $data)) {
@@ -126,6 +159,22 @@ final class CompraValidator
 
                 if ($error !== null) {
                     $errors['precio_total'] = $error;
+                }
+            }
+
+            if (array_key_exists('unidad_base', $data)) {
+                $unidad = $data['unidad_base'];
+
+                if (!is_string($unidad) || !in_array($unidad, self::UNIDADES, true)) {
+                    $errors['unidad_base'] = 'Selecciona una unidad base válida (kg, gr, L, ml o pza).';
+                }
+            }
+
+            if (array_key_exists('comercio', $data)) {
+                $comercioError = self::validarComercio($data['comercio']);
+
+                if ($comercioError !== null) {
+                    $errors['comercio'] = $comercioError;
                 }
             }
 
@@ -160,12 +209,20 @@ final class CompraValidator
             }
         }
 
-        if ($tieneLibre && !$tieneProducto) {
-            $unidad = $data['unidad_base'] ?? null;
+        if (array_key_exists('unidad_base', $data)) {
+            $unidad = $data['unidad_base'];
 
             if (!is_string($unidad) || !in_array($unidad, self::UNIDADES, true)) {
                 $errors['unidad_base'] = 'Selecciona una unidad base válida (kg, gr, L, ml o pza).';
             }
+        } elseif ($tieneLibre && !$tieneProducto) {
+            $errors['unidad_base'] = 'Selecciona una unidad base válida (kg, gr, L, ml o pza).';
+        }
+
+        $comercioError = self::validarComercio($data['comercio'] ?? null);
+
+        if ($comercioError !== null) {
+            $errors['comercio'] = $comercioError;
         }
 
         $errorCantidad = self::validarDecimal($data['cantidad'] ?? null, 3, true);
@@ -181,6 +238,23 @@ final class CompraValidator
         }
 
         return $errors;
+    }
+
+    private static function validarComercio(mixed $valor): ?string
+    {
+        if ($valor === null || $valor === '') {
+            return null;
+        }
+
+        if (!is_string($valor)) {
+            return 'El comercio no es válido.';
+        }
+
+        if (mb_strlen(trim($valor), 'UTF-8') > 120) {
+            return 'El comercio no puede superar 120 caracteres.';
+        }
+
+        return null;
     }
 
     private static function validarFechaValor(mixed $valor): ?string
