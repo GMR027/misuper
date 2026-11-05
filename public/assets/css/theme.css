@@ -1013,10 +1013,24 @@ body.modal-abierto {
 /* Modales y toasts --------------------------------------------------- */
 
 .app-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1055;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
     background: rgba(var(--shadow-rgb), 0.55);
 }
 
+.app-modal .modal-dialog {
+    width: min(500px, 100%);
+    margin: 0;
+}
+
 .app-modal .modal-content {
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
     border: 0;
     border-radius: 1.2rem;
     background: var(--surface);
