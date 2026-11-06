@@ -61,6 +61,16 @@ final class MenuController
     }
 
     /**
+     * GET /api/menu/semanas
+     */
+    public function semanas(): void
+    {
+        $usuario = AuthMiddleware::require();
+
+        Response::ok($this->menus->semanas($usuario['id']));
+    }
+
+    /**
      * POST /api/menu/items
      */
     public function storeItem(): void

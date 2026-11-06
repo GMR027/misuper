@@ -39,6 +39,8 @@ function init(root) {
         },
         tabs: root.querySelector('[data-menu-tabs]'),
         week: root.querySelector('[data-menu-week]'),
+        semanasTrack: root.querySelector('[data-menu-semanas]'),
+        semanasStatus: root.querySelector('[data-menu-semanas-status]'),
         picker: document.querySelector('[data-menu-picker]'),
         pickerTitle: document.querySelector('[data-menu-picker-title]'),
         pickerSubtitle: document.querySelector('[data-menu-picker-subtitle]'),
@@ -93,10 +95,22 @@ function init(root) {
         return;
     }
 
+    /**
+     * @returns {string}
+     */
+    function semanaInicial() {
+        const raw = new URLSearchParams(window.location.search).get('semana');
+
+        return raw !== null && /^\d{4}-\d{2}-\d{2}$/.test(raw)
+            ? mondayISO(raw)
+            : mondayISO(todayISO());
+    }
+
     const state = {
-        semana: mondayISO(todayISO()),
+        semana: semanaInicial(),
         diaActivo: null,
         data: null,
+        semanas: [],
         token: 0,
         picker: null,
         itemAbierto: null,
@@ -109,6 +123,7 @@ function init(root) {
     bind();
     revelarIa();
     cargar(state.semana);
+    void cargarSemanas();
 
     function bind() {
         root.querySelector('[data-menu-prev]')?.addEventListener('click', () => {
@@ -239,6 +254,8 @@ function init(root) {
     async function cargar(semana) {
         const actual = ++state.token;
         state.semana = mondayISO(semana);
+        actualizarUrlSemana(state.semana);
+        marcarSemanaActiva();
 
         if (el.status instanceof HTMLElement) {
             el.status.textContent = 'Cargando…';
@@ -269,6 +286,134 @@ function init(root) {
 
             showToast(error?.message ?? 'No se pudo cargar el menú.', 'error');
         }
+    }
+
+    /**
+     * Carga las semanas guardadas y la actual para la tira «Mis semanas».
+     */
+    async function cargarSemanas() {
+        try {
+            const data = await fetchApi('/api/menu/semanas');
+            state.semanas = Array.isArray(data) ? data : [];
+            renderSemanas();
+        } catch (error) {
+            if (el.semanasStatus instanceof HTMLElement) {
+                el.semanasStatus.textContent = 'No se pudieron cargar tus semanas.';
+            }
+
+            redirectIfSessionLost(error);
+        }
+    }
+
+    function renderSemanas() {
+        if (!(el.semanasTrack instanceof HTMLElement)) {
+            return;
+        }
+
+        el.semanasTrack.replaceChildren();
+        const guardadas = state.semanas.filter((semana) => Number(semana.items ?? 0) > 0).length;
+
+        if (el.semanasStatus instanceof HTMLElement) {
+            el.semanasStatus.textContent = guardadas === 0
+                ? 'Aún no hay otras semanas guardadas.'
+                : `${guardadas} ${guardadas === 1 ? 'semana guardada' : 'semanas guardadas'}`;
+        }
+
+        for (const semana of state.semanas) {
+            const clave = String(semana.semana ?? '');
+
+            if (clave === '') {
+                continue;
+            }
+
+            const boton = document.createElement('button');
+            boton.type = 'button';
+            boton.className = 'menu-week-chip';
+            boton.dataset.semana = clave;
+            boton.classList.toggle('is-active', clave === state.semana);
+            boton.classList.toggle('is-current', Boolean(semana.es_actual));
+            boton.setAttribute('aria-pressed', clave === state.semana ? 'true' : 'false');
+            boton.setAttribute(
+                'aria-label',
+                `Semana del ${formatDate(clave)} al ${formatDate(String(semana.semana_fin ?? clave))}`,
+            );
+
+            const titulo = document.createElement('span');
+            titulo.className = 'menu-week-chip__title';
+            titulo.textContent = rangoSemana(clave, String(semana.semana_fin ?? clave));
+
+            const meta = document.createElement('span');
+            meta.className = 'menu-week-chip__meta';
+            const items = Number(semana.items ?? 0);
+            meta.textContent = items === 0
+                ? 'Sin platillos'
+                : `${items} ${items === 1 ? 'platillo' : 'platillos'}`;
+
+            boton.append(titulo, meta);
+
+            if (semana.es_actual) {
+                const badge = document.createElement('span');
+                badge.className = 'menu-week-chip__badge';
+                badge.textContent = 'Esta semana';
+                boton.append(badge);
+            }
+
+            boton.addEventListener('click', () => {
+                if (clave !== state.semana) {
+                    cargar(clave);
+                }
+            });
+
+            el.semanasTrack.append(boton);
+        }
+
+        window.requestAnimationFrame(centrarSemanaActiva);
+    }
+
+    function marcarSemanaActiva() {
+        if (!(el.semanasTrack instanceof HTMLElement)) {
+            return;
+        }
+
+        for (const boton of el.semanasTrack.querySelectorAll('[data-semana]')) {
+            if (!(boton instanceof HTMLElement)) {
+                continue;
+            }
+
+            const activa = boton.dataset.semana === state.semana;
+            boton.classList.toggle('is-active', activa);
+            boton.setAttribute('aria-pressed', activa ? 'true' : 'false');
+        }
+
+        window.requestAnimationFrame(centrarSemanaActiva);
+    }
+
+    function centrarSemanaActiva() {
+        if (!(el.semanasTrack instanceof HTMLElement)) {
+            return;
+        }
+
+        const activa = el.semanasTrack.querySelector('.menu-week-chip.is-active');
+
+        if (!(activa instanceof HTMLElement) || el.semanasTrack.scrollWidth <= el.semanasTrack.clientWidth) {
+            return;
+        }
+
+        activa.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+
+    /**
+     * @param {string} semana
+     */
+    function actualizarUrlSemana(semana) {
+        const url = new URL(window.location.href);
+
+        if (url.searchParams.get('semana') === semana) {
+            return;
+        }
+
+        url.searchParams.set('semana', semana);
+        window.history.replaceState(null, '', url);
     }
 
     function render() {
@@ -1674,6 +1819,7 @@ function init(root) {
 
         state.data = data;
         render();
+        void cargarSemanas();
     }
 
     /**
@@ -1751,6 +1897,20 @@ function toISO(date) {
     const dia = String(date.getDate()).padStart(2, '0');
 
     return `${anio}-${mes}-${dia}`;
+}
+
+/**
+ * Rango corto para las tarjetas de «Mis semanas»: «02 nov – 08 nov».
+ *
+ * @param {string} inicio
+ * @param {string} fin
+ * @returns {string}
+ */
+function rangoSemana(inicio, fin) {
+    const formato = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'short' });
+    const corto = (valor) => formato.format(parseISO(valor)).replace(/\.$/, '');
+
+    return `${corto(inicio)} – ${corto(fin)}`;
 }
 
 /**

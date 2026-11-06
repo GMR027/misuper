@@ -228,15 +228,9 @@ async function init(root) {
                 return;
             }
 
-            const esCelularHorizontal = window.matchMedia('(orientation: landscape) and (max-width: 767.98px)').matches;
-
-            if (!esCelularHorizontal) {
-                el.cartSheet.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                return;
-            }
-
             ultimoFoco = trigger instanceof HTMLElement ? trigger : null;
             el.cartSheet.classList.add('is-open');
+            el.cartSheet.setAttribute('aria-hidden', 'false');
             el.cartBackdrop.hidden = false;
             document.body.classList.add('quick-sheet-open');
             el.cartClose?.focus();
@@ -245,6 +239,7 @@ async function init(root) {
         const cerrarCarrito = () => {
             if (el.cartSheet instanceof HTMLElement) {
                 el.cartSheet.classList.remove('is-open');
+                el.cartSheet.setAttribute('aria-hidden', 'true');
             }
 
             if (el.cartBackdrop instanceof HTMLElement) {
@@ -259,7 +254,13 @@ async function init(root) {
         };
 
         root.querySelectorAll('[data-cart-open]').forEach((button) => {
-            button.addEventListener('click', () => abrirCarrito(button));
+            button.addEventListener('click', (event) => {
+                if (button instanceof HTMLAnchorElement) {
+                    event.preventDefault();
+                }
+
+                abrirCarrito(button);
+            });
         });
 
         el.cartClose?.addEventListener('click', cerrarCarrito);
@@ -1445,7 +1446,13 @@ async function init(root) {
 
                 closeModal(el.modalLibre);
                 render();
-                showToast(`${nombre} registrado y agregado al carrito.`, 'success');
+                const esAdmin = document.body.dataset.userRole === 'admin';
+                showToast(
+                    esAdmin
+                        ? `${nombre} agregado al catálogo y al carrito.`
+                        : `${nombre} registrado y agregado al carrito.`,
+                    'success',
+                );
                 void buscar();
             } catch (error) {
                 if (redirectIfSessionLost(error)) {

@@ -28,7 +28,7 @@ ob_start();
             </div>
         </div>
 
-        <a class="hero-summary" href="#carrito" aria-live="polite">
+        <button class="hero-summary" type="button" data-cart-open aria-live="polite">
             <span class="hero-summary__label">
                 <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
                 Importe del carrito
@@ -38,7 +38,7 @@ ob_start();
                 <span data-carrito-hero-count>0 ítems</span>
                 <i class="bi bi-arrow-down-short" aria-hidden="true"></i>
             </span>
-        </a>
+        </button>
         <i class="bi bi-basket2-fill hero-art" aria-hidden="true"></i>
     </section>
 
@@ -144,63 +144,61 @@ ob_start();
                 <div class="row g-3 quick-results" data-resultados></div>
             </section>
         </div>
+    </div>
 
-        <div class="quick-cart-col">
-            <aside class="card card--bs cart-panel quick-cart" id="carrito" data-carrito data-cart-sheet aria-labelledby="carrito-title">
-                <div class="card-body">
-                    <div class="cart-panel__head">
-                        <div class="cart-panel__heading">
-                            <span class="cart-panel__icon" aria-hidden="true">
-                                <i class="bi bi-bag-check-fill"></i>
-                            </span>
-                            <div>
-                                <h5 class="card-title mb-0" id="carrito-title">Tu carrito</h5>
-                                <p class="cart-panel__subtitle">Ajusta cantidades y precios con un toque.</p>
-                            </div>
-                        </div>
-                        <div class="quick-cart__head-actions">
-                            <span class="badge cart-panel__badge" data-carrito-count>0 ítems</span>
-                            <button class="quick-cart__close" type="button" data-cart-close aria-label="Cerrar carrito">
-                                <i class="bi bi-x-lg" aria-hidden="true"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="cart-panel__body">
-                        <div class="cart-empty" data-carrito-vacio>
-                            <i class="bi bi-basket" aria-hidden="true"></i>
-                            <p class="mb-0">Tu carrito está vacío.</p>
-                            <p class="cart-empty__hint mb-0">
-                                Agrega productos desde los resultados o desde tus compras frecuentes.
-                            </p>
-                        </div>
-
-                        <ul class="list-unstyled cart-list" data-carrito-items></ul>
-                    </div>
-
-                    <div class="cart-panel__footer">
-                        <div class="cart-total">
-                            <div class="cart-total__caption">
-                                <span class="cart-total__label">Importe total</span>
-                                <span class="cart-total__hint">Se guarda con la fecha de la compra</span>
-                            </div>
-                            <strong class="cart-total__value" data-carrito-total>$0.00</strong>
-                        </div>
-
-                        <button class="btn btn-success w-100 cart-save" type="button" data-guardar disabled>
-                            <i class="bi bi-check2-circle" aria-hidden="true"></i>
-                            Guardar compra
-                        </button>
-
-                        <p class="cart-panel__hint mb-0">
-                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                            Edita la cantidad o el precio directamente.
-                        </p>
+    <aside class="card card--bs cart-panel quick-cart" id="carrito" data-carrito data-cart-sheet role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="carrito-title">
+        <div class="card-body">
+            <div class="cart-panel__head">
+                <div class="cart-panel__heading">
+                    <span class="cart-panel__icon" aria-hidden="true">
+                        <i class="bi bi-bag-check-fill"></i>
+                    </span>
+                    <div>
+                        <h5 class="card-title mb-0" id="carrito-title">Tu carrito</h5>
+                        <p class="cart-panel__subtitle">Ajusta cantidades y precios con un toque.</p>
                     </div>
                 </div>
-            </aside>
+                <div class="quick-cart__head-actions">
+                    <span class="badge cart-panel__badge" data-carrito-count>0 ítems</span>
+                    <button class="quick-cart__close" type="button" data-cart-close aria-label="Cerrar carrito">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="cart-panel__body">
+                <div class="cart-empty" data-carrito-vacio>
+                    <i class="bi bi-basket" aria-hidden="true"></i>
+                    <p class="mb-0">Tu carrito está vacío.</p>
+                    <p class="cart-empty__hint mb-0">
+                        Agrega productos desde los resultados o desde tus compras frecuentes.
+                    </p>
+                </div>
+
+                <ul class="list-unstyled cart-list" data-carrito-items></ul>
+            </div>
+
+            <div class="cart-panel__footer">
+                <div class="cart-total">
+                    <div class="cart-total__caption">
+                        <span class="cart-total__label">Importe total</span>
+                        <span class="cart-total__hint">Se guarda con la fecha de la compra</span>
+                    </div>
+                    <strong class="cart-total__value" data-carrito-total>$0.00</strong>
+                </div>
+
+                <button class="btn btn-success w-100 cart-save" type="button" data-guardar disabled>
+                    <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                    Guardar compra
+                </button>
+
+                <p class="cart-panel__hint mb-0">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                    Edita la cantidad o el precio directamente.
+                </p>
+            </div>
         </div>
-    </div>
+    </aside>
 
     <button class="quick-bottom-bar" type="button" data-cart-open aria-label="Abrir carrito">
         <span class="quick-bottom-bar__summary">
@@ -264,7 +262,11 @@ ob_start();
             <div class="modal-body p-4">
                 <h5 class="modal-title mb-2" id="libre-title">Nuevo producto</h5>
                 <p class="text-muted small">
-                    Se guardará como producto propio y se agregará a tu carrito.
+                    <?php if (($usuario['rol'] ?? '') === 'admin'): ?>
+                        Se guardará en el catálogo compartido y se agregará a tu carrito.
+                    <?php else: ?>
+                        Se guardará como producto propio y se agregará a tu carrito.
+                    <?php endif; ?>
                 </p>
 
                 <div class="mb-3">

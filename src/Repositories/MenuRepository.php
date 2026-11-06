@@ -93,6 +93,32 @@ final class MenuRepository
     }
 
     /**
+     * Semanas con al menos un platillo guardado.
+     *
+     * @return array<int, array{semana: string, items: int}>
+     */
+    public function semanas(int $usuarioId): array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT m.semana, COUNT(mi.id) AS items
+             FROM menus_semanales m
+             INNER JOIN menu_semanal_items mi ON mi.menu_id = m.id
+             WHERE m.usuario_id = ?
+             GROUP BY m.semana
+             ORDER BY m.semana ASC"
+        );
+        $statement->execute([$usuarioId]);
+
+        return array_map(
+            static fn (array $row): array => [
+                'semana' => (string) $row['semana'],
+                'items' => (int) $row['items'],
+            ],
+            $statement->fetchAll()
+        );
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function items(int $menuId): array

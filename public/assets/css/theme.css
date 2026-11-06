@@ -409,24 +409,6 @@ p { color: inherit; }
     display: none;
 }
 
-.app-nav[data-nav-slider] {
-    cursor: grab;
-    scroll-behavior: smooth;
-    scroll-snap-type: x proximity;
-    touch-action: pan-y;
-    user-select: none;
-}
-
-.app-nav[data-nav-slider].is-dragging {
-    cursor: grabbing;
-    scroll-behavior: auto;
-    scroll-snap-type: none;
-}
-
-.app-nav[data-nav-slider] .app-nav__link {
-    scroll-snap-align: start;
-}
-
 .app-nav__link {
     display: inline-flex;
     align-items: center;
@@ -1646,23 +1628,6 @@ body.dock-open {
     color: var(--muted);
 }
 
-.dock-user__link {
-    display: grid;
-    flex: 0 0 auto;
-    place-items: center;
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 0.7rem;
-    color: var(--p-700);
-    font-size: 1rem;
-    background: rgba(var(--p-rgb), 0.1);
-}
-
-.dock-user__link:hover {
-    color: var(--p-900);
-    background: rgba(var(--p-rgb), 0.18);
-}
-
 .dock-menu__label {
     margin: 0.85rem 0.6rem 0.35rem;
     font-size: 0.68rem;
@@ -1674,39 +1639,6 @@ body.dock-open {
 
 .dock-menu__label:first-child {
     margin-top: 0.3rem;
-}
-
-.dock-modal__foot--menu {
-    background: var(--surface);
-}
-
-.dock-menu__logout {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 0.6rem;
-    border: 1px solid rgba(178, 59, 50, 0.32);
-    border-radius: 0.75rem;
-    color: #b23b32;
-    font-size: 0.9rem;
-    font-weight: 700;
-    background: rgba(178, 59, 50, 0.06);
-}
-
-.dock-menu__logout:hover:not(:disabled) {
-    background: rgba(178, 59, 50, 0.12);
-}
-
-.dock-menu__logout:disabled {
-    opacity: 0.6;
-}
-
-html[data-mode="dark"] .dock-menu__logout {
-    color: #f2aaa4;
-    border-color: rgba(242, 170, 164, 0.3);
-    background: rgba(178, 59, 50, 0.18);
 }
 
 .dock-menu {
@@ -1770,9 +1702,10 @@ html[data-mode="dark"] .dock-menu__logout {
     outline-offset: 2px;
 }
 
-@media (max-width: 991.98px) {
-    /* En móvil y tablet la barra inferior (dock) ya concentra la navegación:
-       se oculta la barra superior para no duplicar enlaces ni cortar el scroll. */
+@media (max-width: 767.98px) {
+    /* En móvil la barra inferior (dock) concentra la navegación y la barra
+       superior se oculta. Tableta (768–1199) usa los grupos del encabezado
+       y escritorio (≥1200) la barra lateral. */
     .app-nav {
         display: none;
     }
@@ -1955,87 +1888,3 @@ html[data-mode="dark"] .dock-menu__logout {
     }
 }
 
-/* Menú desplegable de administración -------------------------------- */
-
-.app-nav__admin-toggle {
-    border: 0;
-    background: transparent;
-    font-family: inherit;
-    cursor: pointer;
-}
-
-.app-nav__admin-chevron {
-    font-size: 0.68rem !important;
-    margin-left: 0.1rem;
-    transition: transform 0.15s ease;
-}
-
-.app-nav__admin-toggle[aria-expanded="true"] .app-nav__admin-chevron {
-    transform: rotate(180deg);
-}
-
-.admin-menu {
-    position: fixed;
-    z-index: 1080;
-    width: min(330px, calc(100vw - 1.5rem));
-    padding: 0.55rem;
-    background: var(--surface);
-    border: 1px solid var(--border-strong);
-    border-radius: 0.9rem;
-    box-shadow: 0 24px 55px rgba(var(--shadow-rgb), 0.22);
-}
-
-.admin-menu[hidden] {
-    display: none;
-}
-
-.admin-menu__label {
-    margin: 0.25rem 0.55rem 0.45rem;
-    color: var(--muted);
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.admin-menu__link {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.65rem;
-    padding: 0.5rem 0.55rem;
-    color: var(--ink);
-    text-decoration: none;
-    border-radius: 0.65rem;
-    transition: background-color 0.15s ease;
-}
-
-.admin-menu__link:hover,
-.admin-menu__link.is-active {
-    background: rgba(var(--p-rgb), 0.09);
-}
-
-.admin-menu__icon {
-    display: grid;
-    flex: 0 0 auto;
-    place-items: center;
-    width: 32px;
-    height: 32px;
-    color: var(--p-800);
-    background: rgba(var(--p-rgb), 0.12);
-    border-radius: 0.55rem;
-}
-
-.admin-menu__link strong {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 750;
-    line-height: 1.25;
-}
-
-.admin-menu__link small {
-    display: block;
-    margin-top: 0.1rem;
-    color: var(--muted);
-    font-size: 0.72rem;
-    line-height: 1.3;
-}

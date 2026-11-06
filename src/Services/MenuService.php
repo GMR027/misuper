@@ -223,6 +223,62 @@ final class MenuService
     }
 
     /**
+     * Semanas con menú guardado, incluida siempre la semana actual.
+     *
+     * @return array<int, array{
+     *     semana: string,
+     *     semana_fin: string,
+     *     items: int,
+     *     es_actual: bool,
+     *     es_pasada: bool,
+     *     es_futura: bool
+     * }>
+     */
+    public function semanas(int $usuarioId): array
+    {
+        $hoy = new DateTimeImmutable('today');
+        $semanaActual = $hoy->modify('monday this week')->format('Y-m-d');
+        $semanas = [];
+
+        foreach ($this->menus->semanas($usuarioId) as $fila) {
+            $semana = $fila['semana'];
+            $semanas[$semana] = $this->resumenSemana($semana, $fila['items'], $semanaActual);
+        }
+
+        if (!isset($semanas[$semanaActual])) {
+            $semanas[$semanaActual] = $this->resumenSemana($semanaActual, 0, $semanaActual);
+        }
+
+        ksort($semanas);
+
+        return array_values($semanas);
+    }
+
+    /**
+     * @return array{
+     *     semana: string,
+     *     semana_fin: string,
+     *     items: int,
+     *     es_actual: bool,
+     *     es_pasada: bool,
+     *     es_futura: bool
+     * }
+     */
+    private function resumenSemana(string $semana, int $items, string $semanaActual): array
+    {
+        $inicio = new DateTimeImmutable($semana);
+
+        return [
+            'semana' => $semana,
+            'semana_fin' => $inicio->modify('+6 days')->format('Y-m-d'),
+            'items' => $items,
+            'es_actual' => $semana === $semanaActual,
+            'es_pasada' => $semana < $semanaActual,
+            'es_futura' => $semana > $semanaActual,
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $data
      * @return array<string, mixed>
      */

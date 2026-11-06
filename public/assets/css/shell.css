@@ -1,0 +1,301 @@
+/*
+ * shell.css — navegación adaptable y estructura de la aplicación.
+ *
+ *   < 768 px   → dock inferior (el encabezado solo muestra marca y cuenta).
+ *   768–1199   → grupos temáticos desplegables en el encabezado.
+ *   ≥ 1200 px  → barra lateral fija con todos los enlaces a la vista.
+ *
+ * Se carga después de theme.css y modes.css para poder ajustar el layout
+ * sin duplicar los estilos base de la cabecera.
+ */
+
+:root {
+    --app-header-h: 4.1rem;
+    --app-sidebar-w: 232px;
+}
+
+/* Encabezado --------------------------------------------------------- */
+
+.app-header__profile {
+    font: inherit;
+    border: 0;
+    cursor: pointer;
+    background: transparent;
+}
+
+.app-header__chevron {
+    margin-left: 0.1rem;
+    color: var(--muted-3);
+    font-size: 0.68rem;
+    transition: transform 0.15s ease;
+}
+
+.app-header__profile[aria-expanded="true"] .app-header__chevron {
+    transform: rotate(180deg);
+}
+
+/* Tableta: grupos temáticos ------------------------------------------ */
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+    .app-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        overflow: visible;
+        padding: 0.15rem 0 0.25rem;
+    }
+
+    .app-nav__group-toggle {
+        font-family: inherit;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .app-nav__chevron {
+        margin-left: 0.05rem;
+        font-size: 0.66rem !important;
+        transition: transform 0.15s ease;
+    }
+
+    .app-nav__group-toggle[aria-expanded="true"] .app-nav__chevron {
+        transform: rotate(180deg);
+    }
+}
+
+@media (min-width: 1200px) {
+    .app-nav {
+        display: none;
+    }
+
+    .app-header__inner {
+        max-width: 1560px;
+    }
+}
+
+/* Desplegables de navegación y cuenta -------------------------------- */
+
+.nav-menu {
+    position: fixed;
+    z-index: 1080;
+    width: min(320px, calc(100vw - 1.5rem));
+    max-height: min(70vh, 32rem);
+    padding: 0.5rem;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 0.9rem;
+    box-shadow: 0 24px 55px rgba(var(--shadow-rgb), 0.22);
+}
+
+.nav-menu[hidden] {
+    display: none;
+}
+
+.nav-menu--account {
+    width: min(260px, calc(100vw - 1.5rem));
+}
+
+.nav-menu__label {
+    margin: 0.3rem 0.55rem 0.4rem;
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.nav-menu__link {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.5rem 0.55rem;
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    background: transparent;
+    border: 0;
+    border-radius: 0.65rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-menu__link:hover,
+.nav-menu__link:focus-visible,
+.nav-menu__link.is-active {
+    color: var(--ink);
+    background: rgba(var(--p-rgb), 0.09);
+}
+
+.nav-menu__link:focus-visible {
+    outline: 2px solid var(--p-500);
+    outline-offset: -2px;
+}
+
+.nav-menu__icon {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    color: var(--p-800);
+    background: rgba(var(--p-rgb), 0.12);
+    border-radius: 0.55rem;
+}
+
+.nav-menu__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.nav-menu__text strong {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 750;
+    line-height: 1.25;
+}
+
+.nav-menu__text small {
+    display: block;
+    margin-top: 0.1rem;
+    color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 1.3;
+}
+
+.nav-menu__link--danger {
+    color: #b03a35;
+}
+
+.nav-menu__link--danger .nav-menu__icon {
+    color: #b03a35;
+    background: rgba(179, 38, 30, 0.1);
+}
+
+.nav-menu__link--danger:hover,
+.nav-menu__link--danger:focus-visible {
+    color: #8f2b26;
+    background: rgba(179, 38, 30, 0.08);
+}
+
+html[data-mode="dark"] .nav-menu {
+    background: var(--surface);
+    border-color: var(--border-strong);
+}
+
+html[data-mode="dark"] .nav-menu__link--danger {
+    color: #ffb4ae;
+}
+
+html[data-mode="dark"] .nav-menu__link--danger .nav-menu__icon {
+    color: #ffb4ae;
+    background: rgba(190, 60, 55, 0.18);
+}
+
+/* Barra lateral de escritorio ---------------------------------------- */
+
+.app-sidebar {
+    display: none;
+}
+
+.app-sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.app-sidebar__label {
+    margin: 1.05rem 0.7rem 0.35rem;
+    color: var(--muted-2);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.app-sidebar__label:first-child {
+    margin-top: 0;
+}
+
+.app-sidebar__link {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.52rem 0.7rem;
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 650;
+    text-decoration: none;
+    border-radius: 0.7rem;
+    transition: color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+
+.app-sidebar__link i {
+    flex: 0 0 auto;
+    width: 1.2rem;
+    font-size: 1rem;
+    text-align: center;
+    opacity: 0.8;
+}
+
+.app-sidebar__link:hover {
+    color: var(--p-800);
+    background: rgba(var(--p-rgb), 0.09);
+    transform: translateX(1px);
+}
+
+.app-sidebar__link.is-active {
+    color: #fff;
+    background-image: linear-gradient(135deg, var(--p-600), var(--p-900));
+    box-shadow: 0 8px 18px rgba(var(--shadow-rgb), 0.22);
+}
+
+.app-sidebar__link.is-active i {
+    opacity: 1;
+}
+
+.app-sidebar__link:focus-visible {
+    outline: 2px solid var(--p-500);
+    outline-offset: 2px;
+}
+
+html[data-mode="dark"] .app-sidebar__link.is-active {
+    background-image: linear-gradient(135deg, var(--p-400), var(--p-100));
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.14) inset,
+        0 10px 22px rgba(0, 0, 0, 0.42);
+}
+
+@media (min-width: 1200px) {
+    .app-shell {
+        display: flex;
+        align-items: flex-start;
+        gap: 2rem;
+        width: 100%;
+        max-width: 1560px;
+        margin: 0 auto;
+        padding: 1.5rem 1.25rem 4rem;
+    }
+
+    .app-sidebar {
+        display: block;
+        position: sticky;
+        top: calc(var(--app-header-h) + 1rem);
+        flex: 0 0 var(--app-sidebar-w);
+        max-height: calc(100vh - var(--app-header-h) - 2rem);
+        padding-right: 0.3rem;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+
+    .app-main {
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: none;
+        margin: 0;
+        padding: 0 0 2rem;
+    }
+}

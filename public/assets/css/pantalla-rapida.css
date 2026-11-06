@@ -1434,3 +1434,170 @@ body.quick-sheet-open {
         margin-top: 0;
     }
 }
+
+/* ====================================================================
+   Hero compacto en celular y tableta
+   ==================================================================== */
+
+@media (max-width: 1199.98px) {
+    .quick-page .quick-hero {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.85rem 1rem;
+        border-radius: 1rem;
+    }
+
+    .quick-page .quick-hero .hero-content {
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .quick-page .quick-hero .hero-eyebrow {
+        padding: 0.2rem 0.5rem;
+        font-size: 0.6rem;
+    }
+
+    .quick-page .quick-hero .hero-title {
+        margin: 0.3rem 0 0.1rem;
+        font-size: 1.3rem;
+        line-height: 1.12;
+    }
+
+    .quick-page .quick-hero .hero-text {
+        display: none;
+    }
+
+    .quick-page .quick-hero .hero-actions {
+        margin-top: 0.45rem;
+    }
+
+    .quick-page .quick-hero .hero-actions .btn {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.8rem;
+    }
+
+    .quick-page .quick-hero .hero-summary {
+        flex: 0 0 auto;
+        align-self: center;
+        min-width: 0;
+        margin-left: auto;
+        padding: 0.45rem 0.7rem;
+    }
+
+    .quick-page .quick-hero .hero-summary__value {
+        font-size: 1.15rem;
+    }
+
+    .quick-page .quick-hero .hero-summary__label {
+        font-size: 0.58rem;
+    }
+
+    .quick-page .quick-hero .hero-summary__meta {
+        font-size: 0.62rem;
+    }
+
+    .quick-page .quick-hero .hero-art {
+        display: none;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .quick-page .quick-hero .hero-summary {
+        display: none;
+    }
+
+    .quick-page .quick-hero .hero-title {
+        font-size: 1.2rem;
+    }
+}
+
+/* ====================================================================
+   Carrito como panel lateral derecho
+   ==================================================================== */
+
+.quick-page .quick-cart-col {
+    display: none;
+}
+
+.quick-page .quick-layout {
+    display: block;
+}
+
+.quick-page .quick-cart {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    z-index: 1080;
+    display: flex;
+    flex-direction: column;
+    width: min(420px, 92vw);
+    max-height: none;
+    margin: 0;
+    visibility: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 1rem 0 0 1rem;
+    box-shadow: -24px 0 60px rgba(var(--shadow-rgb), 0.22);
+    transform: translateX(105%);
+    transition: transform 0.22s ease, visibility 0.22s ease;
+    overscroll-behavior: contain;
+}
+
+.quick-page .quick-cart.is-open {
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.quick-page .quick-cart > .card-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+.quick-page .quick-cart .cart-panel__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.quick-page .quick-cart .cart-panel__footer {
+    flex: 0 0 auto;
+}
+
+.quick-page .quick-cart__close {
+    display: grid;
+}
+
+.quick-page button.hero-summary {
+    font: inherit;
+    text-align: left;
+    border: 0;
+    cursor: pointer;
+}
+
+.quick-page .quick-toolbar__cart {
+    display: inline-flex;
+}
+
+@media (max-width: 575.98px) {
+    .quick-page .quick-cart {
+        width: min(420px, 94vw);
+        border-radius: 0.9rem 0 0 0.9rem;
+    }
+
+    .quick-page .quick-toolbar__cart {
+        padding-inline: 0.5rem;
+    }
+
+    .quick-page .quick-toolbar__cart-meta span {
+        display: none;
+    }
+}

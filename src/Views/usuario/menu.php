@@ -77,6 +77,17 @@ ob_start();
         </div>
     </div>
 
+    <section class="menu-weeks" aria-labelledby="menu-weeks-title">
+        <div class="menu-weeks__head">
+            <h3 class="menu-weeks__title" id="menu-weeks-title">
+                <i class="bi bi-calendar2-range" aria-hidden="true"></i>
+                Mis semanas
+            </h3>
+            <p class="menu-weeks__hint" data-menu-semanas-status aria-live="polite">Cargando semanas…</p>
+        </div>
+        <div class="menu-weeks__track" data-menu-semanas role="group" aria-label="Semanas con menú guardado"></div>
+    </section>
+
     <div class="menu-stats" aria-label="Resumen de la semana">
         <div class="menu-stat">
             <span class="menu-stat__label">Platillos</span>

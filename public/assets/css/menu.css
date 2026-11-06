@@ -519,3 +519,159 @@
 .menu-ia__resultados .menu-lista__item {
     grid-template-columns: auto minmax(0, 1fr) auto;
 }
+
+/* Modal «Agregar al menú»: más aire y ancho útil ----------------------- */
+
+.app-modal[data-menu-picker] .modal-dialog {
+    width: min(720px, 100%);
+}
+
+.app-modal[data-menu-picker] .modal-header {
+    padding: 1.1rem 1.35rem;
+}
+
+.app-modal[data-menu-picker] .modal-body {
+    padding: 1.25rem 1.35rem;
+}
+
+.app-modal[data-menu-picker] .modal-footer {
+    padding: 0.9rem 1.35rem;
+}
+
+[data-menu-picker] .menu-picker__resultados {
+    padding-right: 0.35rem;
+}
+
+@media (max-width: 575.98px) {
+    .app-modal[data-menu-picker] .modal-header {
+        padding: 1rem 1.1rem;
+    }
+
+    .app-modal[data-menu-picker] .modal-body {
+        padding: 1rem 1.1rem;
+    }
+
+    .app-modal[data-menu-picker] .modal-footer {
+        padding: 0.85rem 1.1rem;
+    }
+}
+
+/* Tira «Mis semanas» --------------------------------------------------- */
+
+.menu-weeks {
+    margin-bottom: 1rem;
+}
+
+.menu-weeks__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    margin-bottom: 0.45rem;
+}
+
+.menu-weeks__title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 750;
+}
+
+.menu-weeks__title i {
+    color: var(--p-600);
+}
+
+.menu-weeks__hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.74rem;
+}
+
+.menu-weeks__track {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.15rem 0.1rem 0.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+.menu-week-chip {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.12rem;
+    min-width: 8.75rem;
+    padding: 0.5rem 0.7rem;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    scroll-snap-align: start;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.menu-week-chip:hover,
+.menu-week-chip:focus-visible {
+    background: var(--p-50);
+    border-color: var(--p-300);
+}
+
+.menu-week-chip:focus-visible {
+    outline: 2px solid var(--p-500);
+    outline-offset: 2px;
+}
+
+.menu-week-chip.is-active {
+    background: var(--p-50);
+    border-color: var(--p-500);
+    box-shadow: 0 0 0 2px rgba(var(--p-rgb), 0.16);
+}
+
+.menu-week-chip__title {
+    color: var(--ink);
+    font-size: 0.82rem;
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+.menu-week-chip.is-current .menu-week-chip__title {
+    color: var(--p-800);
+}
+
+.menu-week-chip__meta {
+    color: var(--muted);
+    font-size: 0.7rem;
+}
+
+.menu-week-chip__badge {
+    margin-top: 0.1rem;
+    padding: 0.08rem 0.4rem;
+    color: var(--p-900);
+    font-size: 0.6rem;
+    font-weight: 750;
+    background: rgba(var(--p-rgb), 0.12);
+    border-radius: 999px;
+}
+
+.menu-week-chip.is-active .menu-week-chip__badge {
+    color: #fff;
+    background: var(--p-600);
+}
+
+@media (max-width: 575.98px) {
+    .menu-week-chip {
+        min-width: 7.6rem;
+        padding: 0.45rem 0.6rem;
+    }
+}
+
+html[data-mode="dark"] .menu-week-chip.is-active .menu-week-chip__badge {
+    color: var(--p-950);
+    background: var(--p-300);
+}

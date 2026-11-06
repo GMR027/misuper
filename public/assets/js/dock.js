@@ -113,35 +113,9 @@ function initDock(dock) {
         }
     });
 
-    bindSesion();
-
     if (modalBuscar instanceof HTMLElement) {
         initBuscador(modalBuscar);
     }
-}
-
-/**
- * Cierre de sesión desde la hoja del menú.
- */
-function bindSesion() {
-    const salir = document.querySelector('[data-dock-logout]');
-
-    if (!(salir instanceof HTMLButtonElement)) {
-        return;
-    }
-
-    salir.addEventListener('click', async () => {
-        salir.disabled = true;
-        salir.classList.add('is-loading');
-
-        try {
-            await fetchApi('/api/auth/logout', { method: 'POST' });
-        } catch {
-            // Si la sesión ya expiró, igualmente volvemos al login.
-        }
-
-        window.location.replace('/login');
-    });
 }
 
 /**

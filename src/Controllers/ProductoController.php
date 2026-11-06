@@ -49,7 +49,13 @@ final class ProductoController
             Response::fail('VALIDATION_ERROR', 'Revisa los datos enviados.', 422, $errors);
         }
 
-        $producto = $this->productos->crearPersonal($usuario['id'], $data);
+        $esAdmin = ($usuario['rol'] ?? '') === 'admin';
+
+        // Un administrador da de alta productos del catálogo compartido desde
+        // cualquier pantalla; el resto de usuarios solo crea productos propios.
+        $producto = $esAdmin
+            ? $this->productos->crear($data)
+            : $this->productos->crearPersonal((int) $usuario['id'], $data);
 
         Response::ok($producto->toPublicArray(), 201);
     }

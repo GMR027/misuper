@@ -138,6 +138,11 @@ return static function (string $method, string $path): void {
 
                 return;
 
+            case 'GET /api/menu/semanas':
+                (new MenuController())->semanas();
+
+                return;
+
             case 'GET /api/menu':
                 (new MenuController())->show();
 

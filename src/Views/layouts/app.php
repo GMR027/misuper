@@ -20,7 +20,6 @@ $styles ??= [];
 $active ??= '';
 $ocultarNav ??= false;
 $esAdmin = ($usuario['rol'] ?? '') === 'admin';
-$esAdminActivo = in_array($active, ['admin-recetas', 'admin-tipos', 'admin-categorias', 'admin-productos', 'admin-usuarios'], true);
 
 $partesNombre = preg_split('/\s+/u', trim((string) ($usuario['nombre'] ?? ''))) ?: [];
 $iniciales = '';
@@ -49,6 +48,145 @@ if ($avatarEsFoto) {
 if ($avatarEsPreset) {
     $avatarClases .= ' user-avatar user-avatar--' . $avatarValor;
 }
+
+/*
+ * Mapa único de navegación. El sidebar de escritorio, los grupos de tableta
+ * y el menú móvil se generan desde aquí para no duplicar etiquetas ni rutas.
+ */
+$navItems = [
+    'inicio' => [
+        'href' => '/',
+        'label' => 'Inicio',
+        'icono' => 'bi-house-door-fill',
+        'desc' => 'Captura rápida y carrito',
+    ],
+    'lista-compras' => [
+        'href' => '/lista-compras',
+        'label' => 'Por comprar',
+        'icono' => 'bi-cart-check',
+        'desc' => 'Lo que falta para tu próxima compra',
+    ],
+    'ticket' => [
+        'href' => '/ticket',
+        'label' => 'Ticket',
+        'icono' => 'bi-receipt-cutoff',
+        'desc' => 'Escanea y registra una compra',
+    ],
+    'historial' => [
+        'href' => '/historial',
+        'label' => 'Historial',
+        'icono' => 'bi-clock-history',
+        'desc' => 'Compras y gastos anteriores',
+    ],
+    'menu' => [
+        'href' => '/menu',
+        'label' => 'Menú semanal',
+        'icono' => 'bi-calendar3-week-fill',
+        'desc' => 'Planifica los platillos de la semana',
+    ],
+    'recetas' => [
+        'href' => '/recetas',
+        'label' => 'Recetas',
+        'icono' => 'bi-egg-fried',
+        'desc' => 'Explora tu recetario',
+    ],
+    'chef' => [
+        'href' => '/chef',
+        'label' => 'Chef',
+        'icono' => 'bi-stars',
+        'desc' => 'Genera recetas con IA',
+    ],
+    'metricas' => [
+        'href' => '/metricas',
+        'label' => 'Métricas',
+        'icono' => 'bi-bar-chart-line-fill',
+        'desc' => 'Gastos y hábitos de compra',
+    ],
+    'costos' => [
+        'href' => '/costos',
+        'label' => 'Precios y costos',
+        'icono' => 'bi-tags-fill',
+        'desc' => 'Precios por producto y comercio',
+    ],
+    'notas' => [
+        'href' => '/notas',
+        'label' => 'Notas',
+        'icono' => 'bi-journal-richtext',
+        'desc' => 'Recordatorios y listas rápidas',
+    ],
+];
+
+$navGrupos = [
+    'compras' => [
+        'label' => 'Compras',
+        'icono' => 'bi-bag-check-fill',
+        'items' => ['inicio', 'lista-compras', 'ticket', 'historial'],
+    ],
+    'cocina' => [
+        'label' => 'Cocina',
+        'icono' => 'bi-egg-fried',
+        'items' => ['menu', 'recetas'],
+    ],
+    'analisis' => [
+        'label' => 'Análisis',
+        'icono' => 'bi-graph-up-arrow',
+        'items' => ['metricas', 'costos'],
+    ],
+    'personal' => [
+        'label' => 'Personal',
+        'icono' => 'bi-journal-richtext',
+        'items' => ['notas'],
+    ],
+];
+
+if ($esAdmin) {
+    $navGrupos['cocina']['items'][] = 'chef';
+}
+
+$navAdmin = [
+    'label' => 'Administración',
+    'icono' => 'bi-shield-lock-fill',
+    'items' => [
+        'admin-recetas' => [
+            'href' => '/admin/recetas',
+            'label' => 'Catálogo de recetas',
+            'icono' => 'bi-egg-fried',
+            'desc' => 'Crear, editar y publicar recetas',
+        ],
+        'admin-categorias' => [
+            'href' => '/admin/recetas/categorias',
+            'label' => 'Categorías',
+            'icono' => 'bi-grid-3x3-gap-fill',
+            'desc' => 'Bebidas, guisados, ensaladas…',
+        ],
+        'admin-tipos' => [
+            'href' => '/admin/recetas/tipos',
+            'label' => 'Tipos de dieta',
+            'icono' => 'bi-tags-fill',
+            'desc' => 'Vegetariano, sin gluten, kosher…',
+        ],
+        'admin-productos' => [
+            'href' => '/admin/productos',
+            'label' => 'Productos',
+            'icono' => 'bi-box-seam',
+            'desc' => 'Catálogo y fotografías',
+        ],
+        'admin-usuarios' => [
+            'href' => '/admin/usuarios',
+            'label' => 'Usuarios',
+            'icono' => 'bi-people-fill',
+            'desc' => 'Cuentas y roles',
+        ],
+    ],
+];
+
+/** Grupos que se muestran como desplegable en tableta (el resto son enlaces directos). */
+$gruposTablet = ['compras', 'cocina', 'analisis'];
+$adminActivo = in_array($active, array_keys($navAdmin['items']), true);
+
+$grupoActivo = static function (array $claves) use ($active): bool {
+    return in_array($active, $claves, true);
+};
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -74,6 +212,7 @@ if ($avatarEsPreset) {
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/texture.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/avatars.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/modes.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/shell.css'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body class="app<?= $active === 'inicio' ? ' app--quick' : '' ?>" data-user-role="<?= htmlspecialchars((string) ($usuario['rol'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -85,76 +224,67 @@ if ($avatarEsPreset) {
             </a>
 
             <?php if (!$ocultarNav): ?>
-                <nav class="app-nav" data-nav-slider aria-label="Navegación principal">
-                    <a class="app-nav__link<?= $active === 'inicio' ? ' is-active' : '' ?>" href="/">
+                <nav class="app-nav" aria-label="Navegación principal">
+                    <a class="app-nav__link<?= $active === 'inicio' ? ' is-active' : '' ?>" href="/"<?= $active === 'inicio' ? ' aria-current="page"' : '' ?>>
                         <i class="bi bi-house-door-fill" aria-hidden="true"></i>
-                        <span>Pantalla rápida</span>
+                        <span>Inicio</span>
                     </a>
-                    <a class="app-nav__link<?= $active === 'historial' ? ' is-active' : '' ?>" href="/historial">
-                        <i class="bi bi-clock-history" aria-hidden="true"></i>
-                        <span>Historial</span>
-                    </a>
-                    <a class="app-nav__link<?= $active === 'recetas' ? ' is-active' : '' ?>" href="/recetas">
-                        <i class="bi bi-egg-fried" aria-hidden="true"></i>
-                        <span>Recetas</span>
-                    </a>
-                    <a class="app-nav__link<?= $active === 'menu' ? ' is-active' : '' ?>" href="/menu">
-                        <i class="bi bi-calendar3-week-fill" aria-hidden="true"></i>
-                        <span>Menú semanal</span>
-                    </a>
-                    <a class="app-nav__link<?= $active === 'lista-compras' ? ' is-active' : '' ?>" href="/lista-compras">
-                        <i class="bi bi-cart-check" aria-hidden="true"></i>
-                        <span>Por comprar</span>
-                    </a>
-                    <a class="app-nav__link<?= $active === 'notas' ? ' is-active' : '' ?>" href="/notas">
+                    <?php foreach ($gruposTablet as $gid): ?>
+                        <?php
+                        $grupo = $navGrupos[$gid];
+                        // Inicio tiene enlace propio en la tableta: no marcamos
+                        // también el grupo «Compras» cuando solo Inicio está activo.
+                        $activoEnGrupo = $grupoActivo(array_values(array_diff($grupo['items'], ['inicio'])));
+                        ?>
+                        <button
+                            class="app-nav__link app-nav__group-toggle<?= $activoEnGrupo ? ' is-active' : '' ?>"
+                            type="button"
+                            data-menu-toggle="<?= htmlspecialchars($gid, ENT_QUOTES, 'UTF-8') ?>"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="nav-menu-<?= htmlspecialchars($gid, ENT_QUOTES, 'UTF-8') ?>"
+                        >
+                            <i class="bi <?= htmlspecialchars($grupo['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i>
+                            <span><?= htmlspecialchars($grupo['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                            <i class="bi bi-chevron-down app-nav__chevron" aria-hidden="true"></i>
+                        </button>
+                    <?php endforeach; ?>
+                    <a class="app-nav__link<?= $active === 'notas' ? ' is-active' : '' ?>" href="/notas"<?= $active === 'notas' ? ' aria-current="page"' : '' ?>>
                         <i class="bi bi-journal-richtext" aria-hidden="true"></i>
                         <span>Notas</span>
                     </a>
-                    <a class="app-nav__link<?= $active === 'ticket' ? ' is-active' : '' ?>" href="/ticket">
-                        <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
-                        <span>Ticket</span>
-                    </a>
-                    <a class="app-nav__link<?= $active === 'metricas' ? ' is-active' : '' ?>" href="/metricas">
-                        <i class="bi bi-bar-chart-line-fill" aria-hidden="true"></i>
-                        <span>Métricas</span>
-                    </a>
-                    <a class="app-nav__link<?= $active === 'costos' ? ' is-active' : '' ?>" href="/costos">
-                        <i class="bi bi-tags-fill" aria-hidden="true"></i>
-                        <span>Costos</span>
-                    </a>
-                    <?php if ($esAdmin): ?>
-                        <a class="app-nav__link<?= $active === 'chef' ? ' is-active' : '' ?>" href="/chef">
-                            <i class="bi bi-journal-richtext" aria-hidden="true"></i>
-                            <span>Chef</span>
-                        </a>
-                    <?php endif; ?>
-                    <a class="app-nav__link<?= $active === 'ajustes' ? ' is-active' : '' ?>" href="/ajustes">
-                        <i class="bi bi-sliders2" aria-hidden="true"></i>
-                        <span>Ajustes</span>
-                    </a>
                     <?php if ($esAdmin): ?>
                         <button
-                            class="app-nav__link app-nav__admin-toggle<?= $esAdminActivo ? ' is-active' : '' ?>"
+                            class="app-nav__link app-nav__group-toggle<?= $adminActivo ? ' is-active' : '' ?>"
                             type="button"
-                            data-admin-menu-toggle
+                            data-menu-toggle="admin"
                             aria-haspopup="true"
                             aria-expanded="false"
-                            aria-controls="admin-menu"
+                            aria-controls="nav-menu-admin"
                         >
                             <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
                             <span>Admin</span>
-                            <i class="bi bi-chevron-down app-nav__admin-chevron" aria-hidden="true"></i>
+                            <i class="bi bi-chevron-down app-nav__chevron" aria-hidden="true"></i>
                         </button>
                     <?php endif; ?>
                 </nav>
-
             <?php endif; ?>
 
             <div class="app-header__account">
                 <?php if ($esAdmin): ?>
                     <span class="app-header__ia" data-ia-badge hidden></span>
                 <?php endif; ?>
-                <a class="app-header__profile" href="/ajustes" aria-label="Abrir los ajustes de tu cuenta" title="Ajustes de la cuenta">
+                <button
+                    class="app-header__profile"
+                    type="button"
+                    data-menu-toggle="cuenta"
+                    data-menu-align="end"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-controls="nav-menu-cuenta"
+                    aria-label="Abrir el menú de tu cuenta"
+                    title="Mi cuenta"
+                >
                     <span class="<?= htmlspecialchars($avatarClases, ENT_QUOTES, 'UTF-8') ?>" data-header-avatar aria-hidden="true">
                         <?php if ($avatarEsFoto): ?>
                             <img src="<?= htmlspecialchars($avatarValor, ENT_QUOTES, 'UTF-8') ?>" alt="">
@@ -167,60 +297,94 @@ if ($avatarEsPreset) {
                     <span class="app-header__name" data-username>
                         <?= htmlspecialchars((string) ($usuario['nombre'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
                     </span>
-                </a>
-                <button class="app-header__logout" type="button" data-logout aria-label="Cerrar sesión">
-                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
-                    <span>Cerrar sesión</span>
+                    <i class="bi bi-chevron-down app-header__chevron" aria-hidden="true"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <?php if ($esAdmin): ?>
-        <div class="admin-menu" id="admin-menu" data-admin-menu hidden>
-            <p class="admin-menu__label">Administración</p>
-            <a class="admin-menu__link<?= $active === 'admin-recetas' ? ' is-active' : '' ?>" href="/admin/recetas">
-                <span class="admin-menu__icon"><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
-                <span>
-                    <strong>Catálogo de recetas</strong>
-                    <small>Crear, editar y publicar recetas</small>
-                </span>
-            </a>
-            <a class="admin-menu__link<?= $active === 'admin-categorias' ? ' is-active' : '' ?>" href="/admin/recetas/categorias">
-                <span class="admin-menu__icon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i></span>
-                <span>
-                    <strong>Categorías</strong>
-                    <small>Bebidas, guisados, ensaladas…</small>
-                </span>
-            </a>
-            <a class="admin-menu__link<?= $active === 'admin-tipos' ? ' is-active' : '' ?>" href="/admin/recetas/tipos">
-                <span class="admin-menu__icon"><i class="bi bi-tags-fill" aria-hidden="true"></i></span>
-                <span>
-                    <strong>Tipos de dieta</strong>
-                    <small>Vegetariano, sin gluten, kosher…</small>
-                </span>
-            </a>
-            <a class="admin-menu__link<?= $active === 'admin-productos' ? ' is-active' : '' ?>" href="/admin/productos">
-                <span class="admin-menu__icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
-                <span>
-                    <strong>Productos</strong>
-                    <small>Catálogo y fotografías</small>
-                </span>
-            </a>
-            <a class="admin-menu__link<?= $active === 'admin-usuarios' ? ' is-active' : '' ?>" href="/admin/usuarios">
-                <span class="admin-menu__icon"><i class="bi bi-people-fill" aria-hidden="true"></i></span>
-                <span>
-                    <strong>Usuarios</strong>
-                    <small>Cuentas y roles</small>
-                </span>
-            </a>
-        </div>
+    <?php if (!$ocultarNav): ?>
+        <?php foreach ($gruposTablet as $gid): ?>
+            <?php $grupo = $navGrupos[$gid]; ?>
+            <div class="nav-menu" id="nav-menu-<?= htmlspecialchars($gid, ENT_QUOTES, 'UTF-8') ?>" data-menu-panel="<?= htmlspecialchars($gid, ENT_QUOTES, 'UTF-8') ?>" hidden>
+                <p class="nav-menu__label"><?= htmlspecialchars($grupo['label'], ENT_QUOTES, 'UTF-8') ?></p>
+                <?php foreach ($grupo['items'] as $clave): ?>
+                    <?php $item = $navItems[$clave]; ?>
+                    <a class="nav-menu__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
+                        <span class="nav-menu__icon"><i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i></span>
+                        <span class="nav-menu__text">
+                            <strong><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></strong>
+                            <small><?= htmlspecialchars($item['desc'], ENT_QUOTES, 'UTF-8') ?></small>
+                        </span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php endforeach; ?>
+
+        <?php if ($esAdmin): ?>
+            <div class="nav-menu" id="nav-menu-admin" data-menu-panel="admin" hidden>
+                <p class="nav-menu__label"><?= htmlspecialchars($navAdmin['label'], ENT_QUOTES, 'UTF-8') ?></p>
+                <?php foreach ($navAdmin['items'] as $clave => $item): ?>
+                    <a class="nav-menu__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
+                        <span class="nav-menu__icon"><i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i></span>
+                        <span class="nav-menu__text">
+                            <strong><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></strong>
+                            <small><?= htmlspecialchars($item['desc'], ENT_QUOTES, 'UTF-8') ?></small>
+                        </span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
+
+    <div class="nav-menu nav-menu--account" id="nav-menu-cuenta" data-menu-panel="cuenta" hidden>
+        <p class="nav-menu__label">Cuenta</p>
+        <a class="nav-menu__link nav-menu__link--simple<?= $active === 'ajustes' ? ' is-active' : '' ?>" href="/ajustes"<?= $active === 'ajustes' ? ' aria-current="page"' : '' ?>>
+            <span class="nav-menu__icon"><i class="bi bi-sliders2" aria-hidden="true"></i></span>
+            <span class="nav-menu__text"><strong>Ajustes</strong><small>Perfil, tema y preferencias</small></span>
+        </a>
+        <button class="nav-menu__link nav-menu__link--simple nav-menu__link--danger" type="button" data-logout>
+            <span class="nav-menu__icon"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></span>
+            <span class="nav-menu__text"><strong>Cerrar sesión</strong><small>Salir de tu cuenta</small></span>
+        </button>
+    </div>
+
+    <div class="app-shell">
+        <?php if (!$ocultarNav): ?>
+            <aside class="app-sidebar" aria-label="Navegación de secciones">
+                <nav class="app-sidebar__nav" aria-label="Secciones">
+                    <?php foreach ($navGrupos as $grupo): ?>
+                        <p class="app-sidebar__label"><?= htmlspecialchars($grupo['label'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php foreach ($grupo['items'] as $clave): ?>
+                            <?php $item = $navItems[$clave]; ?>
+                            <a class="app-sidebar__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
+                                <i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i>
+                                <span><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                            </a>
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
+                    <?php if ($esAdmin): ?>
+                        <p class="app-sidebar__label"><?= htmlspecialchars($navAdmin['label'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php foreach ($navAdmin['items'] as $clave => $item): ?>
+                            <a class="app-sidebar__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
+                                <i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i>
+                                <span><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                            </a>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </nav>
+            </aside>
+        <?php endif; ?>
+
+        <main class="app-main" id="contenido">
+            <?= $content ?>
+        </main>
+    </div>
 
     <?php if (!$ocultarNav): ?>
         <nav class="app-dock" data-dock aria-label="Navegación rápida">
             <div class="app-dock__bar">
-                <a class="app-dock__item app-dock__item--inicio<?= $active === 'inicio' ? ' is-active' : '' ?>" href="/" aria-label="Pantalla rápida" title="Pantalla rápida"<?= $active === 'inicio' ? ' aria-current="page"' : '' ?>>
+                <a class="app-dock__item app-dock__item--inicio<?= $active === 'inicio' ? ' is-active' : '' ?>" href="/" aria-label="Inicio" title="Inicio"<?= $active === 'inicio' ? ' aria-current="page"' : '' ?>>
                     <i class="bi bi-house-door-fill" aria-hidden="true"></i>
                 </a>
                 <a class="app-dock__item app-dock__item--notas<?= $active === 'notas' ? ' is-active' : '' ?>" href="/notas" aria-label="Notas" title="Notas"<?= $active === 'notas' ? ' aria-current="page"' : '' ?>>
@@ -238,10 +402,6 @@ if ($avatarEsPreset) {
             </div>
         </nav>
     <?php endif; ?>
-
-    <main class="app-main" id="contenido">
-        <?= $content ?>
-    </main>
 
     <?php if (!$ocultarNav): ?>
         <div class="dock-modal" id="dock-search-modal" data-dock-search-modal hidden role="dialog" aria-modal="true" aria-labelledby="dock-search-title">
@@ -263,7 +423,7 @@ if ($avatarEsPreset) {
                 </div>
                 <div class="dock-modal__foot">
                     <a class="btn btn-outline-primary w-100" href="/">
-                        <i class="bi bi-cart3" aria-hidden="true"></i> Ir a Pantalla rápida
+                        <i class="bi bi-cart3" aria-hidden="true"></i> Ir a Inicio
                     </a>
                 </div>
             </div>
@@ -292,92 +452,30 @@ if ($avatarEsPreset) {
                         <strong class="dock-user__name"><?= htmlspecialchars((string) ($usuario['nombre'] ?? ''), ENT_QUOTES, 'UTF-8') ?></strong>
                         <span class="dock-user__role"><?= $esAdmin ? 'Administrador' : 'Cuenta personal' ?></span>
                     </span>
-                    <a class="dock-user__link" href="/ajustes" aria-label="Abrir ajustes de la cuenta">
-                        <i class="bi bi-gear-fill" aria-hidden="true"></i>
-                    </a>
                 </div>
                 <nav class="dock-menu" aria-label="Más secciones">
-                    <p class="dock-menu__label">Secciones</p>
-                    <a class="dock-menu__link<?= $active === 'historial' ? ' is-active' : '' ?>" href="/historial">
-                        <span class="dock-menu__icon"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
-                        <span class="dock-menu__text">Historial</span>
-                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                    </a>
-                    <a class="dock-menu__link<?= $active === 'recetas' ? ' is-active' : '' ?>" href="/recetas">
-                        <span class="dock-menu__icon"><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
-                        <span class="dock-menu__text">Recetas</span>
-                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                    </a>
-                    <a class="dock-menu__link<?= $active === 'menu' ? ' is-active' : '' ?>" href="/menu">
-                        <span class="dock-menu__icon"><i class="bi bi-calendar3-week-fill" aria-hidden="true"></i></span>
-                        <span class="dock-menu__text">Menú semanal</span>
-                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                    </a>
-                    <a class="dock-menu__link<?= $active === 'lista-compras' ? ' is-active' : '' ?>" href="/lista-compras">
-                        <span class="dock-menu__icon"><i class="bi bi-cart-check" aria-hidden="true"></i></span>
-                        <span class="dock-menu__text">Productos por comprar</span>
-                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                    </a>
-                    <a class="dock-menu__link<?= $active === 'notas' ? ' is-active' : '' ?>" href="/notas">
-                        <span class="dock-menu__icon"><i class="bi bi-journal-richtext" aria-hidden="true"></i></span>
-                        <span class="dock-menu__text">Notas</span>
-                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                    </a>
-                    <a class="dock-menu__link<?= $active === 'ticket' ? ' is-active' : '' ?>" href="/ticket">
-                        <span class="dock-menu__icon"><i class="bi bi-receipt-cutoff" aria-hidden="true"></i></span>
-                        <span class="dock-menu__text">Ticket</span>
-                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                    </a>
-                    <a class="dock-menu__link<?= $active === 'metricas' ? ' is-active' : '' ?>" href="/metricas">
-                        <span class="dock-menu__icon"><i class="bi bi-bar-chart-line-fill" aria-hidden="true"></i></span>
-                        <span class="dock-menu__text">Métricas</span>
-                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                    </a>
-                    <a class="dock-menu__link<?= $active === 'costos' ? ' is-active' : '' ?>" href="/costos">
-                        <span class="dock-menu__icon"><i class="bi bi-tags-fill" aria-hidden="true"></i></span>
-                        <span class="dock-menu__text">Precios y costos</span>
-                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                    </a>
-                    <a class="dock-menu__link<?= $active === 'ajustes' ? ' is-active' : '' ?>" href="/ajustes">
-                        <span class="dock-menu__icon"><i class="bi bi-sliders2" aria-hidden="true"></i></span>
-                        <span class="dock-menu__text">Ajustes</span>
-                        <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                    </a>
+                    <?php foreach ($navGrupos as $grupo): ?>
+                        <p class="dock-menu__label"><?= htmlspecialchars($grupo['label'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php foreach ($grupo['items'] as $clave): ?>
+                            <?php $item = $navItems[$clave]; ?>
+                            <a class="dock-menu__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
+                                <span class="dock-menu__icon"><i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i></span>
+                                <span class="dock-menu__text"><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                                <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
+                            </a>
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
                     <?php if ($esAdmin): ?>
-                        <p class="dock-menu__label">Administración</p>
-                        <a class="dock-menu__link<?= $active === 'admin-recetas' ? ' is-active' : '' ?>" href="/admin/recetas">
-                            <span class="dock-menu__icon"><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
-                            <span class="dock-menu__text">Catálogo de recetas</span>
-                            <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                        </a>
-                        <a class="dock-menu__link<?= $active === 'admin-categorias' ? ' is-active' : '' ?>" href="/admin/recetas/categorias">
-                            <span class="dock-menu__icon"><i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i></span>
-                            <span class="dock-menu__text">Categorías de recetas</span>
-                            <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                        </a>
-                        <a class="dock-menu__link<?= $active === 'admin-tipos' ? ' is-active' : '' ?>" href="/admin/recetas/tipos">
-                            <span class="dock-menu__icon"><i class="bi bi-tags-fill" aria-hidden="true"></i></span>
-                            <span class="dock-menu__text">Tipos de dieta</span>
-                            <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                        </a>
-                        <a class="dock-menu__link<?= $active === 'admin-productos' ? ' is-active' : '' ?>" href="/admin/productos">
-                            <span class="dock-menu__icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
-                            <span class="dock-menu__text">Productos</span>
-                            <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                        </a>
-                        <a class="dock-menu__link<?= $active === 'admin-usuarios' ? ' is-active' : '' ?>" href="/admin/usuarios">
-                            <span class="dock-menu__icon"><i class="bi bi-people-fill" aria-hidden="true"></i></span>
-                            <span class="dock-menu__text">Usuarios</span>
-                            <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
-                        </a>
+                        <p class="dock-menu__label"><?= htmlspecialchars($navAdmin['label'], ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php foreach ($navAdmin['items'] as $clave => $item): ?>
+                            <a class="dock-menu__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
+                                <span class="dock-menu__icon"><i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i></span>
+                                <span class="dock-menu__text"><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                                <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
+                            </a>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                 </nav>
-                <div class="dock-modal__foot dock-modal__foot--menu">
-                    <button class="dock-menu__logout" type="button" data-dock-logout>
-                        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
-                        <span>Cerrar sesión</span>
-                    </button>
-                </div>
             </div>
         </div>
     <?php endif; ?>
@@ -385,10 +483,10 @@ if ($avatarEsPreset) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/password-toggle.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
     <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/modal-a11y.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+    <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/nav-menu.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+    <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/session.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
     <?php if (!$ocultarNav): ?>
         <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/dock.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
-        <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/nav-slider.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
-        <script type="module" src="<?= htmlspecialchars(Asset::url('/assets/js/admin-menu.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
     <?php endif; ?>
     <?php foreach ($scripts as $script): ?>
         <script type="module" src="<?= htmlspecialchars(Asset::url($script), ENT_QUOTES, 'UTF-8') ?>"></script>
