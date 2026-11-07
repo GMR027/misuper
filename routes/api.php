@@ -248,6 +248,11 @@ return static function (string $method, string $path): void {
 
                 return;
 
+            case 'POST /api/admin/recetas/publicar-seleccionadas':
+                (new AdminRecetaController())->publicarSeleccionadas();
+
+                return;
+
             case 'GET /api/admin/tipos-recetas':
                 (new AdminRecetaController())->tiposIndex();
 

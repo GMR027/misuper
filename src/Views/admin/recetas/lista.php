@@ -57,7 +57,7 @@ ob_start();
     <div class="card mb-4">
         <div class="card-body">
             <div class="row g-3 align-items-end">
-                <div class="col-12 col-md-5">
+                <div class="col-12 col-md-4">
                     <label class="form-label" for="admin-receta-q">Buscar receta</label>
                     <input
                         class="form-control"
@@ -68,7 +68,7 @@ ob_start();
                         data-admin-receta-buscar
                     >
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-md-2">
                     <label class="form-label" for="admin-receta-estado">Estado</label>
                     <select class="form-select" id="admin-receta-estado" data-admin-receta-estado>
                         <option value="">Todos</option>
@@ -77,10 +77,19 @@ ob_start();
                         <option value="borrador">Borradores</option>
                     </select>
                 </div>
-                <div class="col-6 col-md-4">
+                <div class="col-6 col-md-3">
                     <p class="text-muted small mb-0" data-admin-receta-status aria-live="polite">
                         Cargando recetas…
                     </p>
+                </div>
+                <div class="col-12 col-md-3 d-flex flex-wrap justify-content-md-end align-items-center gap-2">
+                    <span class="text-muted small" data-admin-receta-seleccionadas aria-live="polite">
+                        0 seleccionadas
+                    </span>
+                    <button type="button" class="btn btn-success" data-admin-receta-publicar-lote disabled>
+                        <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                        Publicar seleccionadas
+                    </button>
                 </div>
             </div>
         </div>
@@ -90,6 +99,14 @@ ob_start();
         <table class="table table-hover align-middle">
             <thead class="table-light">
                 <tr>
+                    <th scope="col" class="text-center">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            data-admin-receta-seleccionar-todos
+                            aria-label="Seleccionar todas las recetas visibles que no están publicadas"
+                        >
+                    </th>
                     <th scope="col">Receta</th>
                     <th scope="col" class="d-none d-md-table-cell">Categoría</th>
                     <th scope="col" class="d-none d-lg-table-cell">Tipos</th>
@@ -101,7 +118,7 @@ ob_start();
             </thead>
             <tbody data-admin-recetas-body>
                 <tr>
-                    <td class="text-center text-muted py-4" colspan="7">Cargando recetas…</td>
+                    <td class="text-center text-muted py-4" colspan="8">Cargando recetas…</td>
                 </tr>
             </tbody>
         </table>

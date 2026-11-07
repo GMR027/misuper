@@ -214,6 +214,33 @@ final class RecetaRepository
     }
 
     /**
+     * Publica en bloque las recetas indicadas que aún no están publicadas.
+     *
+     * @param array<int, mixed> $ids
+     */
+    public function publicarVarias(array $ids): int
+    {
+        $ids = array_values(array_unique(array_filter(
+            array_map('intval', $ids),
+            static fn (int $id): bool => $id > 0
+        )));
+
+        if ($ids === []) {
+            return 0;
+        }
+
+        $marcadores = implode(', ', array_fill(0, count($ids), '?'));
+        $statement = $this->pdo->prepare(
+            "UPDATE recetas
+             SET estado = 'publicada'
+             WHERE id IN ({$marcadores}) AND estado <> 'publicada'"
+        );
+        $statement->execute($ids);
+
+        return $statement->rowCount();
+    }
+
+    /**
      * @return array<int, int>
      */
     public function favoritos(int $usuarioId): array

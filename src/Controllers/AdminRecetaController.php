@@ -328,6 +328,29 @@ final class AdminRecetaController
     }
 
     /**
+     * POST /api/admin/recetas/publicar-seleccionadas
+     */
+    public function publicarSeleccionadas(): void
+    {
+        AdminMiddleware::require();
+        CsrfMiddleware::enforce();
+
+        $ids = $this->jsonBody()['ids'] ?? null;
+
+        if (!is_array($ids) || $ids === []) {
+            Response::fail('VALIDATION_ERROR', 'Selecciona al menos una receta para publicar.', 422);
+        }
+
+        try {
+            $publicadas = $this->recetas->publicarSeleccionadas($ids);
+        } catch (InvalidArgumentException $error) {
+            Response::fail('VALIDATION_ERROR', $error->getMessage(), 422);
+        }
+
+        Response::ok(['publicadas' => $publicadas]);
+    }
+
+    /**
      * POST /api/admin/recetas/{id}/publicar
      */
     public function publicar(int $id): void

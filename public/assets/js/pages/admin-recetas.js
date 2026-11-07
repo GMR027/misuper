@@ -21,6 +21,9 @@ function init(root) {
     const buscar = root.querySelector('[data-admin-receta-buscar]');
     const estado = root.querySelector('[data-admin-receta-estado]');
     const mensaje = root.querySelector('[data-admin-receta-mensaje]');
+    const seleccionarTodos = root.querySelector('[data-admin-receta-seleccionar-todos]');
+    const publicarLote = root.querySelector('[data-admin-receta-publicar-lote]');
+    const seleccionadasTexto = root.querySelector('[data-admin-receta-seleccionadas]');
 
     if (!(body instanceof HTMLElement)) {
         return;
@@ -28,9 +31,15 @@ function init(root) {
 
     /** @type {Array<any>} */
     let items = [];
+    /** @type {Array<any>} */
+    let visiblesActuales = [];
+    const seleccionadas = new Set();
+    let publicando = false;
 
     buscar?.addEventListener('input', render);
     estado?.addEventListener('change', render);
+    seleccionarTodos?.addEventListener('change', alternarTodas);
+    publicarLote?.addEventListener('click', publicarSeleccionadas);
     load();
 
     async function load() {
@@ -62,7 +71,8 @@ function init(root) {
         }
 
         const pendientes = items.filter((item) => item.estado === 'pendiente').length;
-        status.textContent = `${items.length} recetas · ${pendientes} pendientes`;
+        const borradores = items.filter((item) => item.estado === 'borrador').length;
+        status.textContent = `${items.length} recetas · ${pendientes} pendientes · ${borradores} borradores`;
     }
 
     function render() {
@@ -81,17 +91,133 @@ function init(root) {
         if (visibles.length === 0) {
             const row = document.createElement('tr');
             const cell = document.createElement('td');
-            cell.colSpan = 7;
+            cell.colSpan = 8;
             cell.className = 'text-center text-muted py-4';
             cell.textContent = 'No hay recetas que coincidan.';
             row.append(cell);
             body.append(row);
+            visiblesActuales = visibles;
+            actualizarSeleccion();
 
             return;
         }
 
         for (const item of visibles) {
             body.append(crearFila(item));
+        }
+
+        visiblesActuales = visibles;
+        actualizarSeleccion();
+    }
+
+    /**
+     * Selecciona o deselecciona todas las recetas visibles que no están publicadas.
+     */
+    function alternarTodas() {
+        const seleccionables = visiblesActuales.filter((item) => item.estado !== 'publicada');
+        const todasMarcadas = seleccionables.length > 0
+            && seleccionables.every((item) => seleccionadas.has(Number(item.id)));
+
+        for (const item of seleccionables) {
+            const id = Number(item.id);
+
+            if (todasMarcadas) {
+                seleccionadas.delete(id);
+            } else {
+                seleccionadas.add(id);
+            }
+        }
+
+        render();
+    }
+
+    /**
+     * Sincroniza contador, botón y checkbox de encabezado con la selección actual.
+     */
+    function actualizarSeleccion() {
+        const seleccionables = new Set(
+            items
+                .filter((item) => item.estado !== 'publicada')
+                .map((item) => Number(item.id)),
+        );
+
+        for (const id of [...seleccionadas]) {
+            if (!seleccionables.has(id)) {
+                seleccionadas.delete(id);
+            }
+        }
+
+        const total = seleccionadas.size;
+
+        if (seleccionadasTexto instanceof HTMLElement) {
+            seleccionadasTexto.textContent = `${total} ${total === 1 ? 'seleccionada' : 'seleccionadas'}`;
+        }
+
+        if (publicarLote instanceof HTMLButtonElement) {
+            publicarLote.disabled = publicando || total === 0;
+
+            if (!publicando) {
+                publicarLote.innerHTML = '<i class="bi bi-check2-circle" aria-hidden="true"></i> Publicar seleccionadas';
+            }
+        }
+
+        if (seleccionarTodos instanceof HTMLInputElement) {
+            const visiblesSeleccionables = visiblesActuales.filter((item) => item.estado !== 'publicada');
+            const marcadas = visiblesSeleccionables.filter((item) => seleccionadas.has(Number(item.id))).length;
+
+            seleccionarTodos.disabled = visiblesSeleccionables.length === 0;
+            seleccionarTodos.checked = visiblesSeleccionables.length > 0
+                && marcadas === visiblesSeleccionables.length;
+            seleccionarTodos.indeterminate = marcadas > 0 && marcadas < visiblesSeleccionables.length;
+        }
+    }
+
+    async function publicarSeleccionadas() {
+        if (!(publicarLote instanceof HTMLButtonElement) || seleccionadas.size === 0) {
+            return;
+        }
+
+        const ids = [...seleccionadas];
+        const confirmado = await confirmar({
+            title: 'Publicar recetas',
+            message: `Se publicarán ${ids.length} ${ids.length === 1 ? 'receta' : 'recetas'}. Quedarán visibles en el recetario.`,
+            confirmText: 'Publicar',
+            tone: 'primary',
+        });
+
+        if (!confirmado) {
+            return;
+        }
+
+        publicando = true;
+        publicarLote.disabled = true;
+        publicarLote.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Publicando…';
+
+        try {
+            const data = await fetchApi('/api/admin/recetas/publicar-seleccionadas', {
+                method: 'POST',
+                body: { ids },
+            });
+            const publicadas = Number(data?.publicadas ?? ids.length);
+            const seleccionIds = new Set(ids);
+            items = items.map((item) => (
+                seleccionIds.has(Number(item.id)) ? { ...item, estado: 'publicada' } : item
+            ));
+            seleccionadas.clear();
+            showToast(
+                `${publicadas} ${publicadas === 1 ? 'receta publicada' : 'recetas publicadas'}.`,
+                'success',
+            );
+        } catch (error) {
+            if (redirectIfSessionLost(error)) {
+                return;
+            }
+
+            showToast(error?.message ?? 'No se pudieron publicar las recetas.', 'error');
+        } finally {
+            publicando = false;
+            render();
+            actualizarStatus();
         }
     }
 
@@ -101,6 +227,28 @@ function init(root) {
      */
     function crearFila(item) {
         const row = document.createElement('tr');
+        const id = Number(item.id);
+
+        const seleccion = document.createElement('td');
+        seleccion.className = 'text-center';
+
+        if (item.estado !== 'publicada') {
+            const check = document.createElement('input');
+            check.type = 'checkbox';
+            check.className = 'form-check-input';
+            check.checked = seleccionadas.has(id);
+            check.setAttribute('aria-label', `Seleccionar ${String(item.nombre ?? 'receta')}`);
+            check.addEventListener('change', () => {
+                if (check.checked) {
+                    seleccionadas.add(id);
+                } else {
+                    seleccionadas.delete(id);
+                }
+
+                actualizarSeleccion();
+            });
+            seleccion.append(check);
+        }
 
         const nombre = document.createElement('td');
         const titulo = document.createElement('strong');
@@ -198,7 +346,7 @@ function init(root) {
         grupo.append(editar, eliminar);
         acciones.append(grupo);
 
-        row.append(nombre, categoria, tipos, estadoCell, autor, video, acciones);
+        row.append(seleccion, nombre, categoria, tipos, estadoCell, autor, video, acciones);
 
         return row;
     }

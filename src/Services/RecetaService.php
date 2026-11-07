@@ -606,6 +606,20 @@ final class RecetaService
         return $this->recetas->update($id, ['estado' => $estado]);
     }
 
+    /**
+     * Publica en bloque las recetas seleccionadas desde el catálogo admin.
+     *
+     * @param array<int, mixed> $ids
+     */
+    public function publicarSeleccionadas(array $ids): int
+    {
+        if (count($ids) > 5000) {
+            throw new InvalidArgumentException('Selecciona como máximo 5,000 recetas.');
+        }
+
+        return $this->recetas->publicarVarias($ids);
+    }
+
     public function toggleFavorito(int $usuarioId, string $slug): ?bool
     {
         $receta = $this->recetas->findPublicBySlug($slug);
