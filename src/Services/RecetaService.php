@@ -115,7 +115,7 @@ final class RecetaService
     }
 
     /**
-     * @param array{q?: string, categoria?: string, tipo?: string, tiempo?: string, solo_despensa?: bool|int|string, favoritas?: bool|int|string} $filtros
+     * @param array{q?: string, categoria?: string, tipo?: string, tiempo?: string, solo_despensa?: bool|int|string, favoritas?: bool|int|string, compras?: string|array<int, int|string>} $filtros
      * @return array{items: array<int, array<string, mixed>>, total: int, despensa: array<string, mixed>, tipos: array<int, array<string, mixed>>}
      */
     public function listar(int $usuarioId, array $filtros): array
@@ -127,12 +127,10 @@ final class RecetaService
         $soloDespensa = filter_var($filtros['solo_despensa'] ?? false, FILTER_VALIDATE_BOOL);
         $soloFavoritas = filter_var($filtros['favoritas'] ?? false, FILTER_VALIDATE_BOOL);
 
-        $ultimaCompra = $this->compras->ultimaCompra($usuarioId);
-        $despensa = $ultimaCompra === null
-            ? []
-            : $this->compras->despensa($usuarioId, null, $ultimaCompra['id']);
+        $despensaSeleccionada = $this->resolverDespensa($usuarioId, $filtros['compras'] ?? null);
+        $despensa = $despensaSeleccionada['despensa'];
         $pantry = $this->indiceDespensa($despensa);
-        $sinCompras = $soloDespensa && $ultimaCompra === null;
+        $sinCompras = $soloDespensa && $despensaSeleccionada['compras'] === [];
         $favoritos = array_flip($this->recetas->favoritos($usuarioId));
         $items = [];
 
@@ -187,12 +185,14 @@ final class RecetaService
                 'nombre' => (string) $receta['nombre'],
                 'descripcion' => (string) ($receta['descripcion'] ?? ''),
                 'imagen_url' => $receta['imagen_url'] ?? null,
+                'fuente_nombre' => $receta['fuente_nombre'] ?? null,
+                'fuente_url' => $receta['fuente_url'] ?? null,
+                'referencia' => ($receta['fuente_url'] ?? null) !== null,
                 'categoria' => $categoriaReceta,
                 'tipos' => array_values($receta['tipos'] ?? []),
                 'porciones_base' => (int) ($receta['porciones_base'] ?? 4),
                 'tiempo_min' => (int) ($receta['tiempo_min'] ?? 0),
                 'dificultad' => (string) ($receta['dificultad'] ?? 'facil'),
-                'imagen_url' => $receta['imagen_url'] ?? null,
                 'coincidencia' => $match['coincidencia'],
                 'tiene_count' => $match['tiene_count'],
                 'total_ingredientes' => $match['total'],
@@ -220,10 +220,12 @@ final class RecetaService
             'items' => $items,
             'total' => count($items),
             'despensa' => [
-                'modo' => 'ultima',
+                'modo' => $despensaSeleccionada['modo'],
                 'total_productos' => count($despensa),
-                'compra_id' => $ultimaCompra['id'] ?? null,
-                'fecha' => $ultimaCompra['fecha'] ?? null,
+                'compra_id' => $despensaSeleccionada['ultima']['id'] ?? null,
+                'fecha' => $despensaSeleccionada['ultima']['fecha'] ?? null,
+                'compra_ids' => $despensaSeleccionada['ids'],
+                'compras' => $despensaSeleccionada['compras'],
             ],
             'tipos' => array_values($this->tipos()),
             'categorias' => array_values($this->categorias()),
@@ -231,9 +233,10 @@ final class RecetaService
     }
 
     /**
+     * @param array{q?: string} $filtros
      * @return array<string, mixed>|null
      */
-    public function detalle(int $usuarioId, string $slug): ?array
+    public function detalle(int $usuarioId, string $slug, array $filtros = []): ?array
     {
         $receta = $this->recetas->findPublicBySlug($slug);
 
@@ -241,11 +244,8 @@ final class RecetaService
             return null;
         }
 
-        $ultimaCompra = $this->compras->ultimaCompra($usuarioId);
-        $despensa = $ultimaCompra === null
-            ? []
-            : $this->compras->despensa($usuarioId, null, $ultimaCompra['id']);
-        $pantry = $this->indiceDespensa($despensa);
+        $despensaSeleccionada = $this->resolverDespensa($usuarioId, $filtros['compras'] ?? null);
+        $pantry = $this->indiceDespensa($despensaSeleccionada['despensa']);
         $match = $this->matchReceta($receta, $pantry);
 
         $receta['coincidencia'] = $match['coincidencia'];
@@ -436,6 +436,10 @@ final class RecetaService
                 'nombre' => (string) $receta['nombre'],
                 'descripcion' => (string) ($receta['descripcion'] ?? ''),
                 'imagen_url' => $receta['imagen_url'] ?? null,
+                'fuente_nombre' => $receta['fuente_nombre'] ?? null,
+                'fuente_url' => $receta['fuente_url'] ?? null,
+                'fuente_autor' => $receta['fuente_autor'] ?? null,
+                'referencia' => ($receta['fuente_url'] ?? null) !== null,
                 'categoria' => $this->categoriaDe($receta),
                 'tipos' => array_values($receta['tipos'] ?? []),
                 'tipos_nombres' => array_values(array_filter(array_map(
@@ -504,6 +508,40 @@ final class RecetaService
         $receta = $this->recetas->create($normalizada, $usuarioId, $estado);
 
         return $this->obtenerAdmin((int) $receta['id']) ?? $receta;
+    }
+
+    /**
+     * Crea una receta de referencia desde un proceso de importación.
+     * Siempre queda en borrador y sin usuario creador.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    public function crearReferencia(array $data): array
+    {
+        $normalizada = $this->normalizarReceta($data, true);
+
+        return $this->recetas->create($normalizada, null, 'borrador');
+    }
+
+    /**
+     * Actualiza una receta de referencia importada, conservando su estado.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>|null
+     */
+    public function actualizarReferencia(int $id, array $data): ?array
+    {
+        $anterior = $this->recetas->findById($id);
+
+        if ($anterior === null) {
+            return null;
+        }
+
+        $normalizada = $this->normalizarReceta($data, true);
+        $normalizada['estado'] = (string) $anterior['estado'];
+
+        return $this->recetas->update($id, $normalizada);
     }
 
     /**
@@ -854,6 +892,43 @@ final class RecetaService
         $estado = (string) ($data['estado'] ?? 'publicada');
         $estado = in_array($estado, self::ESTADOS, true) ? $estado : 'publicada';
 
+        $fuenteNombre = null;
+        $fuenteUrl = null;
+        $fuenteAutor = null;
+
+        if ($admin) {
+            $fuenteNombre = trim((string) ($data['fuente_nombre'] ?? ''));
+
+            if ($fuenteNombre !== '' && mb_strlen($fuenteNombre) > 150) {
+                throw new InvalidArgumentException('El nombre de la fuente no puede superar 150 caracteres.');
+            }
+
+            $fuenteUrl = trim((string) ($data['fuente_url'] ?? ''));
+
+            if ($fuenteUrl !== '') {
+                if (mb_strlen($fuenteUrl) > 500) {
+                    throw new InvalidArgumentException('La URL de la fuente no puede superar 500 caracteres.');
+                }
+
+                $esUrlValida = filter_var($fuenteUrl, FILTER_VALIDATE_URL) !== false
+                    && in_array(
+                        strtolower((string) parse_url($fuenteUrl, PHP_URL_SCHEME)),
+                        ['http', 'https'],
+                        true
+                    );
+
+                if (!$esUrlValida) {
+                    throw new InvalidArgumentException('La URL de la fuente debe ser un enlace http/https válido.');
+                }
+            }
+
+            $fuenteAutor = trim((string) ($data['fuente_autor'] ?? ''));
+
+            if ($fuenteAutor !== '' && mb_strlen($fuenteAutor) > 150) {
+                throw new InvalidArgumentException('El autor original no puede superar 150 caracteres.');
+            }
+        }
+
         return [
             'nombre' => $nombre,
             'descripcion' => $descripcion,
@@ -865,6 +940,9 @@ final class RecetaService
             'ingredientes' => $ingredientesNormalizados,
             'pasos' => $pasosNormalizados,
             'imagen_url' => $imagenUrl,
+            'fuente_nombre' => $fuenteNombre === '' ? null : $fuenteNombre,
+            'fuente_url' => $fuenteUrl === '' ? null : $fuenteUrl,
+            'fuente_autor' => $fuenteAutor === '' ? null : $fuenteAutor,
             'video_youtube_id' => $videoId,
             'video_titulo' => $videoTitulo,
             'estado' => $estado,
@@ -924,6 +1002,85 @@ final class RecetaService
             'faltan_principales' => $faltanPrincipales,
             'resumen' => $resumen,
         ];
+    }
+
+    /**
+     * Resuelve la despensa de una selección explícita de compras o, si no
+     * hay selección, la de la compra más reciente.
+     *
+     * @return array{
+     *     despensa: array<int, array<string, mixed>>,
+     *     modo: string,
+     *     ids: array<int, int>,
+     *     compras: array<int, array<string, mixed>>,
+     *     ultima: array{id: int, fecha: string}|null
+     * }
+     */
+    private function resolverDespensa(int $usuarioId, mixed $comprasFiltro): array
+    {
+        $ids = $this->normalizarIdsCompras($comprasFiltro);
+
+        if ($ids !== []) {
+            $resumenes = $this->compras->resumenes($usuarioId, $ids);
+            $validos = array_map(
+                static fn (array $compra): int => (int) $compra['id'],
+                $resumenes
+            );
+
+            return [
+                'despensa' => $validos === []
+                    ? []
+                    : $this->compras->despensa($usuarioId, null, $validos),
+                'modo' => 'seleccion',
+                'ids' => $validos,
+                'compras' => $resumenes,
+                'ultima' => null,
+            ];
+        }
+
+        $ultima = $this->compras->ultimaCompra($usuarioId);
+
+        return [
+            'despensa' => $ultima === null
+                ? []
+                : $this->compras->despensa($usuarioId, null, $ultima['id']),
+            'modo' => 'ultima',
+            'ids' => [],
+            'compras' => $ultima === null
+                ? []
+                : $this->compras->resumenes($usuarioId, [(int) $ultima['id']]),
+            'ultima' => $ultima,
+        ];
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function normalizarIdsCompras(mixed $valor): array
+    {
+        if (is_string($valor)) {
+            $valor = trim($valor) === '' ? [] : explode(',', $valor);
+        }
+
+        if (!is_array($valor)) {
+            return [];
+        }
+
+        $ids = [];
+
+        foreach ($valor as $item) {
+            if (!is_int($item) && !is_string($item)) {
+                continue;
+            }
+
+            $id = (int) $item;
+
+            if ($id > 0) {
+                $ids[$id] = $id;
+            }
+        }
+
+        return array_slice(array_values($ids), 0, 50);
     }
 
     /**

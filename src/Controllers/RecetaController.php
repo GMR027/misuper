@@ -52,6 +52,7 @@ final class RecetaController
             'tiempo' => isset($_GET['tiempo']) && is_string($_GET['tiempo']) ? $_GET['tiempo'] : '',
             'solo_despensa' => isset($_GET['solo_despensa']) ? $_GET['solo_despensa'] : false,
             'favoritas' => isset($_GET['favoritas']) ? $_GET['favoritas'] : false,
+            'compras' => isset($_GET['compras']) ? $_GET['compras'] : '',
         ]));
     }
 
@@ -61,7 +62,9 @@ final class RecetaController
     public function show(string $slug): void
     {
         $usuario = AuthMiddleware::require();
-        $receta = $this->recetas->detalle($usuario['id'], $slug);
+        $receta = $this->recetas->detalle($usuario['id'], $slug, [
+            'compras' => isset($_GET['compras']) ? $_GET['compras'] : '',
+        ]);
 
         if ($receta === null) {
             Response::fail('NOT_FOUND', 'Receta no encontrada.', 404);

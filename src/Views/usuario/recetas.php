@@ -83,7 +83,7 @@ ob_start();
                     <div class="recipe-switches" role="group" aria-label="Preferencias de recetas">
                         <div class="form-check form-switch recipe-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="receta-solo-despensa" data-receta-solo>
-                            <label class="form-check-label" for="receta-solo-despensa" title="Usa los productos de tu última compra">
+                            <label class="form-check-label" for="receta-solo-despensa" title="Elige una o varias compras para usar sus productos">
                                 Solo con lo que he comprado
                             </label>
                         </div>
@@ -135,7 +135,12 @@ ob_start();
     </div>
 
     <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-2">
-        <p class="text-muted small mb-0" data-recetas-despensa></p>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <p class="text-muted small mb-0" data-recetas-despensa></p>
+            <button class="btn btn-sm btn-link p-0" type="button" data-compras-cambiar hidden>
+                Cambiar compras
+            </button>
+        </div>
         <p class="text-muted small mb-0" data-recetas-status aria-live="polite">Cargando recetas…</p>
     </div>
 
@@ -195,6 +200,53 @@ ob_start();
                 <button class="btn btn-primary" type="button" data-preview-guardar>
                     <i class="bi bi-cart-plus" aria-hidden="true"></i>
                     Guardar en Productos por comprar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="app-modal" data-compras-modal hidden role="dialog" aria-modal="true" aria-labelledby="compras-modal-title">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="compras-modal-title">¿Qué compras quieres usar?</h5>
+                <button class="btn-close" type="button" aria-label="Cerrar" data-compras-cerrar></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small">
+                    Selecciona una o varias compras. Combinaremos sus productos para calcular qué recetas puedes preparar.
+                </p>
+
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                    <span class="small text-muted" data-compras-contador>0 compras seleccionadas</span>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-compras-todas>
+                            Seleccionar todas
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-compras-limpiar>
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="recipe-purchase-list" data-compras-lista>
+                    <p class="text-muted small mb-0">Cargando compras…</p>
+                </div>
+
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-compras-mas hidden>
+                        Cargar más compras
+                    </button>
+                </div>
+
+                <p class="text-muted small mt-2 mb-0" data-compras-status aria-live="polite"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" type="button" data-compras-cerrar>Cancelar</button>
+                <button class="btn btn-primary" type="button" data-compras-aplicar disabled>
+                    <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                    Aplicar selección
                 </button>
             </div>
         </div>

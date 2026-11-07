@@ -167,6 +167,9 @@ function init(form) {
             body.estado = String(form.querySelector('[data-receta-estado]')?.value ?? 'publicada');
             body.video_url = String(form.querySelector('[data-receta-video]')?.value ?? '').trim();
             body.video_titulo = String(form.querySelector('[data-receta-video-titulo]')?.value ?? '').trim();
+            body.fuente_nombre = String(form.querySelector('[data-receta-fuente-nombre]')?.value ?? '').trim();
+            body.fuente_url = String(form.querySelector('[data-receta-fuente-url]')?.value ?? '').trim();
+            body.fuente_autor = String(form.querySelector('[data-receta-fuente-autor]')?.value ?? '').trim();
         }
 
         guardar.disabled = true;

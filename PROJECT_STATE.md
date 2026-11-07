@@ -716,3 +716,22 @@ STATE_HANDOFF — Fase 28 (Alta global del admin, hero compacto, carrito lateral
 - Modal «Agregar al menú»: ancho útil de 720 px y padding explícito en cabecera, cuerpo y pie (con ajuste móvil), corrigiendo el contenido pegado a los bordes.
 - «Mis semanas»: nueva tira visible en `/menu` con la semana actual y todas las semanas que tienen platillos. Cada tarjeta muestra rango, número de platillos, estado activo y badge «Esta semana». El backend expone `GET /api/menu/semanas` (`MenuRepository::semanas()` + `MenuService::semanas()`); la semana seleccionada se refleja en `?semana=` y se restaura al recargar.
 - Verificado con Chromium/CDP en 390, 500, 768, 1200 y 1440 px: alta global del admin por API, tira de semanas (3 semanas de prueba), navegación entre semanas y URL, apertura/cierre del carrito con Escape y backdrop, y modal del selector con padding. Datos de prueba eliminados (0 menús, 0 ítems, 0 productos ZZ). No se desplegó a producción.
+
+STATE_HANDOFF — Fase 29 (Selección de compras para recetas) — 2026-11-06
+- «Solo con lo que he comprado» ahora abre un modal para elegir una o varias compras. La primera vez se marca la más reciente; el usuario puede cambiarla con «Cambiar compras» sin desactivar el filtro.
+- El modal reutiliza `GET /api/compras?page=N`: muestra fecha completa, comercio, número de productos y total, con «Seleccionar todas», «Limpiar» y «Cargar más compras».
+- Backend: `GET /api/recetas` y `GET /api/recetas/{slug}` aceptan `compras=1,2,3`. `RecetaService::resolverDespensa()` combina las compras seleccionadas o cae en la última cuando no se envía selección.
+- `CompraRepository::despensa()` acepta un arreglo de compras (máximo 50, siempre filtrado por `usuario_id`) y se añadió `resumenes()` para devolver fechas, comercios, productos y totales de la selección.
+- La despensa y el detalle de cada receta usan la misma selección; el resumen inferior muestra «Basado en N compras (fechas) · X productos».
+- Verificado: `php -l` en controlador, servicio, repositorio y vista; `node --check` en `recetas.js`. Sin pruebas de navegador en esta sesión.
+
+STATE_HANDOFF — Fase 30 (Recetas de referencia de Casa de México) — 2026-11-07
+- Migración 032: columnas `recetas.fuente_nombre`, `recetas.fuente_url` y `recetas.fuente_autor`, con índice por `fuente_url`. Permiten atribuir recetas externas sin reutilizar `origen`.
+- `RecetaRepository` expone los campos de fuente en `COLUMNS`, altas y ediciones, y añade `findByFuenteUrl()` para que la importación sea idempotente.
+- `RecetaService` valida la fuente (nombre ≤150, URL http/https ≤500, autor ≤150), expone `fuente_*` y `referencia` en los payloads de listado/detalle/admin y añade `crearReferencia()` / `actualizarReferencia()`. Las referencias siempre nacen en `borrador` y con `creada_por = NULL`; al refrescar conservan el estado que ya tuviera el usuario.
+- UI: el detalle público muestra el bloque «Receta de referencia», autor original y enlace «Ver receta original»; las tarjetas y el listado admin muestran el badge «Referencia». El formulario admin incorpora «Fuente y atribución» y `receta-form.js` envía los tres campos.
+- `scripts/importar_casademexico.php`: lee el listado de la API REST de WordPress, descarga las fichas en paralelo, extrae ingredientes (listas, párrafos con `<br>` y texto plano), pasos, porciones, tiempo, picante, autor e imagen. Las imágenes se enlazan por URL (no se descargan). Normaliza unidades y cantidades (fracciones, rangos, unidades discretas/no estándar), descarta encabezados de grupo y limpia nombres.
+- Clasificación: categoría de platillo y tipos de dieta (`general`, `vegetariano`, `sin_gluten`) sugeridos desde las categorías del sitio, el título y los ingredientes. Son propuestas para revisión manual, no una validación dietética.
+- CLI: `--limit=N`, `--dry-run` y `--refrescar`. Sin `--refrescar` omite las recetas ya importadas; con él actualiza las existentes por `fuente_url`.
+- Resultado local: 1,004 recetas importadas como borrador de las 1,006 de la fuente (999 con imagen enlazada y 963 con autor). Quedaron fuera «Merluza con salsa de 3 chiles» y «Café de Olla» porque la ficha original no publica pasos. Distribución de dietas: 1,004 general, 827 sin gluten y 331 vegetarianas. El catálogo total pasa a 1,104 recetas (100 base + 1,004 referencias).
+- Verificado: migración aplicada, `php -l` en script/repositorio/servicio/vista, `node --check` en JS, dry-run, importación completa, refresco de las 1,004 y muestreo de ingredientes/categorías. Sin commit ni despliegue.

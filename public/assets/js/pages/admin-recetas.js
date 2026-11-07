@@ -110,6 +110,16 @@ function init(root) {
         slug.textContent = String(item.slug ?? '');
         nombre.append(titulo, slug);
 
+        if (item.referencia) {
+            const referencia = document.createElement('span');
+            referencia.className = 'badge text-bg-warning mt-1';
+            referencia.textContent = 'Referencia';
+            referencia.title = item.fuente_nombre
+                ? `Fuente: ${String(item.fuente_nombre)}`
+                : 'Receta de referencia externa';
+            nombre.append(referencia);
+        }
+
         const categoria = document.createElement('td');
         categoria.className = 'd-none d-md-table-cell';
         const categoriaBadge = document.createElement('span');

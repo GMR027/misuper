@@ -15,6 +15,7 @@ final class RecetaRepository
 {
     private const COLUMNS = 'r.id, r.slug, r.nombre, r.descripcion, r.tipos, r.categoria_id,
         r.porciones_base, r.tiempo_min, r.dificultad, r.ingredientes, r.pasos, r.imagen_url,
+        r.fuente_nombre, r.fuente_url, r.fuente_autor,
         r.video_youtube_id, r.video_titulo, r.estado, r.creada_por,
         (SELECT u.nombre FROM usuarios u WHERE u.id = r.creada_por) AS creador_nombre,
         r.created_at, r.updated_at';
@@ -92,6 +93,23 @@ final class RecetaRepository
     }
 
     /**
+     * Busca una receta importada por la URL de su fuente original.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function findByFuenteUrl(string $url): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::COLUMNS . ' FROM recetas r WHERE r.fuente_url = ? LIMIT 1'
+        );
+        $statement->execute([$url]);
+
+        $row = $statement->fetch();
+
+        return $row === false ? null : $this->normalizarFila($row);
+    }
+
+    /**
      * @param array<string, mixed> $data
      * @return array<string, mixed>
      */
@@ -102,9 +120,9 @@ final class RecetaRepository
         $statement = $this->pdo->prepare(
             'INSERT INTO recetas
                 (slug, nombre, descripcion, tipos, categoria_id, porciones_base, tiempo_min,
-                 dificultad, ingredientes, pasos, imagen_url, video_youtube_id, video_titulo,
-                 estado, creada_por)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                 dificultad, ingredientes, pasos, imagen_url, fuente_nombre, fuente_url, fuente_autor,
+                 video_youtube_id, video_titulo, estado, creada_por)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $statement->execute([
             $slug,
@@ -118,6 +136,9 @@ final class RecetaRepository
             json_encode($data['ingredientes'], JSON_UNESCAPED_UNICODE),
             json_encode($data['pasos'], JSON_UNESCAPED_UNICODE),
             $data['imagen_url'],
+            $data['fuente_nombre'] ?? null,
+            $data['fuente_url'] ?? null,
+            $data['fuente_autor'] ?? null,
             $data['video_youtube_id'],
             $data['video_titulo'],
             $estado,
@@ -155,6 +176,9 @@ final class RecetaRepository
                 return json_encode($value, JSON_UNESCAPED_UNICODE);
             },
             'imagen_url' => null,
+            'fuente_nombre' => null,
+            'fuente_url' => null,
+            'fuente_autor' => null,
             'video_youtube_id' => null,
             'video_titulo' => null,
             'estado' => null,
@@ -284,6 +308,15 @@ final class RecetaRepository
             'ingredientes' => $this->decodificar($row['ingredientes']),
             'pasos' => $this->decodificar($row['pasos']),
             'imagen_url' => isset($row['imagen_url']) ? (string) $row['imagen_url'] : null,
+            'fuente_nombre' => isset($row['fuente_nombre']) && $row['fuente_nombre'] !== null
+                ? (string) $row['fuente_nombre']
+                : null,
+            'fuente_url' => isset($row['fuente_url']) && $row['fuente_url'] !== null
+                ? (string) $row['fuente_url']
+                : null,
+            'fuente_autor' => isset($row['fuente_autor']) && $row['fuente_autor'] !== null
+                ? (string) $row['fuente_autor']
+                : null,
             'video_youtube_id' => isset($row['video_youtube_id']) ? (string) $row['video_youtube_id'] : null,
             'video_titulo' => isset($row['video_titulo']) ? (string) $row['video_titulo'] : null,
             'estado' => (string) $row['estado'],

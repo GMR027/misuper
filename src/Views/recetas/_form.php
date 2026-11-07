@@ -171,6 +171,57 @@ if (!empty($receta['video']['youtube_id'])) {
                 >
             </div>
 
+            <div class="col-12">
+                <div class="receta-form__fuente">
+                    <h5 class="mb-1">
+                        <i class="bi bi-link-45deg" aria-hidden="true"></i>
+                        Fuente y atribución
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        Si la receta viene de otra web, indícalo aquí. El recetario mostrará un aviso
+                        de que es una receta de referencia y un enlace al original.
+                    </p>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-5">
+                            <label class="form-label" for="receta-fuente-nombre">Nombre de la fuente</label>
+                            <input
+                                class="form-control"
+                                type="text"
+                                id="receta-fuente-nombre"
+                                maxlength="150"
+                                placeholder="Fundación Casa de México en España"
+                                value="<?= htmlspecialchars((string) ($receta['fuente_nombre'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                                data-receta-fuente-nombre
+                            >
+                        </div>
+                        <div class="col-12 col-md-7">
+                            <label class="form-label" for="receta-fuente-url">URL de la receta original</label>
+                            <input
+                                class="form-control"
+                                type="url"
+                                id="receta-fuente-url"
+                                maxlength="500"
+                                placeholder="https://…"
+                                value="<?= htmlspecialchars((string) ($receta['fuente_url'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                                data-receta-fuente-url
+                            >
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <label class="form-label" for="receta-fuente-autor">Autor original <span class="text-muted">(opcional)</span></label>
+                            <input
+                                class="form-control"
+                                type="text"
+                                id="receta-fuente-autor"
+                                maxlength="150"
+                                value="<?= htmlspecialchars((string) ($receta['fuente_autor'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                                data-receta-fuente-autor
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         <?php endif; ?>
 
         <div class="col-12">

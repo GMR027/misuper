@@ -25,6 +25,7 @@ function init(root) {
         tipos: root.querySelector('[data-receta-tipos]'),
         tipoAviso: root.querySelector('[data-receta-tipo-aviso]'),
         despensa: root.querySelector('[data-recetas-despensa]'),
+        comprasCambiar: root.querySelector('[data-compras-cambiar]'),
         status: root.querySelector('[data-recetas-status]'),
         grid: root.querySelector('[data-recetas-grid]'),
         paginacion: root.querySelector('[data-recetas-paginacion]'),
@@ -47,6 +48,14 @@ function init(root) {
         previewGuardar: document.querySelector('[data-preview-guardar]'),
         previewLista: document.querySelector('[data-preview-lista]'),
         previewNueva: document.querySelector('[data-preview-nueva]'),
+        comprasModal: document.querySelector('[data-compras-modal]'),
+        comprasLista: document.querySelector('[data-compras-lista]'),
+        comprasContador: document.querySelector('[data-compras-contador]'),
+        comprasTodas: document.querySelector('[data-compras-todas]'),
+        comprasLimpiar: document.querySelector('[data-compras-limpiar]'),
+        comprasMas: document.querySelector('[data-compras-mas]'),
+        comprasStatus: document.querySelector('[data-compras-status]'),
+        comprasAplicar: document.querySelector('[data-compras-aplicar]'),
     };
 
     const POR_PAGINA = 20;
@@ -69,6 +78,15 @@ function init(root) {
     let searchTimer = null;
     /** @type {Array<any>} */
     let previewItems = [];
+    /** @type {Set<number>} Compras aplicadas al filtro actual. */
+    const comprasAplicadas = new Set();
+    /** @type {Set<number>} Compras marcadas dentro del modal. */
+    const comprasSeleccionadas = new Set();
+    /** @type {Array<any>} */
+    let comprasDisponibles = [];
+    let comprasPagina = 1;
+    let comprasTotalPaginas = 1;
+    let comprasCargando = false;
 
     bind();
     cargar();
@@ -82,10 +100,31 @@ function init(root) {
         });
 
         el.tiempo?.addEventListener('change', cargar);
-        el.solo?.addEventListener('change', cargar);
+        el.solo?.addEventListener('change', () => {
+            if (el.solo instanceof HTMLInputElement && el.solo.checked) {
+                abrirComprasModal();
+            } else {
+                comprasAplicadas.clear();
+                comprasSeleccionadas.clear();
+                actualizarBotonCambiar();
+                cargar();
+            }
+        });
         el.favoritas?.addEventListener('change', () => {
             soloFavoritas = el.favoritas instanceof HTMLInputElement ? el.favoritas.checked : false;
             cargar();
+        });
+
+        el.comprasCambiar?.addEventListener('click', abrirComprasModal);
+        el.comprasAplicar?.addEventListener('click', aplicarCompras);
+        el.comprasLimpiar?.addEventListener('click', () => {
+            comprasSeleccionadas.clear();
+            renderCompras();
+        });
+        el.comprasTodas?.addEventListener('click', seleccionarTodasCompras);
+        el.comprasMas?.addEventListener('click', () => cargarCompras(comprasPagina + 1));
+        document.querySelectorAll('[data-compras-cerrar]').forEach((button) => {
+            button.addEventListener('click', cerrarComprasModal);
         });
 
         el.seleccionLimpiar?.addEventListener('click', () => {
@@ -107,10 +146,14 @@ function init(root) {
         el.previewGuardar?.addEventListener('click', guardarPreview);
         el.previewLista?.addEventListener('change', actualizarNuevaLista);
 
-        document.querySelectorAll('[data-receta-modal], [data-preview-modal]').forEach((modal) => {
+        document.querySelectorAll('[data-receta-modal], [data-preview-modal], [data-compras-modal]').forEach((modal) => {
             modal.addEventListener('click', (event) => {
                 if (event.target === modal) {
-                    cerrarModal(modal);
+                    if (modal === el.comprasModal) {
+                        cerrarComprasModal();
+                    } else {
+                        cerrarModal(modal);
+                    }
                 }
             });
         });
@@ -120,12 +163,16 @@ function init(root) {
                 return;
             }
 
-            const abierto = [el.previewModal, el.detalleModal].find(
+            const abierto = [el.previewModal, el.detalleModal, el.comprasModal].find(
                 (modal) => modal instanceof HTMLElement && !modal.hidden,
             );
 
             if (abierto instanceof HTMLElement) {
-                cerrarModal(abierto);
+                if (abierto === el.comprasModal) {
+                    cerrarComprasModal();
+                } else {
+                    cerrarModal(abierto);
+                }
             }
         });
     }
@@ -153,6 +200,10 @@ function init(root) {
 
         if (el.solo instanceof HTMLInputElement && el.solo.checked) {
             params.set('solo_despensa', '1');
+
+            if (comprasAplicadas.size > 0) {
+                params.set('compras', Array.from(comprasAplicadas).join(','));
+            }
         }
 
         if (soloFavoritas) {
@@ -180,16 +231,33 @@ function init(root) {
             renderAviso();
 
             if (el.despensa instanceof HTMLElement) {
-                const total = Number(data?.despensa?.total_productos ?? 0);
-                const fecha = formatearFecha(data?.despensa?.fecha);
+                const despensa = data?.despensa ?? {};
+                const total = Number(despensa.total_productos ?? 0);
+                const compras = Array.isArray(despensa.compras) ? despensa.compras : [];
+                const fechas = compras
+                    .map((compra) => formatearFecha(compra?.fecha))
+                    .filter((fecha) => fecha !== '');
 
-                if (total > 0) {
-                    el.despensa.textContent = `Basado en tu última compra${fecha !== '' ? ` del ${fecha}` : ''} (${total} ${total === 1 ? 'producto' : 'productos'}).`;
-                } else if (fecha !== '') {
-                    el.despensa.textContent = `Tu última compra${fecha !== '' ? ` del ${fecha}` : ''} no tiene productos de despensa.`;
+                if (despensa.modo === 'seleccion') {
+                    const etiquetaCompras = compras.length === 1 ? 'compra' : 'compras';
+                    const detalleFechas = fechas.length > 0 ? ` (${fechas.join(', ')})` : '';
+
+                    el.despensa.textContent = total > 0
+                        ? `Basado en ${compras.length} ${etiquetaCompras}${detalleFechas} · ${total} ${total === 1 ? 'producto' : 'productos'}.`
+                        : `Las compras seleccionadas${detalleFechas} no tienen productos de despensa.`;
                 } else {
-                    el.despensa.textContent = 'Aún no tienes compras registradas; guarda una compra para usar este filtro.';
+                    const fecha = formatearFecha(despensa.fecha);
+
+                    if (total > 0) {
+                        el.despensa.textContent = `Basado en tu última compra${fecha !== '' ? ` del ${fecha}` : ''} (${total} ${total === 1 ? 'producto' : 'productos'}).`;
+                    } else if (fecha !== '') {
+                        el.despensa.textContent = `Tu última compra${fecha !== '' ? ` del ${fecha}` : ''} no tiene productos de despensa.`;
+                    } else {
+                        el.despensa.textContent = 'Aún no tienes compras registradas; guarda una compra para usar este filtro.';
+                    }
                 }
+
+                actualizarBotonCambiar();
             }
 
             // El estado y la paginación se actualizan en renderRecetas().
@@ -341,7 +409,7 @@ function init(root) {
             if (el.empty instanceof HTMLElement) {
                 el.empty.hidden = false;
                 el.empty.textContent = el.solo instanceof HTMLInputElement && el.solo.checked
-                    ? 'Ninguna receta se puede preparar solo con tu última compra. Desactiva el filtro para ver todas.'
+                    ? 'Ninguna receta se puede preparar solo con las compras seleccionadas. Cambia la selección o desactiva el filtro.'
                     : 'No hay recetas que coincidan con los filtros. Prueba con otro tipo o limpia la búsqueda.';
             }
 
@@ -499,7 +567,14 @@ function init(root) {
             badges.append(badge);
         }
 
-        const maxTipos = receta.categoria ? 1 : 2;
+        if (receta.referencia) {
+            const badge = document.createElement('span');
+            badge.className = 'recipe-badge recipe-badge--fuente';
+            badge.textContent = 'Referencia';
+            badges.append(badge);
+        }
+
+        const maxTipos = receta.categoria || receta.referencia ? 1 : 2;
 
         for (const tipo of (Array.isArray(receta.tipos) ? receta.tipos : []).slice(0, maxTipos)) {
             const badge = document.createElement('span');
@@ -736,7 +811,13 @@ function init(root) {
         }
 
         try {
-            const receta = await fetchApi(`/api/recetas/${encodeURIComponent(slug)}`);
+            let url = `/api/recetas/${encodeURIComponent(slug)}`;
+
+            if (el.solo instanceof HTMLInputElement && el.solo.checked && comprasAplicadas.size > 0) {
+                url += `?compras=${encodeURIComponent(Array.from(comprasAplicadas).join(','))}`;
+            }
+
+            const receta = await fetchApi(url);
             detalleActual = receta;
             detallePorciones = Number(receta.porciones_base ?? 4);
             pintarDetalle();
@@ -936,6 +1017,37 @@ function init(root) {
         steps.append(stepsTitle, stepsList);
 
         el.detalleBody.append(types, desc, meta, ingredients, steps);
+
+        if (receta.fuente_url || receta.fuente_nombre) {
+            const fuente = document.createElement('div');
+            fuente.className = 'recipe-detail__fuente';
+
+            const tituloFuente = document.createElement('strong');
+            tituloFuente.textContent = 'Receta de referencia';
+
+            const textoFuente = document.createElement('p');
+            const nombreFuente = String(receta.fuente_nombre ?? 'otra fuente').trim() || 'otra fuente';
+            textoFuente.textContent = `Esta receta no es propia de Misuper. Se muestra como referencia de ${nombreFuente}.`;
+
+            fuente.append(tituloFuente, textoFuente);
+
+            if (receta.fuente_autor) {
+                const autorFuente = document.createElement('p');
+                autorFuente.textContent = `Autor original: ${String(receta.fuente_autor)}.`;
+                fuente.append(autorFuente);
+            }
+
+            if (receta.fuente_url) {
+                const enlace = document.createElement('a');
+                enlace.href = String(receta.fuente_url);
+                enlace.target = '_blank';
+                enlace.rel = 'noopener noreferrer';
+                enlace.innerHTML = '<i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Ver receta original';
+                fuente.append(enlace);
+            }
+
+            el.detalleBody.append(fuente);
+        }
 
         const costo = receta.costo;
 
@@ -1337,6 +1449,276 @@ function init(root) {
         button.innerHTML = favorita
             ? '<i class="bi bi-star-fill" aria-hidden="true"></i><span class="visually-hidden">Quitar de favoritas</span>'
             : '<i class="bi bi-star" aria-hidden="true"></i><span class="visually-hidden">Agregar a favoritas</span>';
+    }
+
+    /* Selección de compras ---------------------------------------------- */
+
+    async function abrirComprasModal() {
+        if (!(el.comprasModal instanceof HTMLElement)) {
+            return;
+        }
+
+        comprasSeleccionadas.clear();
+        comprasAplicadas.forEach((id) => comprasSeleccionadas.add(id));
+
+        if (comprasSeleccionadas.size === 0 && comprasDisponibles.length > 0) {
+            comprasSeleccionadas.add(Number(comprasDisponibles[0].id));
+        }
+
+        abrirModal(el.comprasModal);
+        actualizarContadorCompras();
+
+        if (comprasDisponibles.length === 0) {
+            await cargarCompras(1, true);
+            enfocarComprasModal();
+        } else {
+            renderCompras();
+            enfocarComprasModal();
+        }
+    }
+
+    /**
+     * @param {number} pagina
+     * @param {boolean} reiniciar
+     */
+    async function cargarCompras(pagina, reiniciar = false) {
+        if (comprasCargando || !(el.comprasLista instanceof HTMLElement)) {
+            return;
+        }
+
+        comprasCargando = true;
+
+        if (el.comprasStatus instanceof HTMLElement) {
+            el.comprasStatus.textContent = 'Cargando compras…';
+        }
+
+        try {
+            const data = await fetchApi(`/api/compras?page=${pagina}`);
+            const items = Array.isArray(data?.items) ? data.items : [];
+
+            if (reiniciar) {
+                comprasDisponibles = [];
+            }
+
+            const existentes = new Set(comprasDisponibles.map((compra) => Number(compra.id)));
+
+            for (const compra of items) {
+                const id = Number(compra?.id);
+
+                if (id > 0 && !existentes.has(id)) {
+                    comprasDisponibles.push(compra);
+                    existentes.add(id);
+                }
+            }
+
+            const total = Number(data?.total ?? 0);
+            const perPage = Number(data?.per_page ?? 20);
+            comprasPagina = Number(data?.page ?? pagina);
+            comprasTotalPaginas = Math.max(1, Math.ceil(total / Math.max(1, perPage)));
+
+            if (reiniciar && comprasSeleccionadas.size === 0 && comprasDisponibles.length > 0) {
+                comprasSeleccionadas.add(Number(comprasDisponibles[0].id));
+            }
+
+            if (el.comprasStatus instanceof HTMLElement) {
+                el.comprasStatus.textContent = '';
+            }
+
+            renderCompras();
+        } catch (error) {
+            if (redirectIfSessionLost(error)) {
+                return;
+            }
+
+            if (el.comprasStatus instanceof HTMLElement) {
+                el.comprasStatus.textContent = 'No se pudieron cargar las compras.';
+            }
+
+            if (el.comprasLista instanceof HTMLElement) {
+                el.comprasLista.replaceChildren();
+
+                const vacio = document.createElement('p');
+                vacio.className = 'text-muted small mb-0';
+                vacio.textContent = 'No se pudieron cargar las compras. Inténtalo de nuevo.';
+                el.comprasLista.append(vacio);
+            }
+        } finally {
+            comprasCargando = false;
+        }
+    }
+
+    function renderCompras() {
+        if (!(el.comprasLista instanceof HTMLElement)) {
+            return;
+        }
+
+        el.comprasLista.replaceChildren();
+
+        if (comprasDisponibles.length === 0) {
+            const vacio = document.createElement('p');
+            vacio.className = 'text-muted small mb-0';
+            vacio.textContent = 'Aún no tienes compras registradas. Guarda una compra para usar este filtro.';
+            el.comprasLista.append(vacio);
+        } else {
+            for (const compra of comprasDisponibles) {
+                el.comprasLista.append(crearFilaCompra(compra));
+            }
+        }
+
+        if (el.comprasMas instanceof HTMLElement) {
+            el.comprasMas.hidden = comprasPagina >= comprasTotalPaginas;
+        }
+
+        actualizarContadorCompras();
+    }
+
+    /**
+     * @param {any} compra
+     * @returns {HTMLElement}
+     */
+    function crearFilaCompra(compra) {
+        const id = Number(compra?.id);
+        const fecha = formatearFechaCompleta(compra?.fecha);
+        const comercio = typeof compra?.comercio === 'string' && compra.comercio.trim() !== ''
+            ? compra.comercio.trim()
+            : 'Compra sin comercio';
+        const items = Number(compra?.items_count ?? 0);
+        const total = Number(compra?.total ?? 0);
+
+        const label = document.createElement('label');
+        label.className = 'recipe-purchase-item';
+        label.classList.toggle('is-selected', comprasSeleccionadas.has(id));
+
+        const check = document.createElement('input');
+        check.type = 'checkbox';
+        check.className = 'form-check-input';
+        check.value = String(id);
+        check.checked = comprasSeleccionadas.has(id);
+        check.setAttribute('aria-label', `Usar ${comercio} del ${fecha}`);
+        check.addEventListener('change', () => {
+            if (check.checked) {
+                comprasSeleccionadas.add(id);
+            } else {
+                comprasSeleccionadas.delete(id);
+            }
+
+            label.classList.toggle('is-selected', check.checked);
+            actualizarContadorCompras();
+        });
+
+        const info = document.createElement('span');
+        info.className = 'recipe-purchase-item__info';
+
+        const titulo = document.createElement('span');
+        titulo.className = 'recipe-purchase-item__title';
+        titulo.textContent = comercio;
+
+        const meta = document.createElement('span');
+        meta.className = 'recipe-purchase-item__meta';
+        meta.textContent = `${fecha} · ${items} ${items === 1 ? 'producto' : 'productos'} · ${formatCurrency(total)}`;
+
+        info.append(titulo, meta);
+        label.append(check, info);
+
+        return label;
+    }
+
+    function actualizarContadorCompras() {
+        const total = comprasSeleccionadas.size;
+
+        if (el.comprasContador instanceof HTMLElement) {
+            el.comprasContador.textContent = `${total} ${total === 1 ? 'compra seleccionada' : 'compras seleccionadas'}`;
+        }
+
+        if (el.comprasAplicar instanceof HTMLButtonElement) {
+            el.comprasAplicar.disabled = total === 0;
+        }
+    }
+
+    async function seleccionarTodasCompras() {
+        let intentos = 0;
+
+        while (comprasPagina < comprasTotalPaginas && intentos < 50) {
+            const anterior = comprasPagina;
+            await cargarCompras(comprasPagina + 1);
+
+            if (comprasPagina === anterior) {
+                break;
+            }
+
+            intentos++;
+        }
+
+        for (const compra of comprasDisponibles) {
+            comprasSeleccionadas.add(Number(compra.id));
+        }
+
+        renderCompras();
+        enfocarComprasModal();
+    }
+
+    function aplicarCompras() {
+        if (comprasSeleccionadas.size === 0) {
+            return;
+        }
+
+        comprasAplicadas.clear();
+        comprasSeleccionadas.forEach((id) => comprasAplicadas.add(id));
+        cerrarModal(el.comprasModal);
+        actualizarBotonCambiar();
+        cargar();
+    }
+
+    function cerrarComprasModal() {
+        cerrarModal(el.comprasModal);
+
+        if (el.solo instanceof HTMLInputElement && el.solo.checked && comprasAplicadas.size === 0) {
+            el.solo.checked = false;
+        }
+
+        actualizarBotonCambiar();
+    }
+
+    function actualizarBotonCambiar() {
+        if (!(el.comprasCambiar instanceof HTMLElement)) {
+            return;
+        }
+
+        el.comprasCambiar.hidden = !(
+            el.solo instanceof HTMLInputElement
+            && el.solo.checked
+            && comprasAplicadas.size > 0
+        );
+    }
+
+    function enfocarComprasModal() {
+        if (!(el.comprasModal instanceof HTMLElement) || el.comprasModal.hidden) {
+            return;
+        }
+
+        const control = el.comprasModal.querySelector('input, button');
+
+        if (control instanceof HTMLElement) {
+            control.focus();
+        }
+    }
+
+    /**
+     * @param {unknown} valor
+     * @returns {string}
+     */
+    function formatearFechaCompleta(valor) {
+        if (typeof valor !== 'string') {
+            return '';
+        }
+
+        const partes = valor.slice(0, 10).split('-');
+
+        if (partes.length !== 3) {
+            return '';
+        }
+
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
 
     /* Utilidades -------------------------------------------------------- */

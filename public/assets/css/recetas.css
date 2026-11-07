@@ -192,6 +192,11 @@
     background: var(--p-700, #0f7a57);
 }
 
+.recipe-badge--fuente {
+    color: #6b4a00;
+    background: #fff1c2;
+}
+
 .recipe-card__body {
     display: flex;
     flex-direction: column;
@@ -399,6 +404,71 @@
     }
 }
 
+/* Selección de compras ------------------------------------------------ */
+
+.recipe-purchase-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    max-height: min(50vh, 28rem);
+    padding-right: 0.15rem;
+    overflow: auto;
+}
+
+.recipe-purchase-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.65rem 0.75rem;
+    cursor: pointer;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 0.65rem;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.recipe-purchase-item:hover {
+    border-color: var(--p-300);
+    background: var(--p-50);
+}
+
+.recipe-purchase-item.is-selected {
+    border-color: var(--p-400);
+    background: linear-gradient(135deg, var(--p-50), var(--surface));
+    box-shadow: inset 0 0 0 1px rgba(var(--p-rgb), 0.12);
+}
+
+.recipe-purchase-item .form-check-input {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.recipe-purchase-item__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.recipe-purchase-item__title {
+    overflow: hidden;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.recipe-purchase-item__meta {
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+@media (max-width: 575.98px) {
+    .recipe-purchase-item__title {
+        white-space: normal;
+    }
+}
+
 /* Detalle ------------------------------------------------------------- */
 
 .app-modal .modal-dialog.modal-lg {
@@ -504,6 +574,31 @@
     border-radius: 0.4rem;
 }
 
+.recipe-detail__fuente {
+    padding: 0.75rem 0.85rem;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--a-400);
+    border-radius: 0.5rem;
+}
+
+.recipe-detail__fuente strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: var(--ink);
+}
+
+.recipe-detail__fuente p {
+    margin-bottom: 0.35rem;
+    color: var(--muted);
+}
+
+.recipe-detail__fuente a {
+    font-weight: 700;
+}
+
 .recipe-detail__porciones {
     display: inline-flex;
     align-items: center;
@@ -585,6 +680,18 @@
 }
 
 /* Formulario de recetas (Admin y propuestas) -------------------------- */
+
+.receta-form__fuente {
+    padding: 0.9rem 1rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--a-400);
+    border-radius: 0.65rem;
+}
+
+.receta-form__fuente h5 {
+    font-weight: 800;
+}
 
 .receta-form__tipos {
     display: grid;

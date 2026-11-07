@@ -333,16 +333,32 @@ final class CompraRepository
      * Productos que el usuario ha comprado, agrupados por nombre de producto.
      * Es la base para la "despensa inferida" de las recetas.
      *
+     * @param int|array<int, int>|null $compraIds Una compra o una selección de compras.
      * @return array<int, array{producto_id: int|null, nombre: string, unidad_base: string|null, categoria_nombre: string|null, veces: int, ultima_compra: string}>
      */
-    public function despensa(int $usuarioId, ?int $dias = null, ?int $compraId = null): array
+    public function despensa(int $usuarioId, ?int $dias = null, int|array|null $compraIds = null): array
     {
         $where = ['c.usuario_id = ?'];
         $params = [$usuarioId];
 
-        if ($compraId !== null && $compraId > 0) {
-            $where[] = 'c.id = ?';
-            $params[] = $compraId;
+        $ids = [];
+
+        if (is_array($compraIds)) {
+            foreach ($compraIds as $compraId) {
+                $compraId = (int) $compraId;
+
+                if ($compraId > 0) {
+                    $ids[$compraId] = $compraId;
+                }
+            }
+        } elseif ($compraIds !== null && $compraIds > 0) {
+            $ids[$compraIds] = $compraIds;
+        }
+
+        if ($ids !== []) {
+            $ids = array_slice(array_values($ids), 0, 50);
+            $where[] = 'c.id IN (' . implode(', ', array_fill(0, count($ids), '?')) . ')';
+            array_push($params, ...$ids);
         }
 
         if ($dias !== null && $dias > 0) {
@@ -422,6 +438,56 @@ final class CompraRepository
             'id' => (int) $row['id'],
             'fecha' => (string) $row['fecha'],
         ];
+    }
+
+    /**
+     * Resúmenes de compras concretas del usuario, ordenados de más reciente a más antigua.
+     *
+     * @param array<int, int> $compraIds
+     * @return array<int, array{id: int, fecha: string, total: float, comercio: string|null, items_count: int}>
+     */
+    public function resumenes(int $usuarioId, array $compraIds): array
+    {
+        $ids = [];
+
+        foreach ($compraIds as $compraId) {
+            $compraId = (int) $compraId;
+
+            if ($compraId > 0) {
+                $ids[$compraId] = $compraId;
+            }
+        }
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $ids = array_slice(array_values($ids), 0, 50);
+        $statement = $this->pdo->prepare(
+            'SELECT c.id, c.fecha, c.total, c.comercio,
+                    (SELECT COUNT(*) FROM compra_items ci WHERE ci.compra_id = c.id) AS items_count
+             FROM compras c
+             WHERE c.usuario_id = ?
+               AND c.id IN (' . implode(', ', array_fill(0, count($ids), '?')) . ')
+             ORDER BY c.fecha DESC, c.id DESC'
+        );
+        $statement->execute([$usuarioId, ...$ids]);
+
+        $resumenes = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $resumenes[] = [
+                'id' => (int) $row['id'],
+                'fecha' => (string) $row['fecha'],
+                'total' => round((float) $row['total'], 2),
+                'comercio' => isset($row['comercio']) && $row['comercio'] !== ''
+                    ? (string) $row['comercio']
+                    : null,
+                'items_count' => (int) $row['items_count'],
+            ];
+        }
+
+        return $resumenes;
     }
 
     /**
