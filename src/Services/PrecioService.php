@@ -311,7 +311,7 @@ final class PrecioService
     }
 
     /**
-     * @return array{indice: array<string, array<string, mixed>>, mapa: array<int, array<string, mixed>>, pantry: array<string, bool>}
+     * @return array{indice: array<string, array<string, mixed>>, mapa: array<int, array<string, mixed>>, pantry: array<int, array{nombre: string, tokens: array<int, string>}>}
      */
     private function contextoCosto(int $usuarioId): array
     {
@@ -331,7 +331,7 @@ final class PrecioService
 
     /**
      * @param array<string, mixed> $receta
-     * @param array{indice: array<string, array<string, mixed>>, mapa: array<int, array<string, mixed>>, pantry: array<string, bool>} $contexto
+     * @param array{indice: array<string, array<string, mixed>>, mapa: array<int, array<string, mixed>>, pantry: array<int, array{nombre: string, tokens: array<int, string>}>} $contexto
      * @return array<string, mixed>
      */
     private function costoRecetaConContexto(array $receta, ?int $porciones, array $contexto): array
@@ -584,36 +584,41 @@ final class PrecioService
     }
 
     /**
-     * @return array<string, bool>
+     * @return array<int, array{nombre: string, tokens: array<int, string>}>
      */
     private function indiceDespensa(array $despensa): array
     {
         $indice = [];
 
         foreach ($despensa as $item) {
-            $indice[NormalizadorService::normalizar((string) ($item['nombre'] ?? ''))] = true;
+            $nombre = trim((string) ($item['nombre'] ?? ''));
+
+            if ($nombre === '') {
+                continue;
+            }
+
+            $indice[] = [
+                'nombre' => $nombre,
+                'tokens' => NormalizadorService::tokensNombre($nombre),
+            ];
         }
 
         return $indice;
     }
 
     /**
-     * @param array<string, bool> $pantry
+     * @param array<int, array{nombre: string, tokens: array<int, string>}> $pantry
      */
     private function estaEnDespensa(array $pantry, string $nombre): bool
     {
-        $key = NormalizadorService::normalizar($nombre);
+        $tokens = NormalizadorService::tokensNombre($nombre);
 
-        if ($key === '') {
+        if ($tokens === []) {
             return false;
         }
 
-        if (isset($pantry[$key])) {
-            return true;
-        }
-
-        foreach ($pantry as $comprado => $_) {
-            if (str_contains($comprado, $key) || str_contains($key, $comprado)) {
+        foreach ($pantry as $item) {
+            if (NormalizadorService::tokensCompatibles($item['tokens'], $tokens)) {
                 return true;
             }
         }

@@ -964,7 +964,7 @@ final class RecetaService
     }
 
     /**
-     * @param array<string, array{veces: int}> $pantry
+     * @param array<int, array{nombre: string, tokens: array<int, string>, veces: int}> $pantry
      * @return array{coincidencia: float, tiene_count: int, total: int, faltan: array<int, string>, faltan_principales: int, resumen: array<int, string>}
      */
     private function matchReceta(array $receta, array $pantry): array
@@ -1099,37 +1099,42 @@ final class RecetaService
 
     /**
      * @param array<int, array{nombre: string, veces: int}> $despensa
-     * @return array<string, array{veces: int}>
+     * @return array<int, array{nombre: string, tokens: array<int, string>, veces: int}>
      */
     private function indiceDespensa(array $despensa): array
     {
         $index = [];
 
         foreach ($despensa as $item) {
-            $key = NormalizadorService::normalizar($item['nombre']);
-            $index[$key] = ['veces' => (int) ($item['veces'] ?? 1)];
+            $nombre = trim((string) ($item['nombre'] ?? ''));
+
+            if ($nombre === '') {
+                continue;
+            }
+
+            $index[] = [
+                'nombre' => $nombre,
+                'tokens' => NormalizadorService::tokensNombre($nombre),
+                'veces' => (int) ($item['veces'] ?? 1),
+            ];
         }
 
         return $index;
     }
 
     /**
-     * @param array<string, array{veces: int}> $pantry
+     * @param array<int, array{nombre: string, tokens: array<int, string>, veces: int}> $pantry
      */
     private function estaEnDespensa(array $pantry, string $nombre): bool
     {
-        $key = NormalizadorService::normalizar($nombre);
+        $tokens = NormalizadorService::tokensNombre($nombre);
 
-        if ($key === '') {
+        if ($tokens === []) {
             return false;
         }
 
-        if (isset($pantry[$key])) {
-            return true;
-        }
-
-        foreach ($pantry as $comprado => $datos) {
-            if (str_contains($comprado, $key) || str_contains($key, $comprado)) {
+        foreach ($pantry as $item) {
+            if (NormalizadorService::tokensCompatibles($item['tokens'], $tokens)) {
                 return true;
             }
         }
