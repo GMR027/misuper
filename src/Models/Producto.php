@@ -20,6 +20,9 @@ final class Producto
         public readonly ?string $categoriaNombre,
         public readonly string $unidadBase,
         public readonly ?string $imagenUrl,
+        public readonly ?float $kcal100 = null,
+        public readonly ?float $pesoPiezaG = null,
+        public readonly ?string $fuenteNutricion = null,
         public readonly ?string $imagenEstado = null,
         public readonly ?string $imagenVerificadaAt = null,
         public readonly string $estado = 'activo',
@@ -41,6 +44,9 @@ final class Producto
             categoriaNombre: isset($row['categoria_nombre']) ? (string) $row['categoria_nombre'] : null,
             unidadBase: (string) $row['unidad_base'],
             imagenUrl: isset($row['imagen_url']) ? (string) $row['imagen_url'] : null,
+            kcal100: isset($row['kcal_100']) ? (float) $row['kcal_100'] : null,
+            pesoPiezaG: isset($row['peso_pieza_g']) ? (float) $row['peso_pieza_g'] : null,
+            fuenteNutricion: isset($row['fuente_nutricion']) ? (string) $row['fuente_nutricion'] : null,
             imagenEstado: isset($row['imagen_estado']) ? (string) $row['imagen_estado'] : null,
             imagenVerificadaAt: isset($row['imagen_verificada_at'])
                 ? (string) $row['imagen_verificada_at']
@@ -65,13 +71,16 @@ final class Producto
             'categoria_nombre' => $this->categoriaNombre,
             'unidad_base' => $this->unidadBase,
             'imagen_url' => $this->imagenUrl,
+            'kcal_100' => $this->kcal100,
+            'peso_pieza_g' => $this->pesoPiezaG,
+            'fuente_nutricion' => $this->fuenteNutricion,
         ];
     }
 
     /**
      * Representación para el panel Admin (incluye estado y fecha de alta).
      *
-     * @return array{id: int, nombre: string, categoria_id: int, categoria_nombre: string|null, unidad_base: string, imagen_url: string|null, imagen_estado: string|null, imagen_verificada_at: string|null, estado: string, created_at: string|null}
+     * @return array{id: int, nombre: string, categoria_id: int, categoria_nombre: string|null, unidad_base: string, imagen_url: string|null, kcal_100: float|null, peso_pieza_g: float|null, fuente_nutricion: string|null, imagen_estado: string|null, imagen_verificada_at: string|null, estado: string, created_at: string|null}
      */
     public function toAdminArray(): array
     {
@@ -82,6 +91,9 @@ final class Producto
             'categoria_nombre' => $this->categoriaNombre,
             'unidad_base' => $this->unidadBase,
             'imagen_url' => $this->imagenUrl,
+            'kcal_100' => $this->kcal100,
+            'peso_pieza_g' => $this->pesoPiezaG,
+            'fuente_nutricion' => $this->fuenteNutricion,
             'imagen_estado' => $this->imagenEstado,
             'imagen_verificada_at' => $this->imagenVerificadaAt,
             'estado' => $this->estado,

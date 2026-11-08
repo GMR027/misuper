@@ -660,6 +660,9 @@ function initFormulario(form) {
     const categoriaSelect = form.querySelector('#categoria_id');
     const unidadSelect = form.querySelector('#unidad_base');
     const imagenInput = form.querySelector('#imagen_url');
+    const kcalInput = form.querySelector('#kcal_100');
+    const pesoInput = form.querySelector('#peso_pieza_g');
+    const fuenteInput = form.querySelector('#fuente_nutricion');
     const mensaje = form.querySelector('[data-message]');
     const submit = form.querySelector('button[type="submit"]');
     const desactivar = form.querySelector('[data-deactivate]');
@@ -702,6 +705,9 @@ function initFormulario(form) {
         const categoria = categoriaSelect instanceof HTMLSelectElement ? categoriaSelect.value : '';
         const unidad = unidadSelect instanceof HTMLSelectElement ? unidadSelect.value : '';
         const imagen = imagenInput instanceof HTMLInputElement ? imagenInput.value.trim() : '';
+        const kcalTexto = kcalInput instanceof HTMLInputElement ? kcalInput.value.trim() : '';
+        const pesoTexto = pesoInput instanceof HTMLInputElement ? pesoInput.value.trim() : '';
+        const fuente = fuenteInput instanceof HTMLInputElement ? fuenteInput.value.trim() : '';
 
         let ok = true;
 
@@ -725,6 +731,33 @@ function initFormulario(form) {
             ok = false;
         }
 
+        let kcal = null;
+
+        if (kcalTexto !== '') {
+            kcal = Number(kcalTexto.replace(',', '.'));
+
+            if (!Number.isFinite(kcal) || kcal < 0 || kcal > 9000) {
+                marcarError('kcal_100', 'Escribe un número entre 0 y 9000.');
+                ok = false;
+            }
+        }
+
+        let peso = null;
+
+        if (pesoTexto !== '') {
+            peso = Number(pesoTexto.replace(',', '.'));
+
+            if (!Number.isFinite(peso) || peso <= 0 || peso > 5000) {
+                marcarError('peso_pieza_g', 'Escribe un número entre 0 y 5000.');
+                ok = false;
+            }
+        }
+
+        if (fuente.length > 120) {
+            marcarError('fuente_nutricion', 'La fuente debe tener como máximo 120 caracteres.');
+            ok = false;
+        }
+
         return {
             ok,
             body: {
@@ -732,6 +765,9 @@ function initFormulario(form) {
                 categoria_id: categoria === '' ? null : Number(categoria),
                 unidad_base: unidad,
                 imagen_url: imagen === '' ? null : imagen,
+                kcal_100: kcal,
+                peso_pieza_g: peso,
+                fuente_nutricion: fuente === '' ? null : fuente,
             },
         };
     }

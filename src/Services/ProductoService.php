@@ -140,7 +140,10 @@ final class ProductoService
             (int) $data['categoria_id'],
             (string) $data['unidad_base'],
             self::normalizarImagen($data['imagen_url'] ?? null),
-            $usuarioId
+            $usuarioId,
+            self::decimal($data['kcal_100'] ?? null),
+            self::decimal($data['peso_pieza_g'] ?? null),
+            self::textoOpcional($data['fuente_nutricion'] ?? null)
         );
     }
 
@@ -187,6 +190,18 @@ final class ProductoService
 
         if (array_key_exists('imagen_url', $data)) {
             $campos['imagen_url'] = self::normalizarImagen($data['imagen_url']);
+        }
+
+        if (array_key_exists('kcal_100', $data)) {
+            $campos['kcal_100'] = self::decimal($data['kcal_100']);
+        }
+
+        if (array_key_exists('peso_pieza_g', $data)) {
+            $campos['peso_pieza_g'] = self::decimal($data['peso_pieza_g']);
+        }
+
+        if (array_key_exists('fuente_nutricion', $data)) {
+            $campos['fuente_nutricion'] = self::textoOpcional($data['fuente_nutricion']);
         }
 
         if ($campos !== []) {
@@ -325,5 +340,25 @@ final class ProductoService
         $imagen = trim($imagen);
 
         return $imagen === '' ? null : $imagen;
+    }
+
+    private static function decimal(mixed $valor): ?float
+    {
+        if ($valor === null || $valor === '' || !is_numeric($valor)) {
+            return null;
+        }
+
+        return round((float) $valor, 2);
+    }
+
+    private static function textoOpcional(mixed $valor): ?string
+    {
+        if (!is_string($valor)) {
+            return null;
+        }
+
+        $valor = trim($valor);
+
+        return $valor === '' ? null : $valor;
     }
 }

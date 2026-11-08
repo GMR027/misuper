@@ -37,6 +37,7 @@ final class RecetaService
     private readonly CategoriaRecetaRepository $categoriasRepo;
     private readonly RecetaImagenService $imagenes;
     private readonly PrecioService $precios;
+    private readonly NutricionService $nutricion;
 
     public function __construct(
         ?CompraRepository $compras = null,
@@ -45,7 +46,8 @@ final class RecetaService
         ?TipoRecetaRepository $tiposRepo = null,
         ?CategoriaRecetaRepository $categoriasRepo = null,
         ?RecetaImagenService $imagenes = null,
-        ?PrecioService $precios = null
+        ?PrecioService $precios = null,
+        ?NutricionService $nutricion = null
     ) {
         $this->compras = $compras ?? new CompraRepository();
         $this->productos = $productos ?? new ProductoRepository();
@@ -54,6 +56,7 @@ final class RecetaService
         $this->categoriasRepo = $categoriasRepo ?? new CategoriaRecetaRepository();
         $this->imagenes = $imagenes ?? new RecetaImagenService();
         $this->precios = $precios ?? new PrecioService();
+        $this->nutricion = $nutricion ?? new NutricionService();
     }
 
     /**
@@ -257,6 +260,7 @@ final class RecetaService
         $receta['categoria'] = $this->categoriaDe($receta);
         $receta['favorita'] = $this->recetas->esFavorito($usuarioId, (int) $receta['id']);
         $receta['costo'] = $this->precios->costoReceta($usuarioId, $receta);
+        $receta['nutricion'] = $this->nutricion->receta($receta, null, $usuarioId);
         $receta['tipos_detalle'] = array_values(array_filter(
             array_map(
                 fn (string $tipo): ?array => $this->tipos()[$tipo] ?? null,

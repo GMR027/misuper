@@ -15,6 +15,10 @@
     gap: 0.45rem;
 }
 
+.history-row__kcal {
+    font-size: 0.78rem;
+}
+
 .history-row__ticket {
     display: inline-flex;
     align-items: center;

@@ -1,0 +1,1824 @@
+{
+  "_meta": {
+    "descripcion": "Calorias orientativas por producto. kcal_100 es por 100 g en kg/gr/pza y por 100 ml en L/ml.",
+    "fuente": "Tabla de composición (aprox.)",
+    "nota": "Los valores son estimaciones de tablas de composicion; no sustituyen una valoracion nutricional."
+  },
+  "productos": {
+    "Agua con gas": {
+      "kcal_100": 0,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Agua mineral": {
+      "kcal_100": 0,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Agua purificada": {
+      "kcal_100": 0,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Agua tónica": {
+      "kcal_100": 34,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Bebida de soya": {
+      "kcal_100": 45,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Bebida energética": {
+      "kcal_100": 45,
+      "peso_pieza_g": 473,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Bebida isotónica": {
+      "kcal_100": 25,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Café en grano": {
+      "kcal_100": 375,
+      "peso_pieza_g": 250,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Café molido": {
+      "kcal_100": 375,
+      "peso_pieza_g": 250,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Café soluble": {
+      "kcal_100": 350,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cerveza clara": {
+      "kcal_100": 43,
+      "peso_pieza_g": 355,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cerveza oscura": {
+      "kcal_100": 50,
+      "peso_pieza_g": 355,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chocolate en polvo": {
+      "kcal_100": 400,
+      "peso_pieza_g": 400,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Clamato": {
+      "kcal_100": 30,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Jerez seco": {
+      "kcal_100": 130,
+      "peso_pieza_g": 750,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Jugo de manzana": {
+      "kcal_100": 46,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Jugo de naranja": {
+      "kcal_100": 45,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Jugo de uva": {
+      "kcal_100": 60,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Mezcal": {
+      "kcal_100": 231,
+      "peso_pieza_g": 750,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Néctar de mango": {
+      "kcal_100": 55,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Refresco de cola": {
+      "kcal_100": 42,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Refresco de limón": {
+      "kcal_100": 40,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Refresco de naranja": {
+      "kcal_100": 45,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Ron blanco": {
+      "kcal_100": 231,
+      "peso_pieza_g": 750,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Té de manzanilla": {
+      "kcal_100": 1,
+      "peso_pieza_g": 2,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Té helado": {
+      "kcal_100": 30,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Té verde": {
+      "kcal_100": 1,
+      "peso_pieza_g": 2,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Tequila": {
+      "kcal_100": 231,
+      "peso_pieza_g": 750,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Vino blanco": {
+      "kcal_100": 82,
+      "peso_pieza_g": 750,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Vino tinto": {
+      "kcal_100": 85,
+      "peso_pieza_g": 750,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Aguja de cerdo": {
+      "kcal_100": 250,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Ala de pollo": {
+      "kcal_100": 203,
+      "peso_pieza_g": 90,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Arrachera": {
+      "kcal_100": 250,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Atún fresco": {
+      "kcal_100": 144,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Bacalao": {
+      "kcal_100": 290,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Bistec de cerdo": {
+      "kcal_100": 200,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Bistec de res": {
+      "kcal_100": 250,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Camarón": {
+      "kcal_100": 99,
+      "peso_pieza_g": 10,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Carne molida de cerdo": {
+      "kcal_100": 263,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Carne molida de res": {
+      "kcal_100": 250,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Carne para deshebrar": {
+      "kcal_100": 250,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Carne seca": {
+      "kcal_100": 300,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chicharrón": {
+      "kcal_100": 544,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chorizo": {
+      "kcal_100": 455,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chuleta de cerdo": {
+      "kcal_100": 231,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Codillo de cerdo": {
+      "kcal_100": 260,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Conejo": {
+      "kcal_100": 173,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cordero": {
+      "kcal_100": 294,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Corvina": {
+      "kcal_100": 95,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Costilla de cerdo": {
+      "kcal_100": 277,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Costilla de res": {
+      "kcal_100": 300,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Espaldilla de res": {
+      "kcal_100": 251,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Falda de res": {
+      "kcal_100": 300,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Gamba": {
+      "kcal_100": 99,
+      "peso_pieza_g": 20,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Hueso de res": {
+      "kcal_100": null,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Jaiba": {
+      "kcal_100": 87,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Jamón": {
+      "kcal_100": 145,
+      "peso_pieza_g": 20,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Langostino": {
+      "kcal_100": 99,
+      "peso_pieza_g": 20,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Lenguado": {
+      "kcal_100": 86,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Lomo de cerdo": {
+      "kcal_100": 242,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Lomo de res": {
+      "kcal_100": 250,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Longaniza": {
+      "kcal_100": 450,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Lubina": {
+      "kcal_100": 97,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Milanesa de res": {
+      "kcal_100": 250,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Muslo de pollo": {
+      "kcal_100": 209,
+      "peso_pieza_g": 120,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Ostión": {
+      "kcal_100": 81,
+      "peso_pieza_g": 15,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Ostra": {
+      "kcal_100": 81,
+      "peso_pieza_g": 15,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Paleta de cerdo": {
+      "kcal_100": 260,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pato": {
+      "kcal_100": 337,
+      "peso_pieza_g": 2000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pechuga de pavo": {
+      "kcal_100": 135,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pechuga de pollo": {
+      "kcal_100": 165,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pescado blanco": {
+      "kcal_100": 90,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pescado tilapia": {
+      "kcal_100": 96,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pierna de cerdo": {
+      "kcal_100": 260,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pollo entero": {
+      "kcal_100": 215,
+      "peso_pieza_g": 1500,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pulpo": {
+      "kcal_100": 82,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salchicha": {
+      "kcal_100": 300,
+      "peso_pieza_g": 50,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salmón": {
+      "kcal_100": 208,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Solomillo de cerdo": {
+      "kcal_100": 143,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Solomillo de res": {
+      "kcal_100": 200,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Tocino": {
+      "kcal_100": 541,
+      "peso_pieza_g": 10,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Almendra": {
+      "kcal_100": 579,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Alubia blanca": {
+      "kcal_100": 333,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Amaranto": {
+      "kcal_100": 371,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Arroz blanco": {
+      "kcal_100": 365,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Arroz integral": {
+      "kcal_100": 370,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Arroz largo": {
+      "kcal_100": 365,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Avena": {
+      "kcal_100": 389,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Baguette": {
+      "kcal_100": 270,
+      "peso_pieza_g": 250,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Bicarbonato": {
+      "kcal_100": 0,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cacahuate": {
+      "kcal_100": 567,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cereal de hojuelas": {
+      "kcal_100": 380,
+      "peso_pieza_g": 500,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cereal de maíz": {
+      "kcal_100": 380,
+      "peso_pieza_g": 500,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Ciruela pasa": {
+      "kcal_100": 240,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Coco rallado": {
+      "kcal_100": 660,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Coditos": {
+      "kcal_100": 371,
+      "peso_pieza_g": 500,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Crepas": {
+      "kcal_100": 230,
+      "peso_pieza_g": 60,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cuscús": {
+      "kcal_100": 376,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Espagueti": {
+      "kcal_100": 371,
+      "peso_pieza_g": 500,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Fideos": {
+      "kcal_100": 371,
+      "peso_pieza_g": 500,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Frijol bayo": {
+      "kcal_100": 333,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Frijol negro": {
+      "kcal_100": 341,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Frijol pinto": {
+      "kcal_100": 347,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Galletas de avena": {
+      "kcal_100": 450,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Galletas María": {
+      "kcal_100": 440,
+      "peso_pieza_g": 170,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Garbanzo": {
+      "kcal_100": 364,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Habas secas": {
+      "kcal_100": 341,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Harina de arroz": {
+      "kcal_100": 366,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Harina de maíz": {
+      "kcal_100": 365,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Harina de trigo": {
+      "kcal_100": 364,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Lentejas": {
+      "kcal_100": 352,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Levadura instantánea": {
+      "kcal_100": 325,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Levadura química": {
+      "kcal_100": 53,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Maicena": {
+      "kcal_100": 381,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Maíz palomero": {
+      "kcal_100": 381,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Masa de maíz": {
+      "kcal_100": 218,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Masa para tortillas": {
+      "kcal_100": 218,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Nuez": {
+      "kcal_100": 654,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pan bolillo": {
+      "kcal_100": 270,
+      "peso_pieza_g": 60,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pan de caja": {
+      "kcal_100": 265,
+      "peso_pieza_g": 680,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pan integral": {
+      "kcal_100": 250,
+      "peso_pieza_g": 680,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pan rallado": {
+      "kcal_100": 395,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pasas": {
+      "kcal_100": 299,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pasta para sopa": {
+      "kcal_100": 371,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Piñón": {
+      "kcal_100": 673,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Polvo para hornear": {
+      "kcal_100": 53,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Quinoa": {
+      "kcal_100": 368,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Semillas de calabaza": {
+      "kcal_100": 559,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Semillas de chía": {
+      "kcal_100": 486,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Semillas de girasol": {
+      "kcal_100": 584,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Sésamo": {
+      "kcal_100": 573,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Tortillas de harina": {
+      "kcal_100": 300,
+      "peso_pieza_g": 45,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Tortillas de maíz": {
+      "kcal_100": 218,
+      "peso_pieza_g": 25,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Tostadas de maíz": {
+      "kcal_100": 400,
+      "peso_pieza_g": 15,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Totopos": {
+      "kcal_100": 490,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Acelga": {
+      "kcal_100": 19,
+      "peso_pieza_g": 300,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Aguacate": {
+      "kcal_100": 160,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Ajo": {
+      "kcal_100": 149,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Apio": {
+      "kcal_100": 16,
+      "peso_pieza_g": 500,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Berenjena": {
+      "kcal_100": 25,
+      "peso_pieza_g": 250,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Brócoli": {
+      "kcal_100": 34,
+      "peso_pieza_g": 400,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Calabacita": {
+      "kcal_100": 17,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Calabaza": {
+      "kcal_100": 26,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Camote": {
+      "kcal_100": 86,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Canónigo": {
+      "kcal_100": 21,
+      "peso_pieza_g": 250,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cebolla blanca": {
+      "kcal_100": 40,
+      "peso_pieza_g": 110,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cebolla dulce": {
+      "kcal_100": 40,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cebolla morada": {
+      "kcal_100": 40,
+      "peso_pieza_g": 110,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cebolla roja": {
+      "kcal_100": 40,
+      "peso_pieza_g": 110,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cebolleta": {
+      "kcal_100": 32,
+      "peso_pieza_g": 15,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cebollino": {
+      "kcal_100": 30,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chalota": {
+      "kcal_100": 72,
+      "peso_pieza_g": 30,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Champiñón": {
+      "kcal_100": 22,
+      "peso_pieza_g": 15,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chayote": {
+      "kcal_100": 19,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chícharo": {
+      "kcal_100": 81,
+      "peso_pieza_g": 1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile ancho": {
+      "kcal_100": 281,
+      "peso_pieza_g": 8,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile cascabel": {
+      "kcal_100": 300,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile chipotle": {
+      "kcal_100": 300,
+      "peso_pieza_g": 10,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile cuaresmeño": {
+      "kcal_100": 30,
+      "peso_pieza_g": 15,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile de árbol": {
+      "kcal_100": 300,
+      "peso_pieza_g": 1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile guajillo": {
+      "kcal_100": 300,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile güero": {
+      "kcal_100": 30,
+      "peso_pieza_g": 15,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile habanero": {
+      "kcal_100": 40,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile jalapeño": {
+      "kcal_100": 29,
+      "peso_pieza_g": 15,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile morita": {
+      "kcal_100": 300,
+      "peso_pieza_g": 4,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile mulato": {
+      "kcal_100": 300,
+      "peso_pieza_g": 8,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile pasilla": {
+      "kcal_100": 300,
+      "peso_pieza_g": 7,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile piquín": {
+      "kcal_100": 300,
+      "peso_pieza_g": 0.5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile poblano": {
+      "kcal_100": 20,
+      "peso_pieza_g": 80,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile serrano": {
+      "kcal_100": 32,
+      "peso_pieza_g": 10,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile verde": {
+      "kcal_100": 30,
+      "peso_pieza_g": 15,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cilantro": {
+      "kcal_100": 23,
+      "peso_pieza_g": 60,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Col": {
+      "kcal_100": 25,
+      "peso_pieza_g": 900,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Coliflor": {
+      "kcal_100": 25,
+      "peso_pieza_g": 600,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Ejotes": {
+      "kcal_100": 31,
+      "peso_pieza_g": 7,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Elote": {
+      "kcal_100": 86,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Epazote": {
+      "kcal_100": 32,
+      "peso_pieza_g": 20,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Espárrago": {
+      "kcal_100": 20,
+      "peso_pieza_g": 20,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Espinaca": {
+      "kcal_100": 23,
+      "peso_pieza_g": 30,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Flor de calabaza": {
+      "kcal_100": 15,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Flor de jamaica": {
+      "kcal_100": 49,
+      "peso_pieza_g": 0.5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Fresas": {
+      "kcal_100": 32,
+      "peso_pieza_g": 12,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Granada": {
+      "kcal_100": 83,
+      "peso_pieza_g": 250,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Granos de elote": {
+      "kcal_100": 86,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Guayaba": {
+      "kcal_100": 68,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Guindilla": {
+      "kcal_100": 30,
+      "peso_pieza_g": 2,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Hierbabuena": {
+      "kcal_100": 45,
+      "peso_pieza_g": 20,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Hoja de maíz": {
+      "kcal_100": null,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Hoja de plátano": {
+      "kcal_100": null,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Hoja santa": {
+      "kcal_100": 20,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Huitlacoche": {
+      "kcal_100": 50,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Jengibre": {
+      "kcal_100": 80,
+      "peso_pieza_g": 20,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Jitomate": {
+      "kcal_100": 18,
+      "peso_pieza_g": 120,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Lechuga": {
+      "kcal_100": 15,
+      "peso_pieza_g": 500,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Lima": {
+      "kcal_100": 30,
+      "peso_pieza_g": 60,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Limón": {
+      "kcal_100": 29,
+      "peso_pieza_g": 60,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Maíz amarillo": {
+      "kcal_100": 86,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Maíz blanco": {
+      "kcal_100": 86,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Maíz dulce": {
+      "kcal_100": 86,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Mandarina": {
+      "kcal_100": 53,
+      "peso_pieza_g": 80,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Mango": {
+      "kcal_100": 60,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Manzana golden": {
+      "kcal_100": 52,
+      "peso_pieza_g": 180,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Manzana roja": {
+      "kcal_100": 52,
+      "peso_pieza_g": 180,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Manzana verde": {
+      "kcal_100": 52,
+      "peso_pieza_g": 180,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Maracuyá": {
+      "kcal_100": 97,
+      "peso_pieza_g": 50,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Melón": {
+      "kcal_100": 34,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Menta": {
+      "kcal_100": 44,
+      "peso_pieza_g": 20,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Naranja": {
+      "kcal_100": 47,
+      "peso_pieza_g": 180,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Nopal": {
+      "kcal_100": 16,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Ñora": {
+      "kcal_100": 300,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Papa": {
+      "kcal_100": 77,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Papaya": {
+      "kcal_100": 43,
+      "peso_pieza_g": 500,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pepino": {
+      "kcal_100": 15,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pera": {
+      "kcal_100": 57,
+      "peso_pieza_g": 180,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Perejil": {
+      "kcal_100": 36,
+      "peso_pieza_g": 60,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pimiento morrón": {
+      "kcal_100": 31,
+      "peso_pieza_g": 120,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pimiento rojo": {
+      "kcal_100": 31,
+      "peso_pieza_g": 120,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pimiento verde": {
+      "kcal_100": 20,
+      "peso_pieza_g": 120,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Piña": {
+      "kcal_100": 50,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Plátano": {
+      "kcal_100": 89,
+      "peso_pieza_g": 120,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Puerro": {
+      "kcal_100": 61,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Rábano": {
+      "kcal_100": 16,
+      "peso_pieza_g": 15,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Remolacha": {
+      "kcal_100": 43,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Repollo": {
+      "kcal_100": 25,
+      "peso_pieza_g": 900,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Sandía": {
+      "kcal_100": 30,
+      "peso_pieza_g": 3000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Tamarindo": {
+      "kcal_100": 239,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Tomate cherry": {
+      "kcal_100": 18,
+      "peso_pieza_g": 15,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Tomate verde": {
+      "kcal_100": 32,
+      "peso_pieza_g": 50,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Tomatillo": {
+      "kcal_100": 32,
+      "peso_pieza_g": 50,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Toronja": {
+      "kcal_100": 42,
+      "peso_pieza_g": 250,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Uva": {
+      "kcal_100": 69,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Zanahoria": {
+      "kcal_100": 41,
+      "peso_pieza_g": 80,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Bebida láctea": {
+      "kcal_100": 60,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Crema ácida": {
+      "kcal_100": 200,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Crema para batir": {
+      "kcal_100": 340,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Crème fraîche": {
+      "kcal_100": 340,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Leche condensada": {
+      "kcal_100": 321,
+      "peso_pieza_g": 397,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Leche de almendra": {
+      "kcal_100": 17,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Leche de coco": {
+      "kcal_100": 197,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Leche descremada": {
+      "kcal_100": 34,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Leche en polvo": {
+      "kcal_100": 496,
+      "peso_pieza_g": 400,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Leche entera": {
+      "kcal_100": 61,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Leche evaporada": {
+      "kcal_100": 134,
+      "peso_pieza_g": 370,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Leche sabor chocolate": {
+      "kcal_100": 83,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Mantequilla": {
+      "kcal_100": 717,
+      "peso_pieza_g": 90,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Margarina": {
+      "kcal_100": 717,
+      "peso_pieza_g": 90,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Nata espesa": {
+      "kcal_100": 340,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Nata para cocinar": {
+      "kcal_100": 195,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso amarillo en rebanadas": {
+      "kcal_100": 330,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso cheddar": {
+      "kcal_100": 403,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso chihuahua": {
+      "kcal_100": 370,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso cotija": {
+      "kcal_100": 366,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso cottage": {
+      "kcal_100": 98,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso crema": {
+      "kcal_100": 342,
+      "peso_pieza_g": 190,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso de cabra": {
+      "kcal_100": 364,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso emmental": {
+      "kcal_100": 380,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso feta": {
+      "kcal_100": 264,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso fresco": {
+      "kcal_100": 299,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso gouda": {
+      "kcal_100": 356,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso holandés": {
+      "kcal_100": 356,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso manchego": {
+      "kcal_100": 392,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso mozzarella": {
+      "kcal_100": 300,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso oaxaca": {
+      "kcal_100": 300,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso panela": {
+      "kcal_100": 240,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso para gratinar": {
+      "kcal_100": 350,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Queso parmesano rallado": {
+      "kcal_100": 431,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Requesón": {
+      "kcal_100": 98,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Yogur de fresa": {
+      "kcal_100": 100,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Yogur griego": {
+      "kcal_100": 97,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Yogur natural": {
+      "kcal_100": 61,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Aceite de coco": {
+      "kcal_100": 800,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Aceite de girasol": {
+      "kcal_100": 813,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Aceite de maíz": {
+      "kcal_100": 813,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Aceite de oliva": {
+      "kcal_100": 813,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Aceite de sésamo": {
+      "kcal_100": 813,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Aceite vegetal": {
+      "kcal_100": 813,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Aceitunas": {
+      "kcal_100": 145,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Achiote en pasta": {
+      "kcal_100": 300,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Alcaparras": {
+      "kcal_100": 23,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Anís estrella": {
+      "kcal_100": 337,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Atún en lata": {
+      "kcal_100": 116,
+      "peso_pieza_g": 140,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Azafrán": {
+      "kcal_100": 310,
+      "peso_pieza_g": 0.01,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Azúcar estándar": {
+      "kcal_100": 387,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Azúcar glass": {
+      "kcal_100": 389,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Azúcar mascabado": {
+      "kcal_100": 380,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Botanas de maíz": {
+      "kcal_100": 500,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cacao en polvo": {
+      "kcal_100": 228,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cajeta": {
+      "kcal_100": 315,
+      "peso_pieza_g": 250,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Caldo de carne": {
+      "kcal_100": 15,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Caldo de pescado": {
+      "kcal_100": 15,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Caldo de pollo": {
+      "kcal_100": 15,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Caldo de pollo en polvo": {
+      "kcal_100": 200,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Caldo de verduras": {
+      "kcal_100": 10,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Canela en rama": {
+      "kcal_100": 247,
+      "peso_pieza_g": 5,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Canela molida": {
+      "kcal_100": 247,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chile en polvo": {
+      "kcal_100": 282,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chiles en vinagre": {
+      "kcal_100": 30,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chipotle adobado": {
+      "kcal_100": 100,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Chocolate en barra": {
+      "kcal_100": 546,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Clavo de olor": {
+      "kcal_100": 274,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Comino": {
+      "kcal_100": 375,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Consomé de pollo": {
+      "kcal_100": 200,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Crema de cacahuate": {
+      "kcal_100": 588,
+      "peso_pieza_g": 340,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Crutones": {
+      "kcal_100": 407,
+      "peso_pieza_g": 150,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Cúrcuma": {
+      "kcal_100": 312,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Frijoles refritos en lata": {
+      "kcal_100": 90,
+      "peso_pieza_g": 400,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Galletas saladas": {
+      "kcal_100": 450,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Grenetina": {
+      "kcal_100": 335,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Hielo": {
+      "kcal_100": 0,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Huevo blanco": {
+      "kcal_100": 143,
+      "peso_pieza_g": 50,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Huevo rojo": {
+      "kcal_100": 143,
+      "peso_pieza_g": 50,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Jalapeños en vinagre": {
+      "kcal_100": 25,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Laurel": {
+      "kcal_100": 313,
+      "peso_pieza_g": 1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Manteca de cerdo": {
+      "kcal_100": 902,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Manteca vegetal": {
+      "kcal_100": 884,
+      "peso_pieza_g": null,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Mayonesa": {
+      "kcal_100": 680,
+      "peso_pieza_g": 400,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Mejorana": {
+      "kcal_100": 271,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Mermelada de fresa": {
+      "kcal_100": 250,
+      "peso_pieza_g": 250,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Miel de abeja": {
+      "kcal_100": 304,
+      "peso_pieza_g": 500,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Miel de agave": {
+      "kcal_100": 310,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Mostaza": {
+      "kcal_100": 66,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Nuez moscada": {
+      "kcal_100": 525,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Orégano": {
+      "kcal_100": 265,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Palomitas para microondas": {
+      "kcal_100": 500,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pastilla de caldo": {
+      "kcal_100": 200,
+      "peso_pieza_g": 10,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Piloncillo": {
+      "kcal_100": 380,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pimentón": {
+      "kcal_100": 282,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pimienta blanca": {
+      "kcal_100": 296,
+      "peso_pieza_g": 0.05,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pimienta gorda": {
+      "kcal_100": 274,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Pimienta negra": {
+      "kcal_100": 251,
+      "peso_pieza_g": 0.05,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Puré de tomate": {
+      "kcal_100": 38,
+      "peso_pieza_g": 400,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Recado negro": {
+      "kcal_100": 300,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Recado rojo": {
+      "kcal_100": 300,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Romero": {
+      "kcal_100": 131,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Sal de grano": {
+      "kcal_100": 0,
+      "peso_pieza_g": 1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Sal de mar": {
+      "kcal_100": 0,
+      "peso_pieza_g": 1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Sal de mesa": {
+      "kcal_100": 0,
+      "peso_pieza_g": 1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Sal fina": {
+      "kcal_100": 0,
+      "peso_pieza_g": 1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Sal gruesa": {
+      "kcal_100": 0,
+      "peso_pieza_g": 1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Sal Maldon": {
+      "kcal_100": 0,
+      "peso_pieza_g": 1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salsa catsup": {
+      "kcal_100": 110,
+      "peso_pieza_g": 400,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salsa de soya": {
+      "kcal_100": 53,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salsa de tomate": {
+      "kcal_100": 40,
+      "peso_pieza_g": 400,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salsa inglesa": {
+      "kcal_100": 78,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salsa Maggi": {
+      "kcal_100": 50,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salsa Perrins": {
+      "kcal_100": 78,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salsa picante": {
+      "kcal_100": 20,
+      "peso_pieza_g": 200,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salsa roja": {
+      "kcal_100": 40,
+      "peso_pieza_g": 300,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salsa Tabasco": {
+      "kcal_100": 12,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salsa Valentina": {
+      "kcal_100": 20,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salsa verde": {
+      "kcal_100": 40,
+      "peso_pieza_g": 300,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Salvia": {
+      "kcal_100": 315,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Sardinas en lata": {
+      "kcal_100": 208,
+      "peso_pieza_g": 90,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Sazonador de pollo": {
+      "kcal_100": 200,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Tajín": {
+      "kcal_100": 100,
+      "peso_pieza_g": 100,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Tomillo": {
+      "kcal_100": 101,
+      "peso_pieza_g": 0.1,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Vainilla": {
+      "kcal_100": 288,
+      "peso_pieza_g": 30,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Vinagre balsámico": {
+      "kcal_100": 88,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Vinagre blanco": {
+      "kcal_100": 20,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Vinagre de arroz": {
+      "kcal_100": 18,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Vinagre de caña": {
+      "kcal_100": 20,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Vinagre de Jerez": {
+      "kcal_100": 20,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    },
+    "Vinagre de manzana": {
+      "kcal_100": 22,
+      "peso_pieza_g": 1000,
+      "fuente": "Tabla de composición (aprox.)"
+    }
+  }
+}

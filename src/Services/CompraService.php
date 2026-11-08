@@ -38,18 +38,22 @@ final class CompraService
 
     private readonly PrecioService $precios;
 
+    private readonly NutricionService $nutricion;
+
     public function __construct(
         ?CompraRepository $compras = null,
         ?TotalesService $totales = null,
         ?PDO $pdo = null,
         ?TicketRepository $tickets = null,
-        ?PrecioService $precios = null
+        ?PrecioService $precios = null,
+        ?NutricionService $nutricion = null
     ) {
         $this->pdo = $pdo ?? Database::connection();
         $this->compras = $compras ?? new CompraRepository($this->pdo);
         $this->totales = $totales ?? new TotalesService($this->pdo);
         $this->tickets = $tickets ?? new TicketRepository($this->pdo);
         $this->precios = $precios ?? new PrecioService();
+        $this->nutricion = $nutricion ?? new NutricionService();
     }
 
     /**
@@ -196,9 +200,23 @@ final class CompraService
         $page = max(1, $page);
         $resultado = $this->compras->listByUser($usuarioId, $page, self::PER_PAGE);
 
+        $compraIds = array_map(
+            static fn (array $fila): int => $fila['compra']->id,
+            $resultado['items']
+        );
+        $porCompra = $compraIds === [] ? [] : $this->compras->itemsDeCompras($compraIds);
+        $nutricion = $this->nutricion->porCompras($porCompra);
+
         return [
             'items' => array_map(
-                static fn (array $fila): array => $fila['compra']->toSummaryArray($fila['items_count']),
+                static function (array $fila) use ($nutricion): array {
+                    $resumen = $fila['compra']->toSummaryArray($fila['items_count']);
+                    $datos = $nutricion[$fila['compra']->id] ?? ['total' => 0.0, 'sin_dato' => 0];
+                    $resumen['kcal_total'] = $datos['total'];
+                    $resumen['kcal_sin_dato'] = $datos['sin_dato'];
+
+                    return $resumen;
+                },
                 $resultado['items']
             ),
             'total' => $resultado['total'],
@@ -223,7 +241,20 @@ final class CompraService
             $this->compras->items($compra->id)
         );
 
-        return $compra->toDetailArray($items);
+        $nutricion = $this->nutricion->compra($items);
+
+        foreach ($items as $indice => &$item) {
+            $item['kcal'] = $nutricion['items'][$indice]['kcal'] ?? null;
+        }
+
+        unset($item);
+
+        $detalle = $compra->toDetailArray($items);
+        $detalle['kcal_total'] = $nutricion['total'];
+        $detalle['kcal_con_dato'] = $nutricion['con_dato'];
+        $detalle['kcal_sin_dato'] = $nutricion['sin_dato'];
+
+        return $detalle;
     }
 
     /**
@@ -297,7 +328,7 @@ final class CompraService
             $item = $this->compras->findItemWithProduct($itemId);
             $this->pdo->commit();
 
-            return $item?->toArray();
+            return $this->itemConKcal($item?->toArray());
         } catch (Throwable $error) {
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
@@ -352,7 +383,7 @@ final class CompraService
             $item = $this->compras->findItemWithProduct($itemId);
             $this->pdo->commit();
 
-            return $item?->toArray();
+            return $this->itemConKcal($item?->toArray());
         } catch (Throwable $error) {
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
@@ -489,6 +520,24 @@ final class CompraService
         $texto = trim($valor);
 
         return $texto === '' ? null : mb_substr($texto, 0, 120);
+    }
+
+    /**
+     * Añade las kcal estimadas a la respuesta de un ítem.
+     *
+     * @param array<string, mixed>|null $item
+     * @return array<string, mixed>|null
+     */
+    private function itemConKcal(?array $item): ?array
+    {
+        if ($item === null) {
+            return null;
+        }
+
+        $nutricion = $this->nutricion->compra([$item]);
+        $item['kcal'] = $nutricion['items'][0]['kcal'] ?? null;
+
+        return $item;
     }
 
     /**

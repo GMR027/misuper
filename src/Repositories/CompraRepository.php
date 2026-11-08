@@ -150,6 +150,48 @@ final class CompraRepository
         );
     }
 
+    /**
+     * Ítems de varias compras agrupados por compra. Se usa para calcular
+     * calorías del listado sin una consulta por compra.
+     *
+     * @param array<int, int|string> $compraIds
+     * @return array<int, array<int, array<string, mixed>>>
+     */
+    public function itemsDeCompras(array $compraIds): array
+    {
+        $ids = [];
+
+        foreach ($compraIds as $id) {
+            $id = (int) $id;
+
+            if ($id > 0) {
+                $ids[$id] = $id;
+            }
+        }
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $marcadores = implode(',', array_fill(0, count($ids), '?'));
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::ITEM_COLUMNS . '
+             FROM compra_items ci
+             LEFT JOIN productos p ON p.id = ci.producto_id
+             WHERE ci.compra_id IN (' . $marcadores . ')
+             ORDER BY ci.id ASC'
+        );
+        $statement->execute(array_values($ids));
+
+        $resultado = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $resultado[(int) $row['compra_id']][] = $row;
+        }
+
+        return $resultado;
+    }
+
     public function findItemWithProduct(int $itemId): ?CompraItem
     {
         $statement = $this->pdo->prepare(

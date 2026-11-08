@@ -17,7 +17,8 @@ use PDO;
 final class ProductoRepository
 {
     private const COLUMNS = 'p.id, p.nombre, p.usuario_id, p.categoria_id, c.nombre AS categoria_nombre,
-        p.unidad_base, p.imagen_url, p.imagen_estado, p.imagen_verificada_at,
+        p.unidad_base, p.imagen_url, p.kcal_100, p.peso_pieza_g, p.fuente_nutricion,
+        p.imagen_estado, p.imagen_verificada_at,
         p.estado, p.created_at, p.updated_at';
 
     private const FROM = ' FROM productos p INNER JOIN categorias c ON c.id = p.categoria_id';
@@ -160,13 +161,27 @@ final class ProductoRepository
         int $categoriaId,
         string $unidadBase,
         ?string $imagenUrl,
-        ?int $usuarioId = null
+        ?int $usuarioId = null,
+        ?float $kcal100 = null,
+        ?float $pesoPiezaG = null,
+        ?string $fuenteNutricion = null
     ): Producto {
         $statement = $this->pdo->prepare(
-            'INSERT INTO productos (nombre, usuario_id, categoria_id, unidad_base, imagen_url)
-             VALUES (?, ?, ?, ?, ?)'
+            'INSERT INTO productos
+                (nombre, usuario_id, categoria_id, unidad_base, imagen_url,
+                 kcal_100, peso_pieza_g, fuente_nutricion)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         );
-        $statement->execute([$nombre, $usuarioId, $categoriaId, $unidadBase, $imagenUrl]);
+        $statement->execute([
+            $nombre,
+            $usuarioId,
+            $categoriaId,
+            $unidadBase,
+            $imagenUrl,
+            $kcal100,
+            $pesoPiezaG,
+            $fuenteNutricion,
+        ]);
 
         $producto = $this->findById((int) $this->pdo->lastInsertId());
 
@@ -185,7 +200,7 @@ final class ProductoRepository
      */
     public function update(int $id, array $campos): void
     {
-        $columnas = ['nombre', 'categoria_id', 'unidad_base', 'imagen_url'];
+        $columnas = ['nombre', 'categoria_id', 'unidad_base', 'imagen_url', 'kcal_100', 'peso_pieza_g', 'fuente_nutricion'];
         $sets = [];
         $params = [];
 
@@ -278,7 +293,8 @@ final class ProductoRepository
     {
         if ($usuarioId === null) {
             $statement = $this->pdo->prepare(
-                "SELECT p.id, p.nombre, p.unidad_base, c.nombre AS categoria_nombre, p.imagen_url
+                "SELECT p.id, p.nombre, p.unidad_base, c.nombre AS categoria_nombre, p.imagen_url,
+                        p.kcal_100, p.peso_pieza_g, p.fuente_nutricion
                  FROM productos p
                  INNER JOIN categorias c ON c.id = p.categoria_id
                  WHERE p.estado = 'activo' AND p.usuario_id IS NULL
@@ -287,7 +303,8 @@ final class ProductoRepository
             $statement->execute();
         } else {
             $statement = $this->pdo->prepare(
-                "SELECT p.id, p.nombre, p.unidad_base, c.nombre AS categoria_nombre, p.imagen_url
+                "SELECT p.id, p.nombre, p.unidad_base, c.nombre AS categoria_nombre, p.imagen_url,
+                        p.kcal_100, p.peso_pieza_g, p.fuente_nutricion
                  FROM productos p
                  INNER JOIN categorias c ON c.id = p.categoria_id
                  WHERE p.estado = 'activo' AND (p.usuario_id IS NULL OR p.usuario_id = ?)
@@ -305,10 +322,54 @@ final class ProductoRepository
                 'unidad_base' => (string) $row['unidad_base'],
                 'categoria_nombre' => (string) $row['categoria_nombre'],
                 'imagen_url' => isset($row['imagen_url']) ? (string) $row['imagen_url'] : null,
+                'kcal_100' => isset($row['kcal_100']) ? (float) $row['kcal_100'] : null,
+                'peso_pieza_g' => isset($row['peso_pieza_g']) ? (float) $row['peso_pieza_g'] : null,
+                'fuente_nutricion' => isset($row['fuente_nutricion'])
+                    ? (string) $row['fuente_nutricion']
+                    : null,
             ];
         }
 
         return $productos;
+    }
+
+    /**
+     * Datos nutricionales de varios productos en una sola consulta.
+     *
+     * @param array<int, int|string> $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function nutricionPorIds(array $ids): array
+    {
+        $limpios = [];
+
+        foreach ($ids as $id) {
+            $id = (int) $id;
+
+            if ($id > 0) {
+                $limpios[$id] = $id;
+            }
+        }
+
+        if ($limpios === []) {
+            return [];
+        }
+
+        $marcadores = implode(',', array_fill(0, count($limpios), '?'));
+        $statement = $this->pdo->prepare(
+            "SELECT id, nombre, unidad_base, kcal_100, peso_pieza_g, fuente_nutricion
+             FROM productos
+             WHERE id IN ({$marcadores})"
+        );
+        $statement->execute(array_values($limpios));
+
+        $resultado = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $resultado[(int) $row['id']] = $row;
+        }
+
+        return $resultado;
     }
 
     public function categoriaExists(int $id): bool

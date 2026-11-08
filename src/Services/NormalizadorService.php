@@ -183,6 +183,8 @@ final class NormalizadorService
         'torreznos' => 'tocino',
         'trigo' => 'harina',
         'worcestershire' => 'perrins',
+        'zumo' => 'jugo',
+        'zumos' => 'jugo',
     ];
 
     /**
@@ -286,6 +288,21 @@ final class NormalizadorService
                 && str_ends_with($singular, 'z')
                 && substr($plural, 0, -3) === substr($singular, 0, -1)
             ) {
+                return true;
+            }
+        }
+
+        // Variación de género: mascabada/mascabado, serrana/serrano.
+        // Solo cuando la única diferencia es la vocal final.
+        if (
+            mb_strlen($a) === mb_strlen($b)
+            && mb_strlen($a) > 2
+            && mb_substr($a, 0, -1) === mb_substr($b, 0, -1)
+        ) {
+            $finalA = mb_substr($a, -1);
+            $finalB = mb_substr($b, -1);
+
+            if (($finalA === 'a' && $finalB === 'o') || ($finalA === 'o' && $finalB === 'a')) {
                 return true;
             }
         }

@@ -17,6 +17,9 @@ $nombre = $esEdicion ? $producto->nombre : '';
 $categoriaActual = $esEdicion ? $producto->categoriaId : 0;
 $unidadActual = $esEdicion ? $producto->unidadBase : 'kg';
 $imagenActual = $esEdicion ? ($producto->imagenUrl ?? '') : '';
+$kcalActual = $esEdicion ? $producto->kcal100 : null;
+$pesoActual = $esEdicion ? $producto->pesoPiezaG : null;
+$fuenteActual = $esEdicion ? ($producto->fuenteNutricion ?? '') : '';
 
 $unidades = [
     'kg' => 'kg — kilogramo',
@@ -128,6 +131,64 @@ ob_start();
                                 <?= $imagenActual === '' ? 'hidden' : '' ?>
                             >
                             <p class="form__error" data-error-for="imagen_url" hidden></p>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-1">Información nutrimental <span class="text-muted fw-normal">(opcional)</span></h5>
+                        <p class="text-muted small">
+                            Se usa para estimar calorías en recetas y compras. Déjalo vacío si no tienes un dato confiable.
+                        </p>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" for="kcal_100">kcal por 100</label>
+                                <input
+                                    class="form-control"
+                                    type="number"
+                                    id="kcal_100"
+                                    name="kcal_100"
+                                    min="0"
+                                    max="9000"
+                                    step="0.01"
+                                    inputmode="decimal"
+                                    value="<?= $kcalActual === null ? '' : htmlspecialchars((string) $kcalActual, ENT_QUOTES, 'UTF-8') ?>"
+                                >
+                                <p class="form-text">100 g en kg/gr/pza; 100 ml en L/ml.</p>
+                                <p class="form__error" data-error-for="kcal_100" hidden></p>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" for="peso_pieza_g">Peso por pieza (g)</label>
+                                <input
+                                    class="form-control"
+                                    type="number"
+                                    id="peso_pieza_g"
+                                    name="peso_pieza_g"
+                                    min="0"
+                                    max="5000"
+                                    step="0.01"
+                                    inputmode="decimal"
+                                    value="<?= $pesoActual === null ? '' : htmlspecialchars((string) $pesoActual, ENT_QUOTES, 'UTF-8') ?>"
+                                >
+                                <p class="form-text">Solo si vendes o usas el producto por pieza.</p>
+                                <p class="form__error" data-error-for="peso_pieza_g" hidden></p>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label" for="fuente_nutricion">Fuente</label>
+                                <input
+                                    class="form-control"
+                                    type="text"
+                                    id="fuente_nutricion"
+                                    name="fuente_nutricion"
+                                    maxlength="120"
+                                    autocomplete="off"
+                                    value="<?= htmlspecialchars($fuenteActual, ENT_QUOTES, 'UTF-8') ?>"
+                                    placeholder="USDA, Open Food Facts, manual…"
+                                >
+                                <p class="form__error" data-error-for="fuente_nutricion" hidden></p>
+                            </div>
                         </div>
 
                         <p class="form__message" data-message hidden></p>

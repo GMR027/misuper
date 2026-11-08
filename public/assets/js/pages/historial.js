@@ -3,7 +3,7 @@
  */
 
 import { fetchApi } from '../modules/api.js';
-import { formatCurrency } from '../modules/format.js';
+import { formatCurrency, formatQuantity } from '../modules/format.js';
 import { showToast } from '../modules/toast.js';
 
 const MONTHS = [
@@ -163,6 +163,13 @@ function init(root) {
         const meta = document.createElement('span');
         meta.className = 'history-row__meta';
         meta.append(items);
+
+        if (Number(compra.kcal_total ?? 0) > 0) {
+            const kcal = document.createElement('span');
+            kcal.className = 'history-row__kcal text-muted';
+            kcal.textContent = `≈ ${formatQuantity(Math.round(Number(compra.kcal_total)))} kcal`;
+            meta.append(kcal);
+        }
 
         if (Number(compra.ticket_id) > 0) {
             const ticket = document.createElement('span');

@@ -39,7 +39,15 @@ final class ProductoValidator
     private static function validar(array $data, bool $esCreacion): array
     {
         if (!$esCreacion) {
-            $campos = ['nombre', 'categoria_id', 'unidad_base', 'imagen_url'];
+            $campos = [
+                'nombre',
+                'categoria_id',
+                'unidad_base',
+                'imagen_url',
+                'kcal_100',
+                'peso_pieza_g',
+                'fuente_nutricion',
+            ];
             $presentes = array_filter(
                 $campos,
                 static fn (string $campo): bool => array_key_exists($campo, $data)
@@ -88,6 +96,42 @@ final class ProductoValidator
                     $errors['imagen_url'] = 'La imagen debe tener como máximo 500 caracteres.';
                 } elseif (!self::urlHttp(trim($imagen))) {
                     $errors['imagen_url'] = 'La imagen debe ser una URL http o https válida.';
+                }
+            }
+        }
+
+        if (array_key_exists('kcal_100', $data)) {
+            $kcal = $data['kcal_100'];
+
+            if ($kcal !== null && $kcal !== '') {
+                if (!is_numeric($kcal)) {
+                    $errors['kcal_100'] = 'Las calorías deben ser un número.';
+                } elseif ((float) $kcal < 0 || (float) $kcal > 9000) {
+                    $errors['kcal_100'] = 'Las calorías deben estar entre 0 y 9000 kcal por 100.';
+                }
+            }
+        }
+
+        if (array_key_exists('peso_pieza_g', $data)) {
+            $peso = $data['peso_pieza_g'];
+
+            if ($peso !== null && $peso !== '') {
+                if (!is_numeric($peso)) {
+                    $errors['peso_pieza_g'] = 'El peso por pieza debe ser un número.';
+                } elseif ((float) $peso <= 0 || (float) $peso > 5000) {
+                    $errors['peso_pieza_g'] = 'El peso por pieza debe estar entre 0 y 5000 gramos.';
+                }
+            }
+        }
+
+        if (array_key_exists('fuente_nutricion', $data)) {
+            $fuente = $data['fuente_nutricion'];
+
+            if ($fuente !== null && $fuente !== '') {
+                if (!is_string($fuente)) {
+                    $errors['fuente_nutricion'] = 'La fuente debe ser texto.';
+                } elseif (mb_strlen(trim($fuente)) > 120) {
+                    $errors['fuente_nutricion'] = 'La fuente debe tener como máximo 120 caracteres.';
                 }
             }
         }

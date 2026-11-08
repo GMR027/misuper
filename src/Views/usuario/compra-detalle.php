@@ -137,6 +137,13 @@ ob_start();
             <h3 class="mb-0" id="total-display" data-total-compra>
                 <?= htmlspecialchars($formatearMoneda((float) $compra['total']), ENT_QUOTES, 'UTF-8') ?>
             </h3>
+            <?php $kcalTotal = (float) ($compra['kcal_total'] ?? 0); ?>
+            <p class="text-muted small mb-0 mt-1" data-total-kcal <?= $kcalTotal > 0 ? '' : 'hidden' ?>>
+                ≈ <?= htmlspecialchars(number_format($kcalTotal, 0, '.', ','), ENT_QUOTES, 'UTF-8') ?> kcal
+            </p>
+            <p class="text-muted small mb-0" data-kcal-aviso <?= (int) ($compra['kcal_sin_dato'] ?? 0) > 0 ? '' : 'hidden' ?>>
+                <?= (int) ($compra['kcal_sin_dato'] ?? 0) ?> <?= (int) ($compra['kcal_sin_dato'] ?? 0) === 1 ? 'ítem sin dato' : 'ítems sin dato' ?> de calorías.
+            </p>
         </div>
     </div>
 
@@ -182,6 +189,9 @@ ob_start();
                             <?= $esLibre
                                 ? 'Ítem libre'
                                 : 'Unidad: ' . htmlspecialchars((string) ($unidad ?? ''), ENT_QUOTES, 'UTF-8') ?>
+                            <?php if (($item['kcal'] ?? null) !== null): ?>
+                                · ≈ <?= htmlspecialchars(number_format((float) $item['kcal'], 0, '.', ','), ENT_QUOTES, 'UTF-8') ?> kcal
+                            <?php endif; ?>
                         </p>
                     </div>
 

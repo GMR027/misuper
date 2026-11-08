@@ -214,6 +214,34 @@ echo "Total filas leídas: {$leidas}\n";
 echo "Total insertados: {$insertados}\n";
 echo 'Total con error: ' . count($errores) . "\n";
 
+$jsonNutricion = BASE_PATH . '/data/nutricion_productos.json';
+
+if (is_file($jsonNutricion)) {
+    $contenido = file_get_contents($jsonNutricion);
+    $datos = $contenido === false ? null : json_decode($contenido, true);
+
+    if (is_array($datos) && is_array($datos['productos'] ?? null)) {
+        $update = $pdo->prepare(
+            'UPDATE productos
+             SET kcal_100 = ?, peso_pieza_g = ?, fuente_nutricion = ?
+             WHERE nombre = ? AND usuario_id IS NULL'
+        );
+        $conNutricion = 0;
+
+        foreach ($datos['productos'] as $nombre => $dato) {
+            $update->execute([
+                $dato['kcal_100'] ?? null,
+                $dato['peso_pieza_g'] ?? null,
+                $dato['fuente'] ?? null,
+                $nombre,
+            ]);
+            $conNutricion += $update->rowCount();
+        }
+
+        echo "Nutrición aplicada: {$conNutricion} productos.\n";
+    }
+}
+
 if ($errores !== []) {
     echo "\nErrores de validación:\n";
 

@@ -893,6 +893,49 @@ function init(root) {
     }
 
     /**
+     * @param {any} nutricion
+     * @param {number} factor
+     * @param {number} porciones
+     * @returns {HTMLElement}
+     */
+    function crearNutricionReceta(nutricion, factor, porciones) {
+        const section = document.createElement('div');
+        section.className = 'recipe-detail__section recipe-nutrition';
+
+        const title = document.createElement('h6');
+        title.textContent = 'Calorías estimadas';
+
+        const grid = document.createElement('div');
+        grid.className = 'recipe-cost__grid';
+        const total = Number(nutricion.total ?? 0) * factor;
+        const porcion = porciones > 0 ? total / porciones : 0;
+
+        grid.append(
+            bloqueCosto('Total', `${formatQuantity(Math.round(total))} kcal`, `para ${porciones} porciones`),
+            bloqueCosto('Por porción', `${formatQuantity(Math.round(porcion))} kcal`, ''),
+        );
+
+        section.append(title, grid);
+
+        if (!nutricion.completo) {
+            const aviso = document.createElement('p');
+            aviso.className = 'recipe-cost__aviso';
+            const sinDato = Number(nutricion.sin_dato ?? 0);
+            aviso.textContent = sinDato > 0
+                ? `Cálculo parcial: ${sinDato} ${sinDato === 1 ? 'ingrediente no tiene' : 'ingredientes no tienen'} dato de calorías.`
+                : 'Cálculo parcial: hay ingredientes sin cantidad o con unidad incompatible.';
+            section.append(aviso);
+        }
+
+        const nota = document.createElement('p');
+        nota.className = 'text-muted small mb-0';
+        nota.textContent = 'Estimado orientativo con tablas de composición de alimentos. No sustituye la valoración de un nutriólogo.';
+        section.append(nota);
+
+        return section;
+    }
+
+    /**
      * @param {string} label
      * @param {string} value
      * @param {string} detail
@@ -1053,6 +1096,12 @@ function init(root) {
 
         if (costo && typeof costo === 'object') {
             el.detalleBody.append(crearCostoReceta(costo, factor, detallePorciones));
+        }
+
+        const nutricion = receta.nutricion;
+
+        if (nutricion && typeof nutricion === 'object') {
+            el.detalleBody.append(crearNutricionReceta(nutricion, factor, detallePorciones));
         }
 
         if (receta.video?.embed_url) {

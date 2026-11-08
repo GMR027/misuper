@@ -27,6 +27,8 @@ function init(root) {
         comercio: root.querySelector('[data-comercio-compra]'),
         titulo: root.querySelector('[data-titulo-compra]'),
         total: root.querySelector('[data-total-compra]'),
+        totalKcal: root.querySelector('[data-total-kcal]'),
+        kcalAviso: root.querySelector('[data-kcal-aviso]'),
         items: root.querySelector('[data-items]'),
         vacio: root.querySelector('[data-items-vacio]'),
         borrarCompra: root.querySelector('[data-borrar-compra]'),
@@ -352,12 +354,33 @@ function init(root) {
     }
 
     function actualizarTotal() {
-        if (!(el.total instanceof HTMLElement)) {
-            return;
+        if (el.total instanceof HTMLElement) {
+            const total = items.reduce((sum, item) => sum + Number(item.precio_total), 0);
+            el.total.textContent = formatCurrency(Math.round(total * 100) / 100);
         }
 
-        const total = items.reduce((sum, item) => sum + Number(item.precio_total), 0);
-        el.total.textContent = formatCurrency(Math.round(total * 100) / 100);
+        const kcal = items.reduce((sum, item) => {
+            const valor = item?.kcal;
+
+            return valor === null || valor === undefined ? sum : sum + Number(valor);
+        }, 0);
+        const hayKcal = items.some((item) => item?.kcal !== null && item?.kcal !== undefined);
+
+        if (el.totalKcal instanceof HTMLElement) {
+            el.totalKcal.textContent = `≈ ${formatQuantity(Math.round(kcal))} kcal`;
+            el.totalKcal.hidden = !hayKcal;
+        }
+
+        if (el.kcalAviso instanceof HTMLElement) {
+            const sinDato = items.filter(
+                (item) => item?.producto_id !== null
+                    && item?.producto_id !== undefined
+                    && (item?.kcal === null || item?.kcal === undefined),
+            ).length;
+
+            el.kcalAviso.textContent = `${sinDato} ${sinDato === 1 ? 'ítem sin dato' : 'ítems sin dato'} de calorías.`;
+            el.kcalAviso.hidden = sinDato === 0;
+        }
     }
 
     /* Borrar compra ---------------------------------------------------- */
@@ -744,9 +767,18 @@ function crearFila(item) {
 
     const meta = document.createElement('p');
     meta.className = 'detail-item__meta text-muted small mb-0';
-    meta.textContent = item.producto_id === null
-        ? `Ítem libre · Unidad: ${String(item.unidad_base ?? 'pza')}`
-        : `Unidad: ${String(item.unidad_base ?? '')}`;
+
+    const partes = [
+        item.producto_id === null
+            ? `Ítem libre · Unidad: ${String(item.unidad_base ?? 'pza')}`
+            : `Unidad: ${String(item.unidad_base ?? '')}`,
+    ];
+
+    if (item.kcal !== null && item.kcal !== undefined) {
+        partes.push(`≈ ${formatQuantity(Math.round(Number(item.kcal)))} kcal`);
+    }
+
+    meta.textContent = partes.join(' · ');
 
     info.append(name, meta);
 
