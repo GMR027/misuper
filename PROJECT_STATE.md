@@ -861,5 +861,7 @@ STATE_HANDOFF — App móvil · Fase 40 (icono brand-mark en todas las variantes
 - Móvil: `icon.png`, `adaptive-icon.png`, `monochrome-icon.png` y `splash.png` con el mismo brand-mark; `app.json` con `backgroundColor: #0a5540`.
 - Release **0.1.10 / versionCode 11** compilada e instalada sobre `app.misuper`. La ficha de la app ya muestra el icono nuevo; el launcher Honor necesitó reiniciar el teléfono para refrescar la caché.
 - APK 0.1.10 publicado (46,758,251 bytes; SHA-256 `309955cfdf34e339e864ed23d996e0546aa5c05c3f6e17ea58c2a0e5c797d9e8`).
-- Backend tag 31 con el APK 0.1.10 y el favicon nuevo (despliegue al cierre de esta fase).
+- Backend: tags **31, 32 y 33** desplegados. Tag 31 publicó el APK 0.1.10; 32 y 33 añadieron `Asset::url()` a los favicons de `app.php` y `auth.php` para saltar la caché de Cloudflare (`?v=<filemtime>`).
+- PC: `desktop/target/release/bundle/deb/Mi Súper_0.2.0_amd64.deb` reconstruido con el icono nuevo. El AppImage no se pudo regenerar porque `linuxdeploy` falla en este entorno; el deb sí quedó listo.
+- El icono del instalador y de la ficha de la app ya muestran el brand-mark. El launcher Honor conserva la caché hasta reiniciar/desbloquear el teléfono; se reinició el teléfono para refrescarla.
 - Migraciones sin cambios: la base de producción sigue intacta.
