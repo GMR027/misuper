@@ -272,6 +272,47 @@ final class RecetaService
     }
 
     /**
+     * Calorías orientativas de varias recetas por slug, para las tarjetas del
+     * recetario. Se limita el lote para no recalcular el catálogo completo.
+     *
+     * @param array<int, string> $slugs
+     * @return array{items: array<string, array{total: float, porcion: float, porciones_base: int, completo: bool, sin_dato: int}>}
+     */
+    public function nutricionPorSlugs(int $usuarioId, array $slugs): array
+    {
+        $slugs = array_slice(array_values(array_unique(array_filter(
+            array_map(static fn (mixed $slug): string => trim((string) $slug), $slugs),
+            static fn (string $slug): bool => $slug !== ''
+        ))), 0, 30);
+
+        if ($slugs === []) {
+            return ['items' => []];
+        }
+
+        $recetas = $this->recetas->porSlugsPublicos($slugs);
+        $entradas = [];
+
+        foreach ($recetas as $slug => $receta) {
+            $entradas[$slug] = ['receta' => $receta];
+        }
+
+        $calculadas = $this->nutricion->recetas($entradas, $usuarioId);
+        $items = [];
+
+        foreach ($calculadas as $slug => $datos) {
+            $items[(string) $slug] = [
+                'total' => $datos['total'],
+                'porcion' => $datos['porcion'],
+                'porciones_base' => $datos['porciones_base'],
+                'completo' => $datos['completo'],
+                'sin_dato' => $datos['sin_dato'],
+            ];
+        }
+
+        return ['items' => $items];
+    }
+
+    /**
      * @param array<int, array{slug?: string, porciones?: int|string}> $seleccion
      * @return array{items: array<int, array<string, mixed>>, recetas: array<int, array<string, mixed>>, total: int}
      */

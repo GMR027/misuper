@@ -34,6 +34,8 @@ function init(root) {
             items: root.querySelector('[data-menu-stat-items]'),
             recetas: root.querySelector('[data-menu-stat-recetas]'),
             total: root.querySelector('[data-menu-stat-total]'),
+            kcal: root.querySelector('[data-menu-stat-kcal]'),
+            kcalNota: root.querySelector('[data-menu-stat-kcal-nota]'),
             nota: root.querySelector('[data-menu-stat-nota]'),
             sin: root.querySelector('[data-menu-stat-sin]'),
         },
@@ -437,7 +439,25 @@ function init(root) {
             el.stats.total,
             Number(resumen.recetas ?? 0) === 0 ? '—' : formatCurrency(resumen.total),
         );
+        setText(
+            el.stats.kcal,
+            Number(resumen.recetas ?? 0) === 0
+                ? '—'
+                : `≈ ${formatQuantity(Math.round(Number(resumen.kcal_total ?? 0)))} kcal`,
+        );
         setText(el.stats.sin, resumen.sin_precio);
+
+        if (el.stats.kcalNota instanceof HTMLElement) {
+            const sinKcal = Number(resumen.kcal_sin_dato ?? 0);
+
+            if (sinKcal > 0) {
+                el.stats.kcalNota.textContent = `${sinKcal} ${sinKcal === 1 ? 'platillo' : 'platillos'} sin dato`;
+            } else if (Number(resumen.recetas ?? 0) > 0) {
+                el.stats.kcalNota.textContent = 'cálculo estimado';
+            } else {
+                el.stats.kcalNota.textContent = '';
+            }
+        }
 
         if (el.stats.nota instanceof HTMLElement) {
             const notas = [];
@@ -514,7 +534,25 @@ function init(root) {
                 ? `${formatDate(dia.fecha)} · ${formatCurrency(dia.total)}${Number(dia.sin_precio ?? 0) > 0 ? ' parcial' : ''}`
                 : formatDate(dia.fecha);
 
-            head.append(titulo, fecha);
+            const kcal = document.createElement('span');
+            kcal.className = 'menu-day__kcal';
+            const kcalDia = Number(dia.kcal_total ?? 0);
+            const recetasDia = Array.isArray(dia.items)
+                ? dia.items.filter((item) => item.tipo === 'receta').length
+                : 0;
+
+            if (recetasDia > 0) {
+                kcal.textContent = `≈ ${formatQuantity(Math.round(kcalDia))} kcal${Number(dia.kcal_sin_dato ?? 0) > 0 ? ' parcial' : ''}`;
+                kcal.hidden = false;
+            } else {
+                kcal.hidden = true;
+            }
+
+            const meta = document.createElement('div');
+            meta.className = 'menu-day__meta';
+            meta.append(fecha, kcal);
+
+            head.append(titulo, meta);
             seccion.append(head);
 
             const momentos = momentosDelDia(dia.items);
@@ -692,6 +730,14 @@ function init(root) {
             }
 
             meta.append(costo);
+
+            if (item.kcal !== null && item.kcal !== undefined) {
+                const kcal = document.createElement('span');
+                kcal.className = 'menu-card__kcal';
+                kcal.textContent = `≈ ${formatQuantity(Math.round(Number(item.kcal)))} kcal`;
+                kcal.title = 'Calorías estimadas para las porciones configuradas';
+                meta.append(kcal);
+            }
         }
 
         body.append(nombre, meta);

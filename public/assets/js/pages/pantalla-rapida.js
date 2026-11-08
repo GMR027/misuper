@@ -24,6 +24,7 @@ import {
     todayISO,
 } from '../modules/format.js';
 import { iconoCategoria } from '../modules/categorias.js';
+import { calcularKcal } from '../modules/nutricion.js';
 import { guardarPrecioUnidad, leerPrecioUnidad, redondearImporte } from '../modules/precios.js';
 import { registerRenderer, render, setState, state } from '../modules/state.js';
 import { showToast } from '../modules/toast.js';
@@ -64,6 +65,7 @@ async function init(root) {
         cartHeroCounts: Array.from(root.querySelectorAll('[data-carrito-hero-count]')),
         cartTotals: Array.from(root.querySelectorAll('[data-carrito-total]')),
         cartHeroTotals: Array.from(root.querySelectorAll('[data-carrito-hero-total]')),
+        cartKcals: Array.from(root.querySelectorAll('[data-carrito-kcal]')),
         cartEmpty: root.querySelector('[data-carrito-vacio]'),
         save: root.querySelector('[data-guardar]'),
         cartSheet: root.querySelector('[data-cart-sheet]'),
@@ -91,6 +93,9 @@ async function init(root) {
     let vistaLista = leerVistaLista();
     /** @type {HTMLElement|null} */
     let ultimoFoco = null;
+    /** @type {Map<number, any|null>} */
+    const nutricionCache = new Map();
+    const nutricionPendientes = new Set();
 
     loadCart();
     await importarListaSiAplica();
@@ -771,6 +776,7 @@ async function init(root) {
             return;
         }
 
+        cachearProducto(product);
         render();
         showToast(`${String(product.nombre ?? 'Producto')} agregado. Edita cantidad y precio.`, 'success');
     }
@@ -918,6 +924,7 @@ async function init(root) {
                 return;
             }
 
+            cachearProducto(product);
             guardarPrecioUnidad(product.id, precio);
 
             const nombre = String(product.nombre ?? 'Producto');
@@ -1079,10 +1086,131 @@ async function init(root) {
         actualizarResumenCarrito();
     }
 
+    function cachearProducto(product) {
+        const id = Number(product?.id);
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return;
+        }
+
+        if (product.kcal_100 === undefined && product.peso_pieza_g === undefined) {
+            return;
+        }
+
+        nutricionCache.set(id, {
+            id,
+            nombre: String(product.nombre ?? ''),
+            unidad_base: String(product.unidad_base ?? ''),
+            kcal_100: product.kcal_100 ?? null,
+            peso_pieza_g: product.peso_pieza_g ?? null,
+        });
+    }
+
+    /**
+     * @returns {number[]}
+     */
+    function idsCarrito() {
+        const ids = new Set();
+
+        for (const item of getItems()) {
+            const id = Number(item.producto_id);
+
+            if (Number.isInteger(id) && id > 0) {
+                ids.add(id);
+            }
+        }
+
+        return Array.from(ids);
+    }
+
+    function asegurarNutricion() {
+        const ids = idsCarrito().filter(
+            (id) => !nutricionCache.has(id) && !nutricionPendientes.has(id),
+        );
+
+        if (ids.length === 0) {
+            return;
+        }
+
+        ids.forEach((id) => nutricionPendientes.add(id));
+
+        void fetchApi(`/api/productos/nutricion?ids=${ids.join(',')}`)
+            .then((data) => {
+                const filas = Array.isArray(data?.items) ? data.items : [];
+                const mapa = new Map(filas.map((fila) => [Number(fila.id), fila]));
+
+                for (const id of ids) {
+                    nutricionCache.set(id, mapa.get(id) ?? null);
+                }
+
+                render();
+            })
+            .catch(() => {
+                for (const id of ids) {
+                    nutricionCache.set(id, null);
+                }
+
+                render();
+            })
+            .finally(() => {
+                ids.forEach((id) => nutricionPendientes.delete(id));
+            });
+    }
+
+    /**
+     * @param {any} item
+     * @returns {number|null}
+     */
+    function kcalDeItem(item) {
+        const id = Number(item?.producto_id);
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return null;
+        }
+
+        const producto = nutricionCache.get(id);
+
+        if (!producto) {
+            return null;
+        }
+
+        return calcularKcal(
+            producto,
+            Number(item.cantidad),
+            String(item.unidad_base ?? producto.unidad_base ?? ''),
+        );
+    }
+
     function actualizarResumenCarrito() {
         const n = cartCount();
         const totalLabel = formatCurrency(cartTotal());
         const countLabel = `${n} ${n === 1 ? 'ítem' : 'ítems'}`;
+        const items = getItems();
+        let kcal = 0;
+        let conDato = 0;
+        let sinDato = 0;
+
+        for (const item of items) {
+            if (Number(item.producto_id) <= 0) {
+                continue;
+            }
+
+            const valor = kcalDeItem(item);
+
+            if (valor === null) {
+                sinDato++;
+            } else {
+                kcal += valor;
+                conDato++;
+            }
+        }
+
+        const kcalLabel = conDato > 0
+            ? `≈ ${formatQuantity(Math.round(kcal))} kcal`
+            : 'Sin datos de kcal';
+        const kcalTitle = sinDato > 0
+            ? `${sinDato} ${sinDato === 1 ? 'ítem sin dato' : 'ítems sin dato'} de calorías`
+            : 'Calorías estimadas de lo que vas a comprar';
 
         for (const slot of el.cartCounts) {
             if (slot instanceof HTMLElement) {
@@ -1108,6 +1236,13 @@ async function init(root) {
             }
         }
 
+        for (const slot of el.cartKcals) {
+            if (slot instanceof HTMLElement) {
+                slot.textContent = kcalLabel;
+                slot.title = kcalTitle;
+            }
+        }
+
         if (el.cartEmpty instanceof HTMLElement) {
             el.cartEmpty.hidden = n > 0;
         }
@@ -1115,6 +1250,8 @@ async function init(root) {
         if (el.save instanceof HTMLButtonElement) {
             el.save.disabled = n === 0;
         }
+
+        asegurarNutricion();
     }
 
     function renderCart() {
@@ -1164,6 +1301,16 @@ async function init(root) {
 
             if (unitCost !== null) {
                 meta.append(unitCost);
+            }
+
+            const kcalItem = kcalDeItem(item);
+
+            if (kcalItem !== null) {
+                const kcalTag = document.createElement('span');
+                kcalTag.className = 'cart-item__tag cart-item__tag--kcal';
+                kcalTag.textContent = `≈ ${formatQuantity(Math.round(kcalItem))} kcal`;
+                kcalTag.title = 'Calorías estimadas de este ítem';
+                meta.append(kcalTag);
             }
 
             info.append(name, meta);

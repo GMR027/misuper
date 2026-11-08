@@ -36,6 +36,7 @@ ob_start();
             <strong class="hero-summary__value" data-carrito-hero-total>$0.00</strong>
             <span class="hero-summary__meta">
                 <span data-carrito-hero-count>0 ítems</span>
+                <span class="hero-summary__kcal" data-carrito-kcal>—</span>
                 <i class="bi bi-arrow-down-short" aria-hidden="true"></i>
             </span>
         </button>
@@ -95,6 +96,7 @@ ob_start();
                     <span data-carrito-hero-count>0 ítems</span>
                 </span>
                 <strong data-carrito-hero-total>$0.00</strong>
+                <span class="quick-toolbar__kcal" data-carrito-kcal>—</span>
             </button>
         </form>
 
@@ -183,6 +185,7 @@ ob_start();
                     <div class="cart-total__caption">
                         <span class="cart-total__label">Importe total</span>
                         <span class="cart-total__hint">Se guarda con la fecha de la compra</span>
+                        <span class="cart-total__kcal" data-carrito-kcal>—</span>
                     </div>
                     <strong class="cart-total__value" data-carrito-total>$0.00</strong>
                 </div>
@@ -206,6 +209,7 @@ ob_start();
             <span data-carrito-hero-count>0 ítems</span>
         </span>
         <strong data-carrito-hero-total>$0.00</strong>
+        <span class="quick-bottom-bar__kcal" data-carrito-kcal>—</span>
         <span class="quick-bottom-bar__cta">
             Ver carrito
             <i class="bi bi-chevron-up" aria-hidden="true"></i>

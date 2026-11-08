@@ -36,19 +36,22 @@ final class MenuService
     private readonly PrecioService $precios;
     private readonly RecetaService $recetario;
     private readonly ListaCompraService $listas;
+    private readonly NutricionService $nutricion;
 
     public function __construct(
         ?MenuRepository $menus = null,
         ?RecetaRepository $recetas = null,
         ?PrecioService $precios = null,
         ?RecetaService $recetario = null,
-        ?ListaCompraService $listas = null
+        ?ListaCompraService $listas = null,
+        ?NutricionService $nutricion = null
     ) {
         $this->menus = $menus ?? new MenuRepository();
         $this->recetas = $recetas ?? new RecetaRepository();
         $this->precios = $precios ?? new PrecioService();
         $this->recetario = $recetario ?? new RecetaService();
         $this->listas = $listas ?? new ListaCompraService();
+        $this->nutricion = $nutricion ?? new NutricionService();
     }
 
     /**
@@ -105,8 +108,11 @@ final class MenuService
         }
 
         $costos = $this->precios->costosRecetas($usuarioId, $entradas);
+        $nutriciones = $this->nutricion->recetas($entradas, $usuarioId);
         $dias = [];
         $totalSemana = 0.0;
+        $kcalSemana = 0.0;
+        $kcalSinDatoSemana = 0;
         $recetasSemana = 0;
         $itemsSemana = 0;
         $sinPrecioSemana = 0;
@@ -119,6 +125,8 @@ final class MenuService
             $fecha = $inicio->modify('+' . ($dia - 1) . ' days')->format('Y-m-d');
             $itemsDia = [];
             $totalDia = 0.0;
+            $kcalDia = 0.0;
+            $kcalSinDatoDia = 0;
             $sinPrecioDia = 0;
             $noDisponiblesDia = 0;
 
@@ -132,6 +140,7 @@ final class MenuService
                 $disponible = $item['tipo'] === 'nota'
                     || ($receta !== null && ($receta['estado'] ?? '') === 'publicada');
                 $costo = $costos[$item['id']] ?? null;
+                $nutricion = $nutriciones[$item['id']] ?? null;
 
                 if ($item['tipo'] === 'receta') {
                     $recetasSemana++;
@@ -139,7 +148,16 @@ final class MenuService
                     if (!$disponible) {
                         $sinPrecioDia++;
                         $noDisponiblesDia++;
-                    } elseif ($costo === null || !$costo['completo']) {
+                        $kcalSinDatoDia++;
+                    } elseif ($nutricion === null || !$nutricion['completo']) {
+                        $kcalSinDatoDia++;
+                    }
+
+                    if ($nutricion !== null) {
+                        $kcalDia += $nutricion['total'];
+                    }
+
+                    if ($disponible && ($costo === null || !$costo['completo'])) {
                         $sinPrecioDia++;
                     }
                 }
@@ -166,6 +184,15 @@ final class MenuService
                     'porciones_base' => $receta['porciones_base'] ?? null,
                     'tipos' => $receta['tipos'] ?? [],
                     'disponible' => $disponible,
+                    'kcal' => $nutricion['total'] ?? null,
+                    'nutricion' => $nutricion === null
+                        ? null
+                        : [
+                            'total' => $nutricion['total'],
+                            'porcion' => $nutricion['porcion'],
+                            'sin_dato' => $nutricion['sin_dato'],
+                            'completo' => $nutricion['completo'],
+                        ],
                     'costo' => $costo === null
                         ? null
                         : [
@@ -179,6 +206,8 @@ final class MenuService
             }
 
             $totalSemana += $totalDia;
+            $kcalSemana += $kcalDia;
+            $kcalSinDatoSemana += $kcalSinDatoDia;
             $sinPrecioSemana += $sinPrecioDia;
             $noDisponiblesSemana += $noDisponiblesDia;
 
@@ -189,6 +218,9 @@ final class MenuService
                 'es_hoy' => $fecha === $hoy,
                 'items' => $itemsDia,
                 'total' => round($totalDia, 2),
+                'kcal_total' => round($kcalDia, 1),
+                'kcal_sin_dato' => $kcalSinDatoDia,
+                'kcal_completo' => $kcalSinDatoDia === 0,
                 'sin_precio' => $sinPrecioDia,
                 'completo' => $sinPrecioDia === 0,
             ];
@@ -211,6 +243,9 @@ final class MenuService
                 'items' => $itemsSemana,
                 'recetas' => $recetasSemana,
                 'total' => round($totalSemana, 2),
+                'kcal_total' => round($kcalSemana, 1),
+                'kcal_sin_dato' => $kcalSinDatoSemana,
+                'kcal_completo' => $recetasDelMenu !== [] && $kcalSinDatoSemana === 0,
                 'sin_precio' => $sinPrecioSemana,
                 'no_disponibles' => $noDisponiblesSemana,
                 'precios_viejos' => $viejosSemana,

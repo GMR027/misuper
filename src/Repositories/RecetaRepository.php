@@ -68,6 +68,45 @@ final class RecetaRepository
         return $row === false ? null : $this->normalizarFila($row);
     }
 
+    /**
+     * Varias recetas publicadas por slug en una sola consulta.
+     *
+     * @param array<int, string> $slugs
+     * @return array<string, array<string, mixed>> Indexado por slug.
+     */
+    public function porSlugsPublicos(array $slugs): array
+    {
+        $limpios = [];
+
+        foreach ($slugs as $slug) {
+            $slug = trim((string) $slug);
+
+            if ($slug !== '') {
+                $limpios[$slug] = $slug;
+            }
+        }
+
+        if ($limpios === []) {
+            return [];
+        }
+
+        $marcadores = implode(',', array_fill(0, count($limpios), '?'));
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::COLUMNS . " FROM recetas r
+             WHERE r.slug IN ({$marcadores}) AND r.estado = 'publicada'"
+        );
+        $statement->execute(array_values($limpios));
+
+        $resultado = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $receta = $this->normalizarFila($row);
+            $resultado[(string) $receta['slug']] = $receta;
+        }
+
+        return $resultado;
+    }
+
     public function findBySlug(string $slug): ?array
     {
         $statement = $this->pdo->prepare(

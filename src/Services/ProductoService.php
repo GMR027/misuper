@@ -249,6 +249,44 @@ final class ProductoService
     }
 
     /**
+     * Datos nutricionales de varios productos en una sola consulta.
+     *
+     * @param array<int, int|string> $ids
+     * @return array{items: array<int, array{id: int, nombre: string, unidad_base: string, kcal_100: float|null, peso_pieza_g: float|null}>}
+     */
+    public function nutricionPorIds(array $ids): array
+    {
+        $items = [];
+        $vistos = [];
+
+        foreach ($ids as $id) {
+            $id = (int) $id;
+
+            if ($id <= 0 || isset($vistos[$id])) {
+                continue;
+            }
+
+            $vistos[$id] = true;
+        }
+
+        if (count($vistos) > 100) {
+            $vistos = array_slice($vistos, 0, 100, true);
+        }
+
+        foreach ($this->productos->nutricionPorIds(array_keys($vistos)) as $row) {
+            $items[] = [
+                'id' => (int) $row['id'],
+                'nombre' => (string) $row['nombre'],
+                'unidad_base' => (string) $row['unidad_base'],
+                'kcal_100' => isset($row['kcal_100']) ? (float) $row['kcal_100'] : null,
+                'peso_pieza_g' => isset($row['peso_pieza_g']) ? (float) $row['peso_pieza_g'] : null,
+            ];
+        }
+
+        return ['items' => $items];
+    }
+
+    /**
      * @return array<int, array{id: int, nombre: string}>
      */
     public function categorias(): array

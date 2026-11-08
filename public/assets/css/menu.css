@@ -47,7 +47,7 @@
 
 .menu-stats {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0.65rem;
     margin-bottom: 1rem;
 }
@@ -153,6 +153,21 @@
 .menu-day__date {
     color: var(--muted);
     font-size: 0.7rem;
+}
+
+.menu-day__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 0.25rem 0.6rem;
+    text-align: right;
+}
+
+.menu-day__kcal {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 700;
 }
 
 .menu-slot {
@@ -274,6 +289,11 @@
 
 .menu-card__cost {
     font-weight: 750;
+}
+
+.menu-card__kcal {
+    font-weight: 700;
+    color: var(--p-700, #0f7a57);
 }
 
 .menu-card__cost--parcial {
@@ -448,6 +468,12 @@
 
 .menu-lista__resumen small {
     color: var(--bs-warning-text-emphasis);
+}
+
+@media (max-width: 1199.98px) {
+    .menu-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 575.98px) {

@@ -197,6 +197,12 @@
     background: #fff1c2;
 }
 
+.recipe-badge--kcal {
+    color: #fff;
+    background: #b45309;
+    white-space: nowrap;
+}
+
 .recipe-card__body {
     display: flex;
     flex-direction: column;

@@ -111,11 +111,53 @@ final class NutricionService
      */
     public function receta(array $receta, ?int $porciones = null, ?int $usuarioId = null): array
     {
+        return $this->recetaConIndice($receta, $porciones, $this->indiceProductos($usuarioId));
+    }
+
+    /**
+     * Calcula varias recetas compartiendo una sola carga del catálogo.
+     *
+     * @param array<int|string, array{receta: array<string, mixed>, porciones?: int|null}> $entradas
+     * @return array<int|string, array<string, mixed>>
+     */
+    public function recetas(array $entradas, ?int $usuarioId = null): array
+    {
+        $indice = $this->indiceProductos($usuarioId);
+        $resultado = [];
+
+        foreach ($entradas as $clave => $entrada) {
+            if (!is_array($entrada) || !is_array($entrada['receta'] ?? null)) {
+                continue;
+            }
+
+            $porciones = isset($entrada['porciones']) ? (int) $entrada['porciones'] : null;
+            $resultado[$clave] = $this->recetaConIndice($entrada['receta'], $porciones, $indice);
+        }
+
+        return $resultado;
+    }
+
+    /**
+     * @param array<string, mixed> $receta
+     * @param array<int, array{producto: array<string, mixed>, tokens: array<int, string>}> $indice
+     * @return array{
+     *     total: float,
+     *     porcion: float,
+     *     porciones: int,
+     *     porciones_base: int,
+     *     items: array<int, array{nombre: string, kcal: float|null, motivo: string|null}>,
+     *     con_dato: int,
+     *     sin_dato: int,
+     *     ignorados: int,
+     *     completo: bool
+     * }
+     */
+    private function recetaConIndice(array $receta, ?int $porciones, array $indice): array
+    {
         $porcionesBase = max(1, (int) ($receta['porciones_base'] ?? 4));
         $porciones = $porciones === null ? $porcionesBase : max(1, min(50, $porciones));
         $factor = $porciones / $porcionesBase;
 
-        $indice = $this->indiceProductos($usuarioId);
         $items = [];
         $total = 0.0;
         $conDato = 0;

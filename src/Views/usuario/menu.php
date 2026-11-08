@@ -23,7 +23,7 @@ ob_start();
             </h2>
             <p class="text-muted mb-0">
                 Planea desayuno, comida y cena. El costo sale de tus compras; si falta un
-                precio, se muestra como parcial.
+                precio, se muestra como parcial. Las calorías son estimadas.
             </p>
         </div>
         <div class="menu-head__links">
@@ -101,6 +101,11 @@ ob_start();
             <span class="menu-stat__label">Costo estimado</span>
             <strong class="menu-stat__value" data-menu-stat-total>—</strong>
             <small class="menu-stat__nota" data-menu-stat-nota></small>
+        </div>
+        <div class="menu-stat">
+            <span class="menu-stat__label">Calorías</span>
+            <strong class="menu-stat__value" data-menu-stat-kcal>—</strong>
+            <small class="menu-stat__nota" data-menu-stat-kcal-nota></small>
         </div>
         <div class="menu-stat">
             <span class="menu-stat__label">Sin precio</span>

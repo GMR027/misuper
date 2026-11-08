@@ -1601,3 +1601,42 @@ body.quick-sheet-open {
         display: none;
     }
 }
+
+/* Calorías del carrito ------------------------------------------------ */
+
+.cart-item__tag--kcal {
+    font-variant-numeric: tabular-nums;
+    color: #9a3412;
+    background: #fff7ed;
+    border-color: #fed7aa;
+}
+
+.cart-total__kcal {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--p-800);
+    font-variant-numeric: tabular-nums;
+}
+
+.hero-summary__kcal {
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+    opacity: 0.9;
+}
+
+.quick-toolbar__kcal {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.quick-bottom-bar__kcal {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    white-space: nowrap;
+}

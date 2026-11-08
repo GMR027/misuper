@@ -326,6 +326,7 @@ final class CompraRepository
     {
         $statement = $this->pdo->prepare(
             "SELECT p.id, p.nombre, p.categoria_id, p.unidad_base, p.imagen_url,
+                    p.kcal_100, p.peso_pieza_g,
                     COUNT(*) AS veces_comprado,
                     MAX(ult.precio_unidad) AS ultimo_precio
              FROM compra_items ci
@@ -345,7 +346,8 @@ final class CompraRepository
                    AND ci2.cantidad > 0
              ) ult ON ult.producto_id = p.id AND ult.rn = 1
              WHERE c.usuario_id = ? AND p.estado = 'activo'
-             GROUP BY p.id, p.nombre, p.categoria_id, p.unidad_base, p.imagen_url
+             GROUP BY p.id, p.nombre, p.categoria_id, p.unidad_base, p.imagen_url,
+                      p.kcal_100, p.peso_pieza_g
              ORDER BY veces_comprado DESC, p.nombre ASC
              LIMIT ?"
         );
@@ -363,6 +365,8 @@ final class CompraRepository
                 'categoria_id' => (int) $row['categoria_id'],
                 'unidad_base' => (string) $row['unidad_base'],
                 'imagen_url' => isset($row['imagen_url']) ? (string) $row['imagen_url'] : null,
+                'kcal_100' => isset($row['kcal_100']) ? (float) $row['kcal_100'] : null,
+                'peso_pieza_g' => isset($row['peso_pieza_g']) ? (float) $row['peso_pieza_g'] : null,
                 'veces_comprado' => (int) $row['veces_comprado'],
                 'ultimo_precio' => isset($row['ultimo_precio']) ? (float) $row['ultimo_precio'] : null,
             ];
@@ -583,7 +587,8 @@ final class CompraRepository
 
         $statement = $this->pdo->prepare(
             'SELECT p.id, p.nombre, p.categoria_id, c.nombre AS categoria_nombre,
-                    p.unidad_base, p.imagen_url, p.estado, p.created_at, p.updated_at,
+                    p.unidad_base, p.imagen_url, p.kcal_100, p.peso_pieza_g,
+                    p.estado, p.created_at, p.updated_at,
                     ' . $selectPrecio . '
              FROM productos p
              INNER JOIN categorias c ON c.id = p.categoria_id' . $join . '

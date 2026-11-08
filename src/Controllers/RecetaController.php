@@ -57,6 +57,18 @@ final class RecetaController
     }
 
     /**
+     * GET /api/recetas/nutricion?slugs=a,b,c
+     */
+    public function nutricion(): void
+    {
+        $usuario = AuthMiddleware::require();
+        $raw = isset($_GET['slugs']) && is_string($_GET['slugs']) ? $_GET['slugs'] : '';
+        $slugs = $raw === '' ? [] : explode(',', $raw);
+
+        Response::ok($this->recetas->nutricionPorSlugs((int) $usuario['id'], $slugs));
+    }
+
+    /**
      * GET /api/recetas/{slug}
      */
     public function show(string $slug): void

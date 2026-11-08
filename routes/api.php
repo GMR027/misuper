@@ -83,6 +83,11 @@ return static function (string $method, string $path): void {
 
                 return;
 
+            case 'GET /api/productos/nutricion':
+                (new ProductoController())->nutricion();
+
+                return;
+
             case 'POST /api/productos':
                 (new ProductoController())->store();
 
@@ -200,6 +205,11 @@ return static function (string $method, string $path): void {
 
             case 'GET /api/recetas':
                 (new RecetaController())->index();
+
+                return;
+
+            case 'GET /api/recetas/nutricion':
+                (new RecetaController())->nutricion();
 
                 return;
 

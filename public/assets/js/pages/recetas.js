@@ -68,6 +68,9 @@ function init(root) {
     let categorias = [];
     /** @type {Map<string, {slug: string, nombre: string, porciones: number, porciones_base: number}>} */
     const seleccion = new Map();
+    /** @type {Map<string, any|null>} */
+    const nutricionCache = new Map();
+    const nutricionPendientes = new Set();
     /** @type {any|null} */
     let detalleActual = null;
     let detallePorciones = 4;
@@ -423,6 +426,8 @@ function init(root) {
                 el.grid.append(crearTarjeta(receta));
             }
 
+            void cargarNutricion(visibles);
+
             renderPaginacion(total, totalPaginas);
         }
 
@@ -430,6 +435,89 @@ function init(root) {
             el.status.textContent = total === 0
                 ? '0 recetas'
                 : `${inicio + 1}–${fin} de ${total} ${total === 1 ? 'receta' : 'recetas'} · página ${paginaActual} de ${totalPaginas}`;
+        }
+    }
+
+    /**
+     * @param {{porcion?: number|string, completo?: boolean}} info
+     * @returns {string}
+     */
+    function textoKcal(info) {
+        return `≈ ${formatQuantity(Math.round(Number(info.porcion ?? 0)))} kcal/porción`;
+    }
+
+    /**
+     * Pide las kcal de las tarjetas visibles que aún no estén en caché.
+     *
+     * @param {Array<any>} lista
+     */
+    async function cargarNutricion(lista) {
+        const slugs = [];
+
+        for (const receta of lista) {
+            const slug = String(receta?.slug ?? '');
+
+            if (slug === '' || nutricionCache.has(slug) || nutricionPendientes.has(slug)) {
+                continue;
+            }
+
+            slugs.push(slug);
+        }
+
+        if (slugs.length === 0) {
+            return;
+        }
+
+        slugs.forEach((slug) => nutricionPendientes.add(slug));
+
+        try {
+            const data = await fetchApi(
+                `/api/recetas/nutricion?slugs=${encodeURIComponent(slugs.join(','))}`,
+            );
+            const items = data?.items !== null && typeof data?.items === 'object' ? data.items : {};
+
+            for (const slug of slugs) {
+                const info = items[slug] ?? null;
+                nutricionCache.set(slug, info);
+                actualizarBadgeKcal(slug, info);
+            }
+        } catch (error) {
+            redirectIfSessionLost(error);
+
+            for (const slug of slugs) {
+                nutricionCache.set(slug, null);
+                actualizarBadgeKcal(slug, null);
+            }
+        } finally {
+            slugs.forEach((slug) => nutricionPendientes.delete(slug));
+        }
+    }
+
+    /**
+     * @param {string} slug
+     * @param {any|null} info
+     */
+    function actualizarBadgeKcal(slug, info) {
+        if (!(el.grid instanceof HTMLElement)) {
+            return;
+        }
+
+        for (const badge of el.grid.querySelectorAll('[data-recipe-kcal]')) {
+            if (!(badge instanceof HTMLElement) || badge.dataset.recipeKcal !== slug) {
+                continue;
+            }
+
+            if (info === null || info === undefined) {
+                badge.hidden = true;
+
+                continue;
+            }
+
+            badge.hidden = false;
+            badge.textContent = textoKcal(info);
+            badge.title = Number(info.completo ?? 1) === 1
+                ? 'Calorías estimadas por porción'
+                : 'Cálculo parcial: faltan datos de algunos ingredientes';
         }
     }
 
@@ -583,6 +671,24 @@ function init(root) {
             badges.append(badge);
         }
 
+        const slug = String(receta.slug ?? '');
+        const infoKcal = nutricionCache.get(slug);
+        const kcalBadge = document.createElement('span');
+        kcalBadge.className = 'recipe-badge recipe-badge--kcal';
+        kcalBadge.dataset.recipeKcal = slug;
+
+        if (nutricionCache.has(slug) && infoKcal === null) {
+            kcalBadge.hidden = true;
+        } else if (infoKcal !== null && infoKcal !== undefined) {
+            kcalBadge.textContent = textoKcal(infoKcal);
+            kcalBadge.title = Number(infoKcal.completo ?? 1) === 1
+                ? 'Calorías estimadas por porción'
+                : 'Cálculo parcial: faltan datos de algunos ingredientes';
+        } else {
+            kcalBadge.textContent = '… kcal';
+        }
+
+        badges.append(kcalBadge);
         media.append(badges);
 
         const favorito = document.createElement('button');

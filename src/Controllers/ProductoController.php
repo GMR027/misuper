@@ -35,6 +35,17 @@ final class ProductoController
     }
 
     /**
+     * GET /api/productos/nutricion?ids=1,2,3
+     */
+    public function nutricion(): void
+    {
+        $raw = isset($_GET['ids']) && is_string($_GET['ids']) ? $_GET['ids'] : '';
+        $ids = $raw === '' ? [] : explode(',', $raw);
+
+        Response::ok($this->productos->nutricionPorIds($ids));
+    }
+
+    /**
      * POST /api/productos — alta de un producto propio del usuario.
      */
     public function store(): void
