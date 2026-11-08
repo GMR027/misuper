@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\CsrfMiddleware;
 use App\Services\AccountService;
+use App\Services\ApiTokenService;
 use App\Services\AvatarService;
 use App\Support\Response;
 use App\Validators\AccountValidator;
@@ -118,7 +119,16 @@ final class MeController
             Response::fail('INVALID_PASSWORD', 'Contraseña actual incorrecta.', 422);
         }
 
-        session_regenerate_id(true);
+        // Las demás sesiones dejan de valer; si el cambio viene de la app, su
+        // token actual se conserva.
+        (new ApiTokenService())->revocarTodos(
+            (int) $usuario['id'],
+            AuthMiddleware::bearerToken()
+        );
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
 
         Response::ok(['message' => 'Contraseña actualizada.']);
     }
@@ -145,7 +155,16 @@ final class MeController
 
         $this->account->cambiarPasswordForzado($usuario['id'], (string) $data['password_nueva']);
 
-        session_regenerate_id(true);
+        // Se conserva el token con el que se hizo el cambio; los demás se
+        // revocan.
+        (new ApiTokenService())->revocarTodos(
+            (int) $usuario['id'],
+            AuthMiddleware::bearerToken()
+        );
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
 
         Response::ok(['message' => 'Contraseña actualizada.']);
     }
@@ -197,6 +216,10 @@ final class MeController
      */
     private function destroySession(): void
     {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            return;
+        }
+
         session_regenerate_id(true);
 
         $_SESSION = [];

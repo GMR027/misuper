@@ -92,6 +92,62 @@ final class TicketOcrService
     /**
      * @param string|null $config Configuración de salida de Tesseract (p. ej. "tsv").
      */
+    /**
+     * Detecta cuántos grados hay que girar la foto para que el texto quede
+     * horizontal. Tesseract devuelve 90, 180 o 270; null si no lo sabe.
+     */
+    public function rotacion(string $archivo): ?int
+    {
+        if (!is_file($archivo) || !is_readable($archivo) || !is_callable('proc_open')) {
+            return null;
+        }
+
+        try {
+            $binario = $this->binario();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        $comando = [
+            $binario,
+            $archivo,
+            'stdout',
+            '-l',
+            'osd',
+            '--psm',
+            '0',
+        ];
+
+        $descriptores = [
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+
+        $proceso = @proc_open($comando, $descriptores, $tuberias);
+
+        if (!is_resource($proceso)) {
+            return null;
+        }
+
+        $salida = stream_get_contents($tuberias[1]);
+        $error = stream_get_contents($tuberias[2]);
+
+        fclose($tuberias[1]);
+        fclose($tuberias[2]);
+
+        if (proc_close($proceso) !== 0) {
+            error_log('[ticket-ocr] OSD falló: ' . trim((string) $error));
+
+            return null;
+        }
+
+        if (preg_match('/Rotate:\s*(90|180|270)/i', (string) $salida, $m) === 1) {
+            return (int) $m[1];
+        }
+
+        return null;
+    }
+
     private function ejecutar(string $archivo, int $psm, ?string $config = null): string
     {
         if (!is_file($archivo) || !is_readable($archivo)) {

@@ -38,7 +38,7 @@ FROM php:8.3-apache
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       libonig-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libwebp-dev \
-      tesseract-ocr tesseract-ocr-spa \
+      tesseract-ocr tesseract-ocr-spa tesseract-ocr-osd \
  && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
  && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring gd \
  && apt-get clean \

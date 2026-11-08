@@ -26,3 +26,19 @@
 # Despliegue
 .deploy-tag
 helm/**/values.local.yaml
+
+# Instalable Android publicado (se genera con pnpm mobile:publish)
+/public/descargas/*.apk
+/public/descargas/version.json
+
+# App Android (misuper-mobile)
+/misuper-mobile/node_modules/
+/misuper-mobile/android/
+/misuper-mobile/ios/
+/misuper-mobile/.expo/
+/misuper-mobile/dist/
+/misuper-mobile/expo-env.d.ts
+*.jks
+*.keystore
+/misuper-mobile/*.apk
+/misuper-mobile/*.aab

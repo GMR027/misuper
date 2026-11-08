@@ -541,3 +541,82 @@ html[data-mode="dark"] .mode-option[data-mode-choice="auto"] i {
         font-size: 0.78rem;
     }
 }
+
+/* Compartir e instalar -------------------------------------------------- */
+
+.share-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.share-card__image {
+    flex: 0 0 auto;
+    width: 220px;
+    height: 220px;
+    padding: 0.5rem;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+}
+
+.share-card__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.share-card__url {
+    margin-bottom: 0.35rem;
+    color: var(--body-ink);
+    font-weight: 700;
+    word-break: break-all;
+}
+
+.install-app__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+    padding: 0.85rem 1rem;
+    background: var(--surface-2, rgba(0, 0, 0, 0.03));
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+}
+
+.install-app__label {
+    color: var(--muted-ink, var(--text-muted));
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.install-app__version {
+    color: var(--body-ink);
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.install-app__date {
+    color: var(--muted-ink, var(--text-muted));
+    font-size: 0.78rem;
+}
+
+.install-app__download {
+    margin-bottom: 0.85rem;
+}
+
+@media (max-width: 575.98px) {
+    .share-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .share-card__image {
+        width: 180px;
+        height: 180px;
+    }
+}

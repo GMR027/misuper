@@ -1,0 +1,13 @@
+<IfModule mod_mime.c>
+    AddType application/vnd.android.package-archive .apk
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.apk$">
+        Header set Content-Disposition "attachment"
+        Header set Cache-Control "public, max-age=300"
+    </FilesMatch>
+    <Files "version.json">
+        Header set Cache-Control "no-store, max-age=0"
+    </Files>
+</IfModule>

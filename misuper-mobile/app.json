@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "Mi Súper",
+    "slug": "misuper-mobile",
+    "version": "0.1.9",
+    "scheme": "misuper",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#faf9f6"
+    },
+    "android": {
+      "package": "app.misuper",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/monochrome-icon.png",
+        "backgroundColor": "#0f7a57"
+      },
+      "versionCode": 10,
+      "permissions": [
+        "android.permission.REQUEST_INSTALL_PACKAGES"
+      ],
+      "usesCleartextTraffic": true
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "imageWidth": 184,
+          "backgroundColor": "#faf9f6",
+          "dark": {
+            "image": "./assets/splash.png",
+            "backgroundColor": "#121410"
+          }
+        }
+      ],
+      "expo-status-bar",
+      "./plugins/release-signing.js",
+      "./plugins/debug-app-id.js",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

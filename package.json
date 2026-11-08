@@ -1,0 +1,15 @@
+{
+  "name": "misuper",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "android": "bash misuper-mobile/cli/android.sh",
+    "android:devices": "bash misuper-mobile/cli/android.sh devices",
+    "android:dev": "bash misuper-mobile/cli/android.sh --dev",
+    "mobile:start": "pnpm --dir misuper-mobile start",
+    "mobile:install": "pnpm --dir misuper-mobile install",
+    "mobile:check": "pnpm --dir misuper-mobile check",
+    "mobile:lint": "pnpm --dir misuper-mobile lint",
+    "mobile:publish": "bash scripts/publish-apk.sh"
+  }
+}

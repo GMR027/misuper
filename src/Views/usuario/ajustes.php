@@ -5,9 +5,40 @@ declare(strict_types=1);
 use App\Middleware\AuthMiddleware;
 use App\Middleware\CsrfMiddleware;
 use App\Support\AvatarCatalog;
+use App\Support\Env;
 
 $usuario = AuthMiddleware::require();
 $csrfToken = CsrfMiddleware::token();
+
+$shareUrl = rtrim(
+    Env::get('APP_URL', 'https://misuper.iguzman.com.mx'),
+    '/'
+);
+
+$release = null;
+$releaseFile = BASE_PATH . '/public/descargas/version.json';
+
+if (is_file($releaseFile)) {
+    $decoded = json_decode((string) file_get_contents($releaseFile), true);
+
+    if (is_array($decoded) && isset($decoded['version'])) {
+        $release = $decoded;
+    }
+}
+
+$releaseUrl = $release !== null
+    ? $shareUrl . '/descargas/' . rawurlencode((string) ($release['apk'] ?? 'misuper.apk'))
+        . '?v=' . rawurlencode((string) $release['version'])
+    : null;
+$releaseDate = null;
+
+if ($release !== null && !empty($release['published_at'])) {
+    $timestamp = strtotime((string) $release['published_at']);
+
+    if ($timestamp !== false) {
+        $releaseDate = date('d/m/Y', $timestamp);
+    }
+}
 
 $avatarTipo = (string) ($usuario['avatar_tipo'] ?? '');
 $avatarValor = (string) ($usuario['avatar_valor'] ?? '');
@@ -363,6 +394,91 @@ ob_start();
 
                         <button class="btn btn-primary" type="submit">Cambiar contraseña</button>
                     </form>
+                </div>
+            </section>
+
+            <section class="card card--bs shadow-sm mb-4" aria-labelledby="compartir-title">
+                <div class="card-body p-4">
+                    <h3 class="h5 card-title mb-1" id="compartir-title">
+                        <span class="title-icon"><i class="bi bi-qr-code" aria-hidden="true"></i></span>
+                        Compartir
+                    </h3>
+                    <p class="text-muted small mb-3">
+                        Muestra este código para que otra persona abra Mi Súper y cree su cuenta.
+                    </p>
+
+                    <div class="share-card">
+                        <img
+                            class="share-card__image"
+                            src="/assets/img/misuper-qr.png"
+                            alt="Código QR para abrir Mi Súper"
+                            width="220"
+                            height="220"
+                            loading="lazy"
+                        >
+                        <div class="share-card__body">
+                            <p class="share-card__url" data-share-url><?= htmlspecialchars($shareUrl, ENT_QUOTES, 'UTF-8') ?></p>
+                            <p class="text-muted small mb-2">
+                                Apunta la cámara del teléfono al código o comparte el enlace.
+                            </p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-primary btn-sm" type="button" data-share-copy>
+                                    <i class="bi bi-clipboard" aria-hidden="true"></i>
+                                    Copiar enlace
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" type="button" data-share-native hidden>
+                                    <i class="bi bi-share" aria-hidden="true"></i>
+                                    Compartir
+                                </button>
+                            </div>
+                            <p class="form__message mt-2 mb-0" data-share-message hidden></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card card--bs shadow-sm mb-4" aria-labelledby="instala-title">
+                <div class="card-body p-4">
+                    <h3 class="h5 card-title mb-1" id="instala-title">
+                        <span class="title-icon"><i class="bi bi-android2" aria-hidden="true"></i></span>
+                        Instala la aplicación
+                    </h3>
+                    <p class="text-muted small mb-3">
+                        Lleva Mi Súper en tu teléfono Android: registra compras, consulta tu menú y tu lista desde cualquier lugar.
+                    </p>
+
+                    <?php if ($releaseUrl !== null): ?>
+                        <div class="install-app__head">
+                            <div>
+                                <p class="install-app__label mb-0">Última versión para Android</p>
+                                <p class="install-app__version mb-0">
+                                    <?= htmlspecialchars((string) $release['version'], ENT_QUOTES, 'UTF-8') ?>
+                                </p>
+                            </div>
+                            <?php if ($releaseDate !== null): ?>
+                                <span class="install-app__date">Publicada el <?= htmlspecialchars($releaseDate, ENT_QUOTES, 'UTF-8') ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <a
+                            class="btn btn-primary install-app__download"
+                            href="<?= htmlspecialchars($releaseUrl, ENT_QUOTES, 'UTF-8') ?>"
+                            download
+                        >
+                            <i class="bi bi-download" aria-hidden="true"></i>
+                            Descargar para Android
+                        </a>
+
+                        <p class="text-muted small mb-0">
+                            Si ya tienes la app instalada, ábrela y ve a
+                            <strong>Ajustes → Instala la aplicación</strong>
+                            para comprobar si hay una versión nueva.
+                        </p>
+                    <?php else: ?>
+                        <p class="text-muted small mb-0">
+                            Todavía no hay un instalable publicado. Vuelve a intentarlo más tarde.
+                        </p>
+                    <?php endif; ?>
                 </div>
             </section>
 

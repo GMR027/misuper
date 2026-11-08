@@ -6,7 +6,9 @@ use App\Controllers\AdminCategoriaController;
 use App\Controllers\AdminProductoController;
 use App\Controllers\AdminRecetaController;
 use App\Controllers\AdminUsuarioController;
+use App\Controllers\AppReleaseController;
 use App\Controllers\AuthController;
+use App\Controllers\AvatarController;
 use App\Controllers\ImportacionController;
 use App\Controllers\CategoriaController;
 use App\Controllers\CompraController;
@@ -15,6 +17,7 @@ use App\Controllers\MeController;
 use App\Controllers\MenuController;
 use App\Controllers\MenuIaController;
 use App\Controllers\MetricaController;
+use App\Controllers\MobileAuthController;
 use App\Controllers\NotaController;
 use App\Controllers\PrecioController;
 use App\Controllers\ProductoController;
@@ -43,8 +46,33 @@ return static function (string $method, string $path): void {
 
                 return;
 
+            case 'POST /api/mobile/auth/login':
+                (new MobileAuthController())->login();
+
+                return;
+
+            case 'POST /api/mobile/auth/register':
+                (new MobileAuthController())->register();
+
+                return;
+
+            case 'POST /api/mobile/auth/logout':
+                (new MobileAuthController())->logout();
+
+                return;
+
+            case 'GET /api/app/version':
+                (new AppReleaseController())->show();
+
+                return;
+
             case 'GET /api/me':
                 (new MeController())->show();
+
+                return;
+
+            case 'GET /api/avatars':
+                (new AvatarController())->index();
 
                 return;
 
@@ -557,6 +585,15 @@ return static function (string $method, string $path): void {
         ) {
             if ($method === 'DELETE') {
                 (new NotaController())->destroyFoto((int) $matches[1], (int) $matches[2]);
+
+                return;
+            }
+        }
+
+        // Foto del ticket para la app móvil: /api/tickets/{id}/foto
+        if (preg_match('#^/api/tickets/([1-9][0-9]*)/foto$#', $path, $matches) === 1) {
+            if ($method === 'GET') {
+                (new TicketController())->fotoApi((int) $matches[1]);
 
                 return;
             }

@@ -564,3 +564,72 @@ document.querySelector('[data-logout]')?.addEventListener('click', async (event)
 });
 
 cargarUsuario();
+
+/* Compartir enlace ------------------------------------------------------ */
+
+const shareCopyButton = document.querySelector('[data-share-copy]');
+const shareNativeButton = document.querySelector('[data-share-native]');
+const shareMessage = document.querySelector('[data-share-message]');
+const shareUrlElement = document.querySelector('[data-share-url]');
+const shareUrl = shareUrlElement?.textContent?.trim() ?? '';
+
+if (shareNativeButton instanceof HTMLElement && typeof navigator.share === 'function') {
+    shareNativeButton.hidden = false;
+}
+
+if (shareCopyButton instanceof HTMLButtonElement && shareUrl !== '') {
+    shareCopyButton.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            showMessage(shareMessage, 'Enlace copiado.', 'success');
+
+            return;
+        } catch {
+            // Algunos navegadores exigen HTTPS o permiso; se intenta el método clásico.
+        }
+
+        const input = document.createElement('textarea');
+        input.value = shareUrl;
+        input.setAttribute('readonly', '');
+        input.style.position = 'fixed';
+        input.style.top = '-1000px';
+        input.style.opacity = '0';
+        document.body.append(input);
+        input.select();
+
+        let copied = false;
+
+        try {
+            copied = document.execCommand('copy');
+        } catch {
+            copied = false;
+        }
+
+        input.remove();
+        showMessage(
+            shareMessage,
+            copied
+                ? 'Enlace copiado.'
+                : 'No se pudo copiar; selecciona el enlace manualmente.',
+            copied ? 'success' : 'error'
+        );
+    });
+}
+
+if (shareNativeButton instanceof HTMLButtonElement && shareUrl !== '') {
+    shareNativeButton.addEventListener('click', async () => {
+        try {
+            await navigator.share({
+                title: 'Mi Súper',
+                text: 'Crea tu cuenta en Mi Súper',
+                url: shareUrl,
+            });
+        } catch (error) {
+            if (error instanceof DOMException && error.name === 'AbortError') {
+                return;
+            }
+
+            showMessage(shareMessage, 'No se pudo compartir el enlace.', 'error');
+        }
+    });
+}

@@ -104,6 +104,38 @@ final class TicketController
     }
 
     /**
+     * GET /api/tickets/{id}/foto — imagen original como data URL, para la app.
+     */
+    public function fotoApi(int $id): void
+    {
+        $usuario = AuthMiddleware::require();
+        $ticket = $this->tickets->obtener($usuario['id'], $id);
+
+        if ($ticket === null) {
+            Response::fail('NOT_FOUND', 'Ticket no encontrado.', 404);
+        }
+
+        $archivo = $this->tickets->rutaAbsoluta($ticket->ruta);
+
+        if ($archivo === null) {
+            Response::fail('NOT_FOUND', 'La imagen del ticket no está disponible.', 404);
+        }
+
+        $datos = file_get_contents($archivo);
+
+        if ($datos === false) {
+            Response::fail('READ_ERROR', 'No se pudo leer la imagen del ticket.', 500);
+        }
+
+        $mime = mime_content_type($archivo);
+        $mime = is_string($mime) && str_starts_with($mime, 'image/') ? $mime : 'image/jpeg';
+
+        Response::ok([
+            'data_url' => 'data:' . $mime . ';base64,' . base64_encode($datos),
+        ]);
+    }
+
+    /**
      * GET /ticket/{id}/foto — imagen original, solo para el dueño.
      */
     public function foto(int $id): void

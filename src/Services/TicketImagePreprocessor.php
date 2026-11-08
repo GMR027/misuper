@@ -38,6 +38,26 @@ final class TicketImagePreprocessor
             return null;
         }
 
+        // Las fotos giradas hacen que Tesseract lea columnas verticales.
+        // OSD es barato y solo se usa para orientar la imagen antes del OCR.
+        try {
+            $rotacion = (new TicketOcrService())->rotacion($archivo);
+
+            if ($rotacion !== null && $rotacion !== 0) {
+                $blanco = imagecolorallocate($original, 255, 255, 255);
+                $rotada = $blanco === false
+                    ? false
+                    : imagerotate($original, 360 - $rotacion, $blanco);
+
+                if ($rotada !== false) {
+                    imagedestroy($original);
+                    $original = $rotada;
+                }
+            }
+        } catch (\Throwable) {
+            // Si OSD no está disponible, se procesa la imagen tal cual.
+        }
+
         $recorte = null;
         $ampliada = null;
         $gris = null;

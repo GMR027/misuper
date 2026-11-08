@@ -90,6 +90,45 @@ composer serve
 
 Abre http://localhost:8000.
 
+## App Android
+
+La app Android vive en [`misuper-mobile`](misuper-mobile/README.md) y se
+compila e instala desde la raíz del repo:
+
+```bash
+pnpm mobile:install   # dependencias de la app (una vez)
+pnpm android          # menú: compilar e instalar, o administrar teléfonos
+pnpm android devices  # vincular un teléfono por Wi-Fi o USB
+pnpm android --dev    # APK debug + Metro para desarrollo
+```
+
+La app pide iniciar sesión o crear una cuenta. **Inicio** es la pantalla rápida:
+buscador, categorías, compras frecuentes, cuadrícula con imágenes, calculadora de
+costo × cantidad, carrito y guardado de la compra. Tiene un dock inferior como
+la web móvil, 15 paletas de color y editor de avatar/foto. Usa producción
+(`https://misuper.iguzman.com.mx`) por defecto; la URL se puede cambiar desde el
+login o desde Ajustes.
+
+La primera vez que compiles se crea una clave de firma release en
+`~/.android/misuper-mobile-release.jks`. Consérvala junto con las contraseñas de
+`~/.gradle/gradle.properties`: sin ella no se pueden instalar actualizaciones.
+Los detalles (requisitos, opciones, firma, API y problemas comunes) están en
+[`misuper-mobile/README.md`](misuper-mobile/README.md).
+
+Para publicar el instalable que se descarga desde **Ajustes → Instala la
+aplicación**:
+
+```bash
+pnpm mobile:publish   # copia el APK release a public/descargas y escribe version.json
+./deploy.sh           # lo sube con el backend
+```
+
+La app comprueba `GET /api/app/version` y, si hay una versión nueva, descarga el
+APK dentro de la app y abre el instalador de Android. El QR de **Compartir**
+apunta a `https://misuper.iguzman.com.mx` y vive en
+`public/assets/img/misuper-qr.png`.
+
+
 ## Despliegue en Kubernetes
 
 Requisitos: `docker` con sesión en Docker Hub, `helm`, `kubectl` y acceso al

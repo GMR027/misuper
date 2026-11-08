@@ -35,6 +35,13 @@ final class CsrfMiddleware
      */
     public static function enforce(): void
     {
+        // Un Bearer no es una credencial ambiental: el navegador no lo adjunta
+        // solo, así que no hay ataque CSRF posible. La ruta protegida sigue
+        // validando el token con AuthMiddleware::require().
+        if (AuthMiddleware::usingToken()) {
+            return;
+        }
+
         $metodo = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 
         if (!in_array($metodo, self::METODOS_PROTEGIDOS, true)) {

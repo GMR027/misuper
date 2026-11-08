@@ -10,6 +10,20 @@ Stack: PHP 8.1+, MySQL 8, PDO, HTML + CSS + JS vanilla (módulos ES6). Sin frame
 - Fases completadas: Fase 1 a Fase 11.4, Fase 12.0 a Fase 12.9, Fase 13 a Fase 26
 - Próximo chunk: post-MVP. Sin fases pendientes.
 
+## App Android (misuper-mobile)
+- App Android en `misuper-mobile/`: Expo SDK 57, React Native 0.86, expo-router y Material 3 con Jetpack Compose (`@expo/ui`).
+- Login y registro con token Bearer (`POST /api/mobile/auth/login|register`, tabla `api_tokens`, hash SHA-256, 180 días); el token se guarda con `expo-secure-store`. La web sigue usando sesión PHP + CSRF.
+- Cambio obligatorio de contraseña si `debe_cambiar_password`; cerrar sesión en Ajustes; el carrito se limpia al cambiar de cuenta.
+- Navegación como la web móvil: **dock inferior** (Inicio, Gastos, botón central de búsqueda, Ticket, Menú), hoja de menú con avatar/cuenta y búsqueda global.
+- **Inicio** es la pantalla rápida: búsqueda, hoja de categorías (Frecuentes/Todas), cuadrícula de 2 columnas con imágenes, vista lista, agregar producto, **calculadora costo × cantidad**, producto nuevo, carrito persistente y guardado con `POST /api/compras`.
+- **Apariencia**: 15 paletas de la web con variantes clara/oscura, modo sistema/claro/oscuro, color de enfoque con intensidad y expansión, e idioma es/en.
+- **Avatar**: foto desde la galería (`expo-image-picker`) o 50 avatares predefinidos; catálogo en `GET /api/avatars`, subida con `POST /api/me/avatar`. Se muestra en barra superior, menú y cuenta.
+- Dependencias nativas: `expo-secure-store`, `expo-image-picker`, `expo-linear-gradient`.
+- Se compila e instala desde la raíz con `pnpm android`; `pnpm android --dev` levanta Metro y `pnpm android devices` vincula teléfonos por Wi-Fi o USB.
+- Firma release propia en `~/.android/misuper-mobile-release.jks` (propiedades `MISUPER_MOBILE_RELEASE_*` en `~/.gradle/gradle.properties`). La build debug usa `applicationId app.misuper.debug` para convivir con la release.
+- URL por defecto: `https://misuper.iguzman.com.mx` (configurable desde login/Ajustes o `EXPO_PUBLIC_API_URL`). Versión actual: 0.1.5 (versionCode 6).
+- Documentación: `misuper-mobile/README.md`.
+
 ## Alcance del MVP (resumen)
 - Registro abierto, login, logout, sesiones PHP.
 - Recuperación de contraseña: reset manual por el Admin (sin SMTP).
@@ -778,3 +792,63 @@ STATE_HANDOFF — Fase 34 (Calorías en menú semanal, recetas y carrito) — 20
 - Carrito: nuevo módulo `public/assets/js/modules/nutricion.js` que replica las reglas del backend (kg/gr, L/ml, pza con peso, aproximación 1 g ≈ 1 ml). Muestra kcal total en el panel del carrito, hero, botón del buscador y barra inferior, además de `≈ N kcal` por ítem. Se recalcula al cambiar cantidades y se hidrata para carritos viejos consultando los ids por lote.
 - Verificado: `php -l` en servicios/repositorios/controladores/rutas, `node --check` en los JS y pruebas del módulo JS con los mismos casos que el backend. Prueba HTTP local con sesión real: `/api/recetas/nutricion`, `/api/productos/nutricion`, `/api/menu`, `/`, `/recetas`, `/menu` e `/historial` responden 200. Menú de prueba con 2 recetas y 1 nota: total diario 4,210.6 kcal, suma correcta por porciones configuradas.
 - Desplegado en producción (tag 22) el 2026-11-07. Verificado en el clúster: pod `1/1 Running`, `/api/health` 200, `/api/productos/nutricion` responde con datos, `RecetaService::nutricionPorSlugs()` y `CompraRepository::frecuentes()/buscarActivos()` devuelven kcal, y el menú de un usuario real calcula 1,197.7 kcal con 0 platillos sin dato. Los assets nuevos se sirven con `?v=<mtime>` para evitar la caché de Cloudflare.
+
+STATE_HANDOFF — App móvil · Fase 35 (texturas, dock, Notas, Ticket e Historial) — 2026-11-08
+- Fase 1 verificada en el teléfono (debug `app.misuper.debug`, release `app.misuper` intacta): texturas de papel, retícula de puntos, halos radiales con `react-native-svg`, grano, brillo en tarjetas, barra superior y dock; dock exacto Inicio · Notas · + · Tickets · Menú; tarjetas de producto en React Native con imagen 2:1, botón «+ Agregar» rectangular redondeado y calculadora cuadrada; listas y cuadrícula de 2 columnas.
+- Notas: `app/(drawer)/notas.tsx` con listado, búsqueda local, editor en hoja inferior, crear/editar/eliminar, fotos desde cámara o galería (máx. 8), lightbox y subida multipart.
+- `lib/api.ts` añade `apiUpload()` con `XMLHttpRequest`: el `fetch` de Expo SDK 57 (winter runtime) rechaza las partes `{ uri }` con «Unsupported FormDataPart implementation». También se usa para el avatar.
+- Fase 2 implementada (sin prueba de OCR real todavía): `app/(drawer)/tickets.tsx` sube la foto, muestra el estado de lectura, permite revisar fecha/comercio/artículos/cantidades/precios/unidades, comparar total detectado con la suma, ver el texto OCR, descartar y confirmar (`POST /api/tickets/{id}/confirm`).
+- Historial: `app/(drawer)/historial/index.tsx` lista compras agrupadas por mes con paginación «Cargar más»; `app/(drawer)/historial/[id].tsx` muestra el detalle, edita fecha/comercio, edita cantidad/precio/unidad de cada artículo, agrega artículos libres, elimina artículos y elimina la compra.
+- Menú: se agregó Historial bajo Compras y Notas bajo Personal. Chef queda fuera de la app por ahora.
+- Traducciones `tickets.*` y `history.*` en `messages/es.json` y `messages/en.json`.
+- `pnpm mobile:check` pasa (TypeScript + ESLint). Probado en dispositivos: login con usuario local, Notas (crear, editar, foto de cámara, subida, lightbox, borrar foto pendiente), historial vacío y con una compra de prueba, detalle, editor de artículo. Pendiente: probar OCR con un ticket real al reanudar.
+- Servidores locales detenidos y equipo apagado al cierre de la sesión. El usuario de prueba local es `prueba.notas@misuper.local`; no se tocó la cuenta de producción ni su carrito de 2 artículos.
+
+STATE_HANDOFF — App móvil · Fase 36 (Recetas, menú semanal, lista de compras y análisis) — 2026-11-08
+- Release **0.1.6 / versionCode 7** compilada e instalada sobre `app.misuper` con la misma clave; se verificaron la cuenta, el avatar y el carrito de 2 artículos de producción.
+- Recetas: listado con cuadrícula/lista, búsqueda, filtros por categoría/tipo/tiempo/favoritas/solo despensa, selector múltiple de compras anteriores persistido en el teléfono, detalle con porciones ajustables, ingredientes escalados, pasos, costo, calorías, favoritos, añadir al menú y añadir a lista.
+- Video de receta: modal con `react-native-webview`; si el video no permite embed se ofrece “Abrir en YouTube”. El módulo WebView se carga de forma diferida para que un fallo nativo no tumbe la app.
+- Menú semanal: selector de semana, resumen de costo/calorías, 7 días con desayuno/comida/cena/colación/otro, añadir receta o nota, editar porciones/nota, eliminar, copiar a la siguiente semana, vaciar y generar lista de compras con exclusión de productos.
+- Lista de compras: varias listas por usuario, crear/renombrar/eliminar, agregar/editar/eliminar productos, vaciar, costo estimado y “Enviar a compra rápida” (marca pendientes, consume los enviados y los agrega al carrito móvil).
+- Métricas: selector de año, barras mensuales, comparativa anual y top 10 de productos por mes.
+- Precios y costos: búsqueda, filtros (con/sin precio, viejos, manuales), resumen, historial y edición de precio manual por producto.
+- Menú lateral: Compras (Inicio, Lista de compras, Tickets, Historial, Gastos), Cocina (Menú semanal, Recetas), Análisis (Métricas, Precios y costos), Personal (Notas), Ajustes.
+- Traducciones `recipes.*`, `menu.*`, `shopping.*`, `metrics.*` y `prices.*` en español e inglés.
+- OCR: se agregó autodetección de orientación con Tesseract OSD y rotación previa al recorte/umbral en `TicketImagePreprocessor`; `TicketOcrService::rotacion()`. Probado con `ticket-2.jpg` local: el total detectado pasó a 840.56 y se leyó al menos un artículo; el parser todavía no reconstruye todos los renglones de ese ticket. `ticket-1.jpg` sigue devolviendo 0 artículos por el layout del parser.
+- Backend: imagen Docker con `tesseract-ocr-osd`; despliegues 26 y 27 completados. Verificado en el pod: `tesseract --list-langs` incluye `osd` y `spa`; `/api/health` y `/api/avatars` responden 200.
+- `pnpm mobile:check` pasa (TypeScript + ESLint) después de todas las pantallas.
+- Pendiente al reanudar: verificar el despliegue 27, probar la subida de los tickets desde la app release y mejorar el parser de tickets si se quiere reconstruir todos los artículos.
+
+STATE_HANDOFF — App móvil · Fase 37 (paridad restante con la web) — 2026-11-08
+- Release **0.1.7 / versionCode 8** instalada sobre `app.misuper`; cuenta, avatar y carrito de 2 artículos conservados. Se añadió el aviso «Tienes una compra sin guardar» al abrir la app, con Continuar / Empezar nueva.
+- Perfil: edición de nombre y correo (`PUT /api/me`) y eliminación de cuenta (`DELETE /api/me`, confirmación) desde Ajustes.
+- Historial/Ticket: botón «Ver ticket» en el detalle de compra con `GET /api/tickets/{id}/foto` (Bearer, devuelve data URL); búsqueda y selección de producto del catálogo al añadir un artículo; en Ticket se puede remapear un artículo detectado a un producto del catálogo.
+- Menú: mover platillo de día/momento, etiqueta para colación/otro, reemplazar receta, lista de «Mis semanas», copiar la semana anterior reemplazando la actual y filtros (tiempo/favoritas/despensa) en el selector de recetas.
+- Recetas: selección múltiple con bandeja flotante, ajuste de porciones por receta en la lista conjunta y creación de una sola lista de compras; nueva pantalla «Proponer receta» con categoría, tipos, porciones, tiempo, dificultad, imagen, ingredientes y pasos (`POST /api/recetas/proponer`, queda pendiente).
+- Carrito: kcal por artículo y total usando `kcal_100`/`peso_pieza_g` y conversión kg/gr/L/ml/pza; se guardan esos campos en el carrito.
+- Métricas: promedio mensual y mejor mes.
+- Administración básica en móvil, visible solo para `rol=admin`: recetas (buscar/filtrar/publicar/eliminar), productos (buscar/filtrar/activar/desactivar) y usuarios (buscar/resetear contraseña/eliminar). La creación/edición completa de recetas/productos sigue en la web.
+- Traducciones nuevas `account.*`, `admin.*`, `productPicker.*`, `recipes.*`, `menu.*`, `cart.*` e `history.*`.
+- `pnpm mobile:check` pasa.
+- Backend: tag 28 desplegado y pod 1/1 Ready. `/api/health` 200; `GET /api/tickets/1/foto` responde 401 sin token (ruta activa, protegida con Bearer).
+
+STATE_HANDOFF — App móvil · Fase 38 (Compartir e instalar/actualizar) — 2026-11-08
+- Release **0.1.8 / versionCode 9** compilada e instalada sobre `app.misuper`; se conservaron la cuenta y el avatar de producción. Al abrir la app el carrito apareció con **0 artículos** (antes se reportaban 2); no se pudo comprobar la causa, posiblemente se vació en una verificación anterior o al renovar la sesión (`clearSession` limpia el carrito).
+- Ajustes → **Compartir** (web y móvil): QR estático hacia `https://misuper.iguzman.com.mx`, URL visible y botón para compartir el enlace (Web Share API en la web, `Share` nativo en Android).
+- Ajustes → **Instala la aplicación** (web y móvil): versión más reciente, botón de descarga del APK y aviso para actualizar desde la app. En móvil muestra la versión instalada, la última publicada y un indicador verde/ámbar/gris según si está al día o hay actualización.
+- La app descarga el APK dentro de la app con barra de progreso, verifica el tamaño, abre el instalador de Android con el `content://` del archivo y cae al navegador si el intent falla. Permiso `REQUEST_INSTALL_PACKAGES` en `app.json`; módulos `expo-file-system`, `expo-intent-launcher` y `expo-application`.
+- Backend: `GET /api/app/version` público (lee `public/descargas/version.json` y calcula `apk_url` con `APP_URL`); `public/descargas/misuper.apk` servido como archivo estático con MIME de APK y `Content-Disposition`. `version.json` guarda versión, versionCode, tamaño, SHA-256, MD5 y fecha.
+- Publicación: `pnpm mobile:publish` copia el APK release a `public/descargas/misuper.apk`, verifica la versión con `aapt` y escribe `version.json`; el APK y el JSON no se versionan en Git pero sí entran en la imagen Docker.
+- Backend **tag 29** desplegado y pod 1/1 Ready. `/api/health` 200; `/api/app/version` devuelve 0.1.8 (9); `HEAD /descargas/misuper.apk` responde 200 con `content-length: 45846283` y MIME correcto.
+- Verificado en el teléfono: Ajustes muestra el QR y el enlace; la app debug detectó la actualización 0.1.8, descargó al 100 %, abrió el instalador del sistema (Honor pide marcar “Reconozco que esta aplicación puede suponer riesgos”) y el reparto nativo abrió el selector de Android. La app release 0.1.8 muestra “Tienes la última versión” contra producción.
+- `pnpm mobile:check` pasa (TypeScript + ESLint).
+- Pendiente: ver la sección web con un navegador autenticado (el HTML se validó renderizando la vista con PHP CLI); decidir si se recupera el carrito de 2 artículos; la actualización in-app en Honor requiere aceptar el aviso de apps no verificadas.
+
+STATE_HANDOFF — App móvil · Fase 39 (icono de la web y cierre) — 2026-11-08
+- Release **0.1.9 / versionCode 10** compilada e instalada sobre `app.misuper`.
+- Icono de la app generado desde `public/assets/img/favicon.svg` (el favicon de la web): fondo degradado verde, bolsa blanca con rayas y punto naranja. Se generaron `icon.png`, `adaptive-icon.png`, `monochrome-icon.png` y `splash.png` a 1024×1024. El icono del instalador y de la ficha de la app es el cuadrado redondeado exacto; el launcher aplica su máscara adaptativa.
+- `app.json`: `adaptiveIcon.monochromeImage` apunta a `monochrome-icon.png` y `backgroundColor` es `#0f7a57`.
+- APK 0.1.9 publicado en `public/descargas/misuper.apk` (46,837,363 bytes; SHA-256 `1d67b253a6f3189d0a40533b0ca9ee8b272d8f911630e58bb11c88ab78324118`).
+- Verificado en el teléfono: el icono nuevo aparece en el launcher; la app conserva cuenta y avatar; la ficha reporta 0.1.9 (10).
+- Backend: tag 30 con el APK 0.1.9 (despliegue y verificación al cierre de esta fase).
+- Migraciones: se aplican las pendientes en producción sin borrar datos y se prueba el esquema completo en una base temporal vacía que se elimina.

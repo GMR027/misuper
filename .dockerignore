@@ -35,3 +35,6 @@ misuper_db_*.sql
 *.log
 *.tmp
 .DS_Store
+
+# App Android: se compila e instala aparte con pnpm android.
+misuper-mobile/
