@@ -850,5 +850,6 @@ STATE_HANDOFF — App móvil · Fase 39 (icono de la web y cierre) — 2026-11-0
 - `app.json`: `adaptiveIcon.monochromeImage` apunta a `monochrome-icon.png` y `backgroundColor` es `#0f7a57`.
 - APK 0.1.9 publicado en `public/descargas/misuper.apk` (46,837,363 bytes; SHA-256 `1d67b253a6f3189d0a40533b0ca9ee8b272d8f911630e58bb11c88ab78324118`).
 - Verificado en el teléfono: el icono nuevo aparece en el launcher; la app conserva cuenta y avatar; la ficha reporta 0.1.9 (10).
-- Backend: tag 30 con el APK 0.1.9 (despliegue y verificación al cierre de esta fase).
-- Migraciones: se aplican las pendientes en producción sin borrar datos y se prueba el esquema completo en una base temporal vacía que se elimina.
+- Backend: **tag 30** desplegado y pod 1/1 Ready. `/api/health` 200; `/api/app/version` devuelve 0.1.9 (10); `HEAD /descargas/misuper.apk` responde 200 con 46,837,363 bytes y MIME de APK.
+- Migraciones: en producción `php scripts/migrate.php` reportó 0 aplicadas y 35 omitidas (037 ya estaba aplicada); la base de producción no se tocó. Prueba en base temporal vacía: 35 migraciones aplicadas, 21 tablas creadas, base eliminada después.
+- Verificado en el instalador de Honor: el icono del APK es el mismo de la web (fondo degradado, bolsa blanca con rayas y punto naranja). La app 0.1.9 muestra “Tienes la última versión” contra producción.
