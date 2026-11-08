@@ -853,3 +853,13 @@ STATE_HANDOFF — App móvil · Fase 39 (icono de la web y cierre) — 2026-11-0
 - Backend: **tag 30** desplegado y pod 1/1 Ready. `/api/health` 200; `/api/app/version` devuelve 0.1.9 (10); `HEAD /descargas/misuper.apk` responde 200 con 46,837,363 bytes y MIME de APK.
 - Migraciones: en producción `php scripts/migrate.php` reportó 0 aplicadas y 35 omitidas (037 ya estaba aplicada); la base de producción no se tocó. Prueba en base temporal vacía: 35 migraciones aplicadas, 21 tablas creadas, base eliminada después.
 - Verificado en el instalador de Honor: el icono del APK es el mismo de la web (fondo degradado, bolsa blanca con rayas y punto naranja). La app 0.1.9 muestra “Tienes la última versión” contra producción.
+
+STATE_HANDOFF — App móvil · Fase 40 (icono brand-mark en todas las variantes) — 2026-11-08
+- El icono de la marca es ahora el **brand-mark de la web**: `bi bi-basket2-fill` blanco sobre el cuadrado redondeado con degradado `#16a374 → #0a5540`. Se tomaron las proporciones del `.brand-mark` (radio 31.6 %, icono al 44.2 %) y el SVG de Bootstrap Icons 1.11.3.
+- Web: `public/assets/img/favicon.svg`, `public/assets/img/favicon.png` y `public/favicon.ico` (16–256 px) actualizados.
+- PC: `desktop/icon.png`, `desktop/public/assets/img/favicon.svg/.png` y todo el set de `desktop/src-tauri/icons` (PNG, ICO, ICNS, Windows Store, Android/iOS) regenerado con `tauri icon`.
+- Móvil: `icon.png`, `adaptive-icon.png`, `monochrome-icon.png` y `splash.png` con el mismo brand-mark; `app.json` con `backgroundColor: #0a5540`.
+- Release **0.1.10 / versionCode 11** compilada e instalada sobre `app.misuper`. La ficha de la app ya muestra el icono nuevo; el launcher Honor necesitó reiniciar el teléfono para refrescar la caché.
+- APK 0.1.10 publicado (46,758,251 bytes; SHA-256 `309955cfdf34e339e864ed23d996e0546aa5c05c3f6e17ea58c2a0e5c797d9e8`).
+- Backend tag 31 con el APK 0.1.10 y el favicon nuevo (despliegue al cierre de esta fase).
+- Migraciones sin cambios: la base de producción sigue intacta.
