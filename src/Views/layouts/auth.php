@@ -20,9 +20,10 @@ $scripts ??= [];
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
     <title><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?> · Mi Súper</title>
-    <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
-    <link rel="icon" href="/assets/img/favicon.png" type="image/png" sizes="64x64">
-    <link rel="apple-touch-icon" href="/assets/img/favicon.png">
+    <link rel="icon" href="<?= htmlspecialchars(Asset::url('/assets/img/favicon.svg'), ENT_QUOTES, 'UTF-8') ?>" type="image/svg+xml">
+    <link rel="icon" href="<?= htmlspecialchars(Asset::url('/assets/img/favicon.png'), ENT_QUOTES, 'UTF-8') ?>" type="image/png" sizes="64x64">
+    <link rel="icon" href="<?= htmlspecialchars(Asset::url('/favicon.ico'), ENT_QUOTES, 'UTF-8') ?>" sizes="any">
+    <link rel="apple-touch-icon" href="<?= htmlspecialchars(Asset::url('/assets/img/favicon.png'), ENT_QUOTES, 'UTF-8') ?>">
     <meta name="theme-color" content="#0f7a57">
     <script src="<?= htmlspecialchars(Asset::url('/assets/js/theme.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
