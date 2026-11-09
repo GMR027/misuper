@@ -21,6 +21,21 @@ El dock tiene cinco posiciones, como la web móvil:
 El avatar de la barra superior también abre el menú. La app ya no usa el drawer
 lateral en el teléfono.
 
+## Horizontal y tabletas
+
+La app gira con el teléfono. Desde 600 dp de ancho el dock inferior se
+convierte en un **rail lateral** de cinco destinos con el botón `+` al pie, y
+las pantallas aprovechan todo el ancho:
+
+- Rejillas de 2–5 columnas en productos, recetas, notas, menú, tickets,
+  historial y listas de compra.
+- Ajustes y el detalle de receta usan dos paneles desde 840 dp; el login y el
+  registro, desde 700 dp en horizontal.
+- Márgenes, cabecera y contenido respetan las zonas seguras, con un ancho
+  máximo de página de 980/1160 dp.
+- `lib/responsive.ts` centraliza los cortes (600/840/1200) y calcula el ancho
+  real de contenido descontando el rail y los gutters.
+
 ## Iniciar sesión y crear cuenta
 
 La app usa un **token Bearer** emitido por el backend PHP; no depende de cookies

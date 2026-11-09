@@ -2,7 +2,7 @@
   "expo": {
     "name": "Mi Súper",
     "slug": "misuper-mobile",
-    "version": "0.1.10",
+    "version": "0.1.11",
     "scheme": "misuper",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
@@ -20,7 +20,7 @@
         "monochromeImage": "./assets/monochrome-icon.png",
         "backgroundColor": "#0a5540"
       },
-      "versionCode": 11,
+      "versionCode": 12,
       "permissions": [
         "android.permission.REQUEST_INSTALL_PACKAGES"
       ],

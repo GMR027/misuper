@@ -865,3 +865,17 @@ STATE_HANDOFF — App móvil · Fase 40 (icono brand-mark en todas las variantes
 - PC: `desktop/target/release/bundle/deb/Mi Súper_0.2.0_amd64.deb` reconstruido con el icono nuevo. El AppImage no se pudo regenerar porque `linuxdeploy` falla en este entorno; el deb sí quedó listo.
 - El icono del instalador y de la ficha de la app ya muestran el brand-mark. El launcher Honor conserva la caché hasta reiniciar/desbloquear el teléfono; se reinició el teléfono para refrescarla.
 - Migraciones sin cambios: la base de producción sigue intacta.
+
+STATE_HANDOFF — App móvil · Fase 41 (horizontal, tabletas y release 0.1.11) — 2026-11-08
+- Release **0.1.11 / versionCode 12** compilada e instalada sobre `app.misuper`; se conservaron la cuenta y el avatar.
+- Rotación habilitada: `app.json` con `"orientation": "default"` y `screenOrientation="unspecified"` en el manifest generado; ya no hay bloqueo vertical.
+- Navegación adaptativa: dock inferior en teléfonos y **rail lateral** de cinco destinos + FAB desde 600 dp, con variante compacta cuando la altura es baja; insets seguros en los cuatro lados.
+- Rejillas de 2–5 columnas en productos, recetas, notas, menú semanal, tickets, historial, listas de compra y sus detalles. `lib/responsive.ts` centraliza los cortes (600/840/1200) y calcula el ancho real de contenido descontando rail, gutters y safe areas.
+- Dos paneles en Ajustes y detalle de receta (≥840 dp) y en login/registro (≥700 dp); el scroll vuelve al inicio al rotar.
+- Tipografía secundaria subida a 11.5–13 y objetivos táctiles de 40–44 dp con `hitSlop` en tarjetas, flechas y acciones; cabeceras con ancho máximo (980/1160) y gutters 16/24.
+- Footer fijo en Tickets y barra del carrito recolocada sobre el dock/rail; toasts y overlays respetan el rail y los insets.
+- APK publicado: `public/descargas/misuper.apk` (46,765,707 bytes; SHA-256 `f019f938e3f582ad885d80c201e144f6e0e6a611a8e9c0da5974eafd75a4abda`).
+- Backend: **tag 34** desplegado; `/api/app/version` devuelve 0.1.11 (12); `HEAD /descargas/misuper.apk` responde 200 con MIME de APK; `/api/health` 200.
+- Verificado en el teléfono: release 0.1.11 (12) con cuenta y avatar; Ajustes muestra “Tienes la última versión”; probados horizontal/vertical en Inicio, Recetas, Menú, Ajustes y login en dos paneles.
+- `pnpm mobile:check` pasa; `expo export --platform android` y `assembleRelease` correctos.
+- Pendiente: nada bloqueante. Opcional: hojas inferiores con ancho máximo en tabletas y carrito en dos paneles en Inicio.
