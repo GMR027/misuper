@@ -13,7 +13,8 @@ import { Button } from "@/components/m3/buttons";
 import { Spinner } from "@/components/m3/feedback";
 import { TextField } from "@/components/m3/inputs";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
-import { DOCK_HEIGHT } from "@/lib/layout";
+import { DOCK_HEIGHT, RAIL_WIDTH } from "@/lib/layout";
+import { useResponsive } from "@/lib/responsive";
 import { t, useLocale } from "@/lib/i18n";
 import {
   EMPTY_RECIPE_FILTERS,
@@ -37,6 +38,7 @@ export default function RecipesScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { useRail, recipeColumns } = useResponsive();
   const [filters, setFilters] = useState<RecetaFiltros>(() => ({
     ...EMPTY_RECIPE_FILTERS,
     compras: readSelectedPurchases(),
@@ -376,11 +378,12 @@ export default function RecipesScreen() {
   return (
     <>
       <ListScreen
+        key={`recipes-${grid ? recipeColumns : 1}`}
         title={t("recipes.title")}
         data={items}
         extraData={{ grid, kcal, filters }}
         keyExtractor={(item) => item.slug}
-        numColumns={grid ? 2 : 1}
+        numColumns={grid ? recipeColumns : 1}
         columnWrapperStyle={{ justifyContent: "space-between" }}
         ListHeaderComponent={header}
         renderItem={({ item }) => (
@@ -388,6 +391,7 @@ export default function RecipesScreen() {
             recipe={item}
             kcal={kcal[item.slug]}
             list={!grid}
+            columns={recipeColumns}
             onPress={() => router.push(`/recetas/${item.slug}`)}
             onToggleFavorite={() => void toggleFavorite(item)}
             selected={selection.has(item.slug)}
@@ -415,7 +419,7 @@ export default function RecipesScreen() {
             <Text
               style={{
                 color: colors.muted,
-                fontSize: 10.5,
+                fontSize: 12,
                 textAlign: "center",
                 paddingTop: 10,
               }}
@@ -462,9 +466,9 @@ export default function RecipesScreen() {
         <View
           style={{
             position: "absolute",
-            left: 12,
-            right: 12,
-            bottom: insets.bottom + DOCK_HEIGHT + 10,
+            left: (useRail ? RAIL_WIDTH + insets.left : insets.left) + 12,
+            right: insets.right + 12,
+            bottom: insets.bottom + (useRail ? 0 : DOCK_HEIGHT) + 10,
             flexDirection: "row",
             alignItems: "center",
             gap: 8,

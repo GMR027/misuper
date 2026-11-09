@@ -53,6 +53,8 @@ export function RecipeVideoModal({
           backgroundColor: "#000000",
           paddingTop: insets.top,
           paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
         }}
       >
         <View
@@ -96,10 +98,11 @@ export function RecipeVideoModal({
             onPress={onClose}
             accessibilityRole="button"
             accessibilityLabel={t("common.close")}
+            hitSlop={8}
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
               alignItems: "center",
               justifyContent: "center",
               backgroundColor: colors.surface2,

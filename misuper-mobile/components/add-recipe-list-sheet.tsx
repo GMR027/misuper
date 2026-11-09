@@ -281,7 +281,7 @@ export function AddRecipeListSheet({
                       <Text
                         style={{
                           color: colors.accent,
-                          fontSize: 9.5,
+                          fontSize: 11,
                           fontWeight: "700",
                         }}
                       >

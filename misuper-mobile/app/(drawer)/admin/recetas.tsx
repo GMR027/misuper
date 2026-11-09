@@ -146,7 +146,7 @@ export default function AdminRecipesScreen() {
               <Text
                 style={{
                   color: active ? colors.onAccent : colors.muted,
-                  fontSize: 10.5,
+                  fontSize: 12,
                   fontWeight: active ? "700" : "500",
                 }}
               >
@@ -156,7 +156,7 @@ export default function AdminRecipesScreen() {
           );
         })}
       </View>
-      <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+      <Text style={{ color: colors.muted, fontSize: 12 }}>
         {t("admin.recipeCount", { count: filtered.length })}
       </Text>
       {loading ? <Spinner /> : null}
@@ -195,14 +195,14 @@ export default function AdminRecipesScreen() {
                       : item.estado === "pendiente"
                         ? colors.warning
                         : colors.muted,
-                  fontSize: 10,
+                  fontSize: 11.5,
                   fontWeight: "800",
                 }}
               >
                 {t(`admin.state.${item.estado}`)}
               </Text>
             </View>
-            <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+            <Text style={{ color: colors.muted, fontSize: 12 }}>
               {`${item.categoria?.nombre ?? t("recipes.uncategorized")} · ${t(
                 "admin.ingredientsSteps",
                 {
@@ -212,7 +212,7 @@ export default function AdminRecipesScreen() {
               )}`}
             </Text>
             {item.tipos_nombres.length > 0 ? (
-              <Text style={{ color: colors.accent, fontSize: 10 }}>
+              <Text style={{ color: colors.accent, fontSize: 11.5 }}>
                 {item.tipos_nombres.join(" · ")}
               </Text>
             ) : null}

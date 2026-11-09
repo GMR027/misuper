@@ -14,6 +14,7 @@ import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { addFreeItem, addProduct } from "@/lib/cart";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { t, useLocale } from "@/lib/i18n";
+import { useResponsive } from "@/lib/responsive";
 import { showToast } from "@/lib/toast";
 
 interface ListaResumen {
@@ -68,6 +69,8 @@ export default function ShoppingListDetailScreen() {
   useLocale();
   const { colors } = useTheme();
   const router = useRouter();
+  const { contentWidth } = useResponsive();
+  const itemColumns = contentWidth >= 900 ? 3 : contentWidth >= 560 ? 2 : 1;
   const params = useLocalSearchParams<{ id: string }>();
   const id = Number(params.id);
   const [data, setData] = useState<ListaDetail | null>(null);
@@ -390,7 +393,7 @@ export default function ShoppingListDetailScreen() {
 
               <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 12 }}>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+                  <Text style={{ color: colors.muted, fontSize: 12 }}>
                     {t("shopping.estimatedCost")}
                   </Text>
                   <Text
@@ -404,13 +407,13 @@ export default function ShoppingListDetailScreen() {
                   </Text>
                 </View>
                 <View style={{ alignItems: "flex-end" }}>
-                  <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+                  <Text style={{ color: colors.muted, fontSize: 12 }}>
                     {t("shopping.withPrice", {
                       count: data.costo.items_con_precio,
                     })}
                   </Text>
                   {!data.costo.completo ? (
-                    <Text style={{ color: colors.warning, fontSize: 10 }}>
+                    <Text style={{ color: colors.warning, fontSize: 11.5 }}>
                       {t("shopping.costPartial", {
                         count: data.costo.items_sin_precio,
                       })}
@@ -457,88 +460,107 @@ export default function ShoppingListDetailScreen() {
               </TextureCard>
             ) : null}
 
-            {data.items.map((item) => {
-              const state =
-                item.estado === "enviado"
-                  ? t("shopping.sent")
-                  : item.estado === "cargado"
-                    ? t("shopping.loaded")
-                    : t("shopping.pending");
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                alignItems: "flex-start",
+                gap: 8,
+              }}
+            >
+              {data.items.map((item) => {
+                const state =
+                  item.estado === "enviado"
+                    ? t("shopping.sent")
+                    : item.estado === "cargado"
+                      ? t("shopping.loaded")
+                      : t("shopping.pending");
 
-              return (
-                <TextureCard key={item.id}>
-                  <View
-                    style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                return (
+                  <TextureCard
+                    key={item.id}
+                    style={{
+                      width:
+                        itemColumns === 1
+                          ? "100%"
+                          : itemColumns === 2
+                            ? "49%"
+                            : "32.5%",
+                    }}
                   >
-                    <View style={{ flex: 1, gap: 1 }}>
-                      <Text
-                        numberOfLines={2}
-                        style={{
-                          color: colors.foreground,
-                          fontSize: 13.5,
-                          fontWeight: "700",
-                        }}
-                      >
-                        {item.nombre}
-                      </Text>
-                      <Text style={{ color: colors.muted, fontSize: 10.5 }}>
-                        {`${formatQuantity(item.cantidad)} ${item.unidad_base}`}
-                        {item.origen ? ` · ${item.origen}` : ""}
-                      </Text>
-                      <Text
-                        style={{
-                          color:
-                            item.estado === "pendiente"
-                              ? colors.accent
-                              : colors.muted,
-                          fontSize: 9.5,
-                          fontWeight: "700",
-                        }}
-                      >
-                        {state}
-                      </Text>
-                    </View>
-                    <View style={{ alignItems: "flex-end", gap: 2 }}>
-                      {costById.get(item.id) != null ? (
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                    >
+                      <View style={{ flex: 1, gap: 1 }}>
                         <Text
+                          numberOfLines={2}
                           style={{
                             color: colors.foreground,
-                            fontSize: 11.5,
+                            fontSize: 13.5,
                             fontWeight: "700",
                           }}
                         >
-                          {formatCurrency(costById.get(item.id) ?? 0)}
+                          {item.nombre}
                         </Text>
-                      ) : null}
-                      <View style={{ flexDirection: "row", gap: 4 }}>
-                        <Pressable
-                          onPress={() => openEdit(item)}
-                          hitSlop={6}
+                        <Text style={{ color: colors.muted, fontSize: 12 }}>
+                          {`${formatQuantity(item.cantidad)} ${item.unidad_base}`}
+                          {item.origen ? ` · ${item.origen}` : ""}
+                        </Text>
+                        <Text
+                          style={{
+                            color:
+                              item.estado === "pendiente"
+                                ? colors.accent
+                                : colors.muted,
+                            fontSize: 11,
+                            fontWeight: "700",
+                          }}
                         >
+                          {state}
+                        </Text>
+                      </View>
+                      <View style={{ alignItems: "flex-end", gap: 2 }}>
+                        {costById.get(item.id) != null ? (
                           <Text
                             style={{
-                              color: colors.accent,
-                              fontSize: 10.5,
+                              color: colors.foreground,
+                              fontSize: 11.5,
                               fontWeight: "700",
                             }}
                           >
-                            {t("shopping.edit")}
+                            {formatCurrency(costById.get(item.id) ?? 0)}
                           </Text>
-                        </Pressable>
-                        <IconButton
-                          icon="delete"
-                          label={t("shopping.deleteItem")}
-                          onPress={() => removeItem(item)}
-                          size={28}
-                          iconSize={16}
-                          color={colors.error}
-                        />
+                        ) : null}
+                        <View style={{ flexDirection: "row", gap: 4 }}>
+                          <Pressable
+                            onPress={() => openEdit(item)}
+                            hitSlop={6}
+                          >
+                            <Text
+                              style={{
+                                color: colors.accent,
+                                fontSize: 12,
+                                fontWeight: "700",
+                              }}
+                            >
+                              {t("shopping.edit")}
+                            </Text>
+                          </Pressable>
+                          <IconButton
+                            icon="delete"
+                            label={t("shopping.deleteItem")}
+                            onPress={() => removeItem(item)}
+                            size={28}
+                            iconSize={16}
+                            color={colors.error}
+                          />
+                        </View>
                       </View>
                     </View>
-                  </View>
-                </TextureCard>
-              );
-            })}
+                  </TextureCard>
+                );
+              })}
+            </View>
 
             <Button
               label={t("shopping.deleteList")}

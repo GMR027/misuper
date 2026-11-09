@@ -163,6 +163,7 @@ export function RecipeCard({
   selected = false,
   onToggleSelect,
   list = false,
+  columns = 2,
   style,
 }: {
   recipe: RecetaResumen;
@@ -172,6 +173,8 @@ export function RecipeCard({
   selected?: boolean;
   onToggleSelect?: () => void;
   list?: boolean;
+  /** Cards per row in grid mode (2 on phones, up to 5 on tablets). */
+  columns?: number;
   style?: StyleProp<ViewStyle>;
 }) {
   const { colors, scheme } = useTheme();
@@ -203,18 +206,18 @@ export function RecipeCard({
     return (
       <Pressable onPress={onPress} style={[card, { marginBottom: 8 }]}>
         <DotPattern opacity={scheme === "dark" ? 0.06 : 0.03} />
-        <View style={{ flexDirection: "row", padding: 8, gap: 10 }}>
-          <RecipeImage recipe={recipe} height={86} width={86} radius={10} />
-          <View style={{ flex: 1, gap: 2, paddingVertical: 2 }}>
+        <View style={{ flexDirection: "row", padding: 10, gap: 10 }}>
+          <RecipeImage recipe={recipe} height={90} width={90} radius={10} />
+          <View style={{ flex: 1, gap: 3, paddingVertical: 2 }}>
             <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
               <Text
                 numberOfLines={2}
                 style={{
                   flex: 1,
                   color: colors.foreground,
-                  fontSize: 13.5,
+                  fontSize: 14,
                   fontWeight: "700",
-                  lineHeight: 17,
+                  lineHeight: 18,
                 }}
               >
                 {recipe.nombre}
@@ -231,13 +234,13 @@ export function RecipeCard({
                 size={17}
               />
             </View>
-            <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+            <Text style={{ color: colors.muted, fontSize: 12 }}>
               {`${t("recipes.minutes", { count: recipe.tiempo_min })} · ${t(
                 difficultyLabel(recipe.dificultad),
               )}`}
             </Text>
             {kcal != null ? (
-              <Text style={{ color: colors.accent, fontSize: 10.5 }}>
+              <Text style={{ color: colors.accent, fontSize: 12 }}>
                 {`≈ ${Math.round(kcal)} kcal`}
               </Text>
             ) : null}
@@ -245,7 +248,7 @@ export function RecipeCard({
               <Text
                 style={{
                   color: complete ? colors.success : colors.muted,
-                  fontSize: 10.5,
+                  fontSize: 12,
                 }}
               >
                 {`${pantry} ${t("recipes.ingredientsHave")}`}
@@ -258,7 +261,16 @@ export function RecipeCard({
   }
 
   return (
-    <Pressable onPress={onPress} style={[card, { width: "48.5%", marginBottom: 8 }]}>
+    <Pressable
+      onPress={onPress}
+      style={[
+        card,
+        {
+          width: `${(100 - (columns - 1) * 1.5) / columns}%`,
+          marginBottom: 8,
+        },
+      ]}
+    >
       <DotPattern opacity={scheme === "dark" ? 0.06 : 0.03} />
       <View>
         <RecipeImage recipe={recipe} height={108} />
@@ -280,15 +292,15 @@ export function RecipeCard({
           }}
         />
         {onToggleSelect ? (
-          <View style={{ position: "absolute", top: 6, left: 6 }}>
+          <View style={{ position: "absolute", top: 8, left: 8 }}>
             <SelectButton active={selected} onPress={onToggleSelect} />
           </View>
         ) : null}
         <View
           style={{
             position: "absolute",
-            top: 6,
-            right: 6,
+            top: 8,
+            right: 8,
             flexDirection: "row",
             gap: 4,
           }}
@@ -299,33 +311,33 @@ export function RecipeCard({
           <View
             style={{
               position: "absolute",
-              left: 6,
-              bottom: 6,
+              left: 8,
+              bottom: 8,
               borderRadius: 7,
               paddingHorizontal: 7,
-              paddingVertical: 2,
-              backgroundColor: "rgba(0,0,0,0.55)",
+              paddingVertical: 3,
+              backgroundColor: "rgba(0,0,0,0.62)",
             }}
           >
-            <Text style={{ color: "#ffffff", fontSize: 9.5, fontWeight: "700" }}>
+            <Text style={{ color: "#ffffff", fontSize: 10.5, fontWeight: "700" }}>
               {`≈ ${Math.round(kcal)} kcal`}
             </Text>
           </View>
         ) : null}
       </View>
-      <View style={{ padding: 8, gap: 3 }}>
+      <View style={{ padding: 10, gap: 4 }}>
         <Text
           numberOfLines={2}
           style={{
             color: colors.foreground,
-            fontSize: 12.5,
+            fontSize: 13.5,
             fontWeight: "700",
-            lineHeight: 15,
+            lineHeight: 18,
           }}
         >
           {recipe.nombre}
         </Text>
-        <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 10.5 }}>
+        <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 11.5 }}>
           {`${t("recipes.minutes", { count: recipe.tiempo_min })} · ${t(
             difficultyLabel(recipe.dificultad),
           )}`}
@@ -335,7 +347,7 @@ export function RecipeCard({
             numberOfLines={1}
             style={{
               color: complete ? colors.success : colors.muted,
-              fontSize: 10.5,
+              fontSize: 11.5,
             }}
           >
             {`${pantry} ${t("recipes.ingredientsHave")}`}

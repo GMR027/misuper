@@ -27,6 +27,7 @@ import {
   getApiUrl,
 } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/avatars";
+import { useResponsive } from "@/lib/responsive";
 import { t, useLocale } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
 
@@ -51,6 +52,8 @@ export default function NotesScreen() {
   useLocale();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { contentWidth } = useResponsive();
+  const notesColumns = contentWidth >= 900 ? 3 : contentWidth >= 560 ? 2 : 1;
   const [items, setItems] = useState<Nota[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -320,68 +323,89 @@ export default function NotesScreen() {
           </TextureCard>
         ) : null}
 
-        {filtered.map((nota) => (
-          <Pressable key={nota.id} onPress={() => openEdit(nota)}>
-            <TextureCard>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                <Text
-                  numberOfLines={2}
-                  style={{
-                    flex: 1,
-                    color: colors.foreground,
-                    fontSize: 15,
-                    fontWeight: "700",
-                  }}
-                >
-                  {nota.titulo}
-                </Text>
-                <Text style={{ color: colors.muted, fontSize: 11 }}>
-                  {nota.fecha}
-                </Text>
-              </View>
-              {nota.contenido.trim() !== "" ? (
-                <Text
-                  numberOfLines={3}
-                  style={{ color: colors.muted, fontSize: 12, lineHeight: 17 }}
-                >
-                  {nota.contenido}
-                </Text>
-              ) : null}
-              {nota.fotos.length > 0 ? (
-                <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
-                  {nota.fotos.slice(0, 4).map((foto) => (
-                    <Pressable
-                      key={foto.id}
-                      onPress={() => setLightbox(photoUrl(foto.ruta))}
-                    >
-                      <Image
-                        source={{ uri: photoUrl(foto.ruta) }}
-                        style={{ width: 64, height: 64, borderRadius: 10 }}
-                        resizeMode="cover"
-                      />
-                    </Pressable>
-                  ))}
-                  {nota.fotos.length > 4 ? (
-                    <View
-                      style={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: 10,
-                        backgroundColor: colors.surface2,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Text style={{ color: colors.muted, fontSize: 12 }}>
-                        +{nota.fotos.length - 4}
-                      </Text>
-                    </View>
-                  ) : null}
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+            gap: 8,
+          }}
+        >
+          {filtered.map((nota) => (
+            <Pressable
+              key={nota.id}
+              onPress={() => openEdit(nota)}
+              style={{
+                width:
+                  notesColumns === 1
+                    ? "100%"
+                    : notesColumns === 2
+                      ? "48.9%"
+                      : "32.2%",
+              }}
+            >
+              <TextureCard>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Text
+                    numberOfLines={2}
+                    style={{
+                      flex: 1,
+                      color: colors.foreground,
+                      fontSize: 16,
+                      fontWeight: "700",
+                      lineHeight: 21,
+                    }}
+                  >
+                    {nota.titulo}
+                  </Text>
+                  <Text style={{ color: colors.muted, fontSize: 12 }}>
+                    {nota.fecha}
+                  </Text>
                 </View>
-              ) : null}
-            </TextureCard>
-          </Pressable>
-        ))}
+                {nota.contenido.trim() !== "" ? (
+                  <Text
+                    numberOfLines={3}
+                    style={{ color: colors.muted, fontSize: 13, lineHeight: 19 }}
+                  >
+                    {nota.contenido}
+                  </Text>
+                ) : null}
+                {nota.fotos.length > 0 ? (
+                  <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
+                    {nota.fotos.slice(0, 4).map((foto) => (
+                      <Pressable
+                        key={foto.id}
+                        onPress={() => setLightbox(photoUrl(foto.ruta))}
+                      >
+                        <Image
+                          source={{ uri: photoUrl(foto.ruta) }}
+                          style={{ width: 64, height: 64, borderRadius: 10 }}
+                          resizeMode="cover"
+                        />
+                      </Pressable>
+                    ))}
+                    {nota.fotos.length > 4 ? (
+                      <View
+                        style={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: 10,
+                          backgroundColor: colors.surface2,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text style={{ color: colors.muted, fontSize: 12 }}>
+                          +{nota.fotos.length - 4}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                ) : null}
+              </TextureCard>
+            </Pressable>
+          ))}
+        </View>
       </Screen>
 
       <BottomSheet
@@ -543,7 +567,13 @@ export default function NotesScreen() {
         >
           <Pressable
             onPress={() => setLightbox(null)}
-            style={{ position: "absolute", top: insets.top + 10, right: 16, zIndex: 2 }}
+            hitSlop={10}
+            style={{
+              position: "absolute",
+              top: insets.top + 10,
+              right: insets.right + 16,
+              zIndex: 2,
+            }}
           >
             <M3Host matchContents>
               <SymbolIcon name="close" size={28} tint="#ffffff" label={t("common.close")} />

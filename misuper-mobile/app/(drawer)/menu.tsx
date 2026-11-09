@@ -11,6 +11,7 @@ import { Button } from "@/components/m3/buttons";
 import { Spinner } from "@/components/m3/feedback";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { formatCurrency, formatQuantity } from "@/lib/format";
+import { useResponsive } from "@/lib/responsive";
 import { t, useLocale } from "@/lib/i18n";
 import {
   currentMonday,
@@ -42,6 +43,8 @@ export default function WeeklyMenuScreen() {
   useLocale();
   const { colors } = useTheme();
   const router = useRouter();
+  const { contentWidth } = useResponsive();
+  const dayColumns = contentWidth >= 980 ? 3 : contentWidth >= 640 ? 2 : 1;
   const [weeks, setWeeks] = useState<MenuSemana[]>([]);
   const [week, setWeek] = useState("");
   const [menu, setMenu] = useState<MenuResponse | null>(null);
@@ -180,17 +183,18 @@ export default function WeeklyMenuScreen() {
         >
           <Pressable
             onPress={() => goWeek(shiftWeek(week || currentMonday(), -7))}
+            hitSlop={8}
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 8,
+              width: 40,
+              height: 40,
+              borderRadius: 10,
               borderWidth: 1,
               borderColor: colors.border,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: colors.foreground, fontSize: 19 }}>‹</Text>
+            <Text style={{ color: colors.foreground, fontSize: 20 }}>‹</Text>
           </Pressable>
           <View style={{ flex: 1, alignItems: "center" }}>
             <Text
@@ -198,7 +202,7 @@ export default function WeeklyMenuScreen() {
             >
               {range}
             </Text>
-            <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+            <Text style={{ color: colors.muted, fontSize: 12 }}>
               {weekCurrent?.es_actual
                 ? t("menu.currentWeek")
                 : t("menu.weekLabel")}
@@ -206,24 +210,26 @@ export default function WeeklyMenuScreen() {
           </View>
           <Pressable
             onPress={() => goWeek(shiftWeek(week || currentMonday(), 7))}
+            hitSlop={8}
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 8,
+              width: 40,
+              height: 40,
+              borderRadius: 10,
               borderWidth: 1,
               borderColor: colors.border,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: colors.foreground, fontSize: 19 }}>›</Text>
+            <Text style={{ color: colors.foreground, fontSize: 20 }}>›</Text>
           </Pressable>
           <Pressable
             onPress={() => goWeek(currentMonday())}
+            hitSlop={6}
             style={{
-              height: 34,
-              paddingHorizontal: 10,
-              borderRadius: 8,
+              height: 40,
+              paddingHorizontal: 12,
+              borderRadius: 10,
               borderWidth: 1,
               borderColor: colors.border,
               alignItems: "center",
@@ -231,7 +237,7 @@ export default function WeeklyMenuScreen() {
             }}
           >
             <Text
-              style={{ color: colors.accent, fontSize: 11, fontWeight: "700" }}
+              style={{ color: colors.accent, fontSize: 12, fontWeight: "700" }}
             >
               {t("menu.today")}
             </Text>
@@ -243,7 +249,7 @@ export default function WeeklyMenuScreen() {
             <Text
               style={{
                 color: colors.muted,
-                fontSize: 10,
+                fontSize: 11.5,
                 fontWeight: "700",
                 textTransform: "uppercase",
                 letterSpacing: 0.5,
@@ -277,7 +283,7 @@ export default function WeeklyMenuScreen() {
                     <Text
                       style={{
                         color: active ? colors.onAccent : colors.foreground,
-                        fontSize: 10.5,
+                        fontSize: 12,
                         fontWeight: active ? "700" : "500",
                       }}
                     >
@@ -295,7 +301,7 @@ export default function WeeklyMenuScreen() {
           <TextureCard>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+                <Text style={{ color: colors.muted, fontSize: 12 }}>
                   {t("menu.estimatedCost")}
                 </Text>
                 <Text
@@ -309,7 +315,7 @@ export default function WeeklyMenuScreen() {
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+                <Text style={{ color: colors.muted, fontSize: 12 }}>
                   {t("menu.estimatedKcal")}
                 </Text>
                 <Text
@@ -323,7 +329,7 @@ export default function WeeklyMenuScreen() {
                 </Text>
               </View>
             </View>
-            <Text style={{ color: colors.muted, fontSize: 11 }}>
+            <Text style={{ color: colors.muted, fontSize: 12 }}>
               {`${
                 summary.recetas === 1
                   ? t("menu.recipeOne")
@@ -335,21 +341,21 @@ export default function WeeklyMenuScreen() {
               }`}
             </Text>
             {summary.sin_precio > 0 ? (
-              <Text style={{ color: colors.warning, fontSize: 10.5 }}>
+              <Text style={{ color: colors.warning, fontSize: 12 }}>
                 {summary.sin_precio === 1
                   ? t("menu.sinPrecioOne")
                   : t("menu.sinPrecio", { count: summary.sin_precio })}
               </Text>
             ) : null}
             {summary.no_disponibles > 0 ? (
-              <Text style={{ color: colors.warning, fontSize: 10.5 }}>
+              <Text style={{ color: colors.warning, fontSize: 12 }}>
                 {summary.no_disponibles === 1
                   ? t("menu.noDisponiblesOne")
                   : t("menu.noDisponibles", { count: summary.no_disponibles })}
               </Text>
             ) : null}
             {summary.precios_viejos > 0 ? (
-              <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+              <Text style={{ color: colors.muted, fontSize: 12 }}>
                 {t("menu.preciosViejos", { count: summary.precios_viejos })}
               </Text>
             ) : null}
@@ -400,98 +406,186 @@ export default function WeeklyMenuScreen() {
           </TextureCard>
         ) : null}
 
-        {menu?.dias.map((day) => {
-          const otherItems = day.items.filter((item) =>
-            OTHER_MOMENTS.includes(item.momento),
-          );
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+            gap: 12,
+          }}
+        >
+          {menu?.dias.map((day) => {
+            const otherItems = day.items.filter((item) =>
+              OTHER_MOMENTS.includes(item.momento),
+            );
 
-          return (
-            <TextureCard key={day.dia}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            return (
+              <TextureCard
+                key={day.dia}
+                style={{
+                  width:
+                    dayColumns === 1
+                      ? "100%"
+                      : dayColumns === 2
+                        ? "48.9%"
+                        : "32.2%",
+                }}
               >
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      color: day.es_hoy ? colors.accent : colors.foreground,
-                      fontSize: 15,
-                      fontWeight: "800",
-                    }}
-                  >
-                    {t(`menu.day.${day.dia}`)}
-                  </Text>
-                  <Text style={{ color: colors.muted, fontSize: 10.5 }}>
-                    {shortDate(day.fecha)}
-                  </Text>
-                </View>
-                <View style={{ alignItems: "flex-end" }}>
-                  <Text
-                    style={{
-                      color: colors.foreground,
-                      fontSize: 12,
-                      fontWeight: "700",
-                    }}
-                  >
-                    {formatCurrency(day.total)}
-                  </Text>
-                  <Text style={{ color: colors.muted, fontSize: 10 }}>
-                    {`${Math.round(day.kcal_total)} kcal`}
-                  </Text>
-                </View>
-              </View>
-
-              {MAIN_MOMENTS.map((moment) => {
-                const items = day.items.filter((item) => item.momento === moment);
-
-                return (
-                  <View key={moment} style={{ gap: 4, paddingTop: 2 }}>
-                    <View
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text
                       style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 6,
+                        color: day.es_hoy ? colors.accent : colors.foreground,
+                        fontSize: 15,
+                        fontWeight: "800",
                       }}
                     >
-                      <Text
+                      {t(`menu.day.${day.dia}`)}
+                    </Text>
+                    <Text style={{ color: colors.muted, fontSize: 12 }}>
+                      {shortDate(day.fecha)}
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: "flex-end" }}>
+                    <Text
+                      style={{
+                        color: colors.foreground,
+                        fontSize: 12,
+                        fontWeight: "700",
+                      }}
+                    >
+                      {formatCurrency(day.total)}
+                    </Text>
+                    <Text style={{ color: colors.muted, fontSize: 11.5 }}>
+                      {`${Math.round(day.kcal_total)} kcal`}
+                    </Text>
+                  </View>
+                </View>
+
+                {MAIN_MOMENTS.map((moment) => {
+                  const items = day.items.filter((item) => item.momento === moment);
+
+                  return (
+                    <View key={moment} style={{ gap: 4, paddingTop: 2 }}>
+                      <View
                         style={{
-                          flex: 1,
-                          color: colors.muted,
-                          fontSize: 10,
-                          fontWeight: "700",
-                          textTransform: "uppercase",
-                          letterSpacing: 0.5,
-                        }}
-                      >
-                        {t(`menu.moment.${moment}`)}
-                      </Text>
-                      <Pressable
-                        onPress={() =>
-                          setAddTarget({ day: day.dia, moment })
-                        }
-                        hitSlop={6}
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: 7,
-                          borderWidth: 1,
-                          borderColor: colors.border,
+                          flexDirection: "row",
                           alignItems: "center",
-                          justifyContent: "center",
+                          gap: 6,
                         }}
                       >
                         <Text
                           style={{
-                            color: colors.accent,
-                            fontSize: 16,
-                            lineHeight: 17,
+                            flex: 1,
+                            color: colors.muted,
+                            fontSize: 11.5,
+                            fontWeight: "700",
+                            textTransform: "uppercase",
+                            letterSpacing: 0.5,
                           }}
                         >
-                          +
+                          {t(`menu.moment.${moment}`)}
                         </Text>
-                      </Pressable>
-                    </View>
+                        <Pressable
+                          onPress={() =>
+                            setAddTarget({ day: day.dia, moment })
+                          }
+                          hitSlop={8}
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 9,
+                            borderWidth: 1,
+                            borderColor: colors.border,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: colors.accent,
+                              fontSize: 16,
+                              lineHeight: 17,
+                            }}
+                          >
+                            +
+                          </Text>
+                        </Pressable>
+                      </View>
 
-                    {items.map((item) => (
+                      {items.map((item) => (
+                        <Pressable
+                          key={item.id}
+                          onPress={() => setEditing(item)}
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 8,
+                            paddingVertical: 4,
+                            borderTopWidth: 1,
+                            borderTopColor: colors.border,
+                          }}
+                        >
+                          <View style={{ flex: 1, gap: 1 }}>
+                            <Text
+                              numberOfLines={1}
+                              style={{
+                                color: colors.foreground,
+                                fontSize: 12,
+                                fontWeight: "600",
+                              }}
+                            >
+                              {item.nombre}
+                            </Text>
+                            <Text style={{ color: colors.muted, fontSize: 11.5 }}>
+                              {item.tipo === "nota"
+                                ? item.nota ?? item.nombre
+                                : `${formatQuantity(item.porciones)} ${
+                                    item.porciones === 1
+                                      ? t("menu.portion")
+                                      : t("menu.portions")
+                                  }${item.kcal != null ? ` · ${Math.round(item.kcal)} kcal` : ""}`}
+                            </Text>
+                          </View>
+                          {item.costo ? (
+                            <Text
+                              style={{
+                                color: colors.muted,
+                                fontSize: 11.5,
+                                fontWeight: "600",
+                              }}
+                            >
+                              {formatCurrency(item.costo.total)}
+                            </Text>
+                          ) : null}
+                        </Pressable>
+                      ))}
+
+                      {items.length === 0 ? (
+                        <Text style={{ color: colors.muted, fontSize: 11.5 }}>
+                          {t("menu.emptyMoment")}
+                        </Text>
+                      ) : null}
+                    </View>
+                  );
+                })}
+
+                {otherItems.length > 0 ? (
+                  <View style={{ gap: 4, paddingTop: 2 }}>
+                    <Text
+                      style={{
+                        color: colors.muted,
+                        fontSize: 11.5,
+                        fontWeight: "700",
+                        textTransform: "uppercase",
+                        letterSpacing: 0.5,
+                      }}
+                    >
+                      {t("menu.others")}
+                    </Text>
+                    {otherItems.map((item) => (
                       <Pressable
                         key={item.id}
                         onPress={() => setEditing(item)}
@@ -504,7 +598,7 @@ export default function WeeklyMenuScreen() {
                           borderTopColor: colors.border,
                         }}
                       >
-                        <View style={{ flex: 1, gap: 1 }}>
+                        <View style={{ flex: 1 }}>
                           <Text
                             numberOfLines={1}
                             style={{
@@ -515,103 +609,34 @@ export default function WeeklyMenuScreen() {
                           >
                             {item.nombre}
                           </Text>
-                          <Text style={{ color: colors.muted, fontSize: 9.5 }}>
-                            {item.tipo === "nota"
-                              ? item.nota ?? item.nombre
-                              : `${formatQuantity(item.porciones)} ${
-                                  item.porciones === 1
-                                    ? t("menu.portion")
-                                    : t("menu.portions")
-                                }${item.kcal != null ? ` · ${Math.round(item.kcal)} kcal` : ""}`}
+                          <Text style={{ color: colors.muted, fontSize: 11.5 }}>
+                            {`${t(`menu.moment.${item.momento}`)} · ${formatQuantity(
+                              item.porciones,
+                            )} ${t("menu.portions")}`}
                           </Text>
                         </View>
-                        {item.costo ? (
-                          <Text
-                            style={{
-                              color: colors.muted,
-                              fontSize: 10,
-                              fontWeight: "600",
-                            }}
-                          >
-                            {formatCurrency(item.costo.total)}
-                          </Text>
-                        ) : null}
                       </Pressable>
                     ))}
-
-                    {items.length === 0 ? (
-                      <Text style={{ color: colors.muted, fontSize: 10 }}>
-                        {t("menu.emptyMoment")}
-                      </Text>
-                    ) : null}
                   </View>
-                );
-              })}
+                ) : null}
 
-              {otherItems.length > 0 ? (
-                <View style={{ gap: 4, paddingTop: 2 }}>
-                  <Text
-                    style={{
-                      color: colors.muted,
-                      fontSize: 10,
-                      fontWeight: "700",
-                      textTransform: "uppercase",
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    {t("menu.others")}
+                <Pressable
+                  onPress={() =>
+                    setAddTarget({
+                      day: day.dia,
+                      moment: otherItems.length > 0 ? "colacion" : "otro",
+                    })
+                  }
+                  style={{ paddingTop: 2 }}
+                >
+                  <Text style={{ color: colors.accent, fontSize: 12, fontWeight: "600" }}>
+                    {t("menu.addOther")}
                   </Text>
-                  {otherItems.map((item) => (
-                    <Pressable
-                      key={item.id}
-                      onPress={() => setEditing(item)}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 8,
-                        paddingVertical: 4,
-                        borderTopWidth: 1,
-                        borderTopColor: colors.border,
-                      }}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          numberOfLines={1}
-                          style={{
-                            color: colors.foreground,
-                            fontSize: 12,
-                            fontWeight: "600",
-                          }}
-                        >
-                          {item.nombre}
-                        </Text>
-                        <Text style={{ color: colors.muted, fontSize: 9.5 }}>
-                          {`${t(`menu.moment.${item.momento}`)} · ${formatQuantity(
-                            item.porciones,
-                          )} ${t("menu.portions")}`}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  ))}
-                </View>
-              ) : null}
-
-              <Pressable
-                onPress={() =>
-                  setAddTarget({
-                    day: day.dia,
-                    moment: otherItems.length > 0 ? "colacion" : "otro",
-                  })
-                }
-                style={{ paddingTop: 2 }}
-              >
-                <Text style={{ color: colors.accent, fontSize: 10.5, fontWeight: "600" }}>
-                  {t("menu.addOther")}
-                </Text>
-              </Pressable>
-            </TextureCard>
-          );
-        })}
+                </Pressable>
+              </TextureCard>
+            );
+          })}
+        </View>
       </Screen>
 
       {addTarget ? (

@@ -154,7 +154,7 @@ export default function AdminUsersScreen() {
         placeholder={t("admin.searchUsersPlaceholder")}
         leadingIcon="search"
       />
-      <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+      <Text style={{ color: colors.muted, fontSize: 12 }}>
         {t("admin.userCount", { count: total })}
       </Text>
       {loading ? <Spinner /> : null}
@@ -200,18 +200,18 @@ export default function AdminUsersScreen() {
                 style={{
                   color:
                     item.rol === "admin" ? colors.accent : colors.muted,
-                  fontSize: 10,
+                  fontSize: 11.5,
                   fontWeight: "800",
                 }}
               >
                 {item.rol === "admin" ? t("admin.roleAdmin") : t("admin.roleUser")}
               </Text>
             </View>
-            <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+            <Text style={{ color: colors.muted, fontSize: 12 }}>
               {item.email}
             </Text>
             {item.debe_cambiar_password ? (
-              <Text style={{ color: colors.warning, fontSize: 9.5 }}>
+              <Text style={{ color: colors.warning, fontSize: 11 }}>
                 {t("admin.mustChangePassword")}
               </Text>
             ) : null}

@@ -21,6 +21,7 @@ import {
   type Categoria,
   type Producto,
 } from "@/lib/products";
+import { gridColumns } from "@/lib/responsive";
 
 function categoryName(product: Producto, categorias: Categoria[]): string {
   return (
@@ -84,7 +85,7 @@ function CardImage({ product }: { product: Producto }) {
   return uri && !failed ? (
     <Image
       source={{ uri }}
-      style={{ width: "100%", height: 92 }}
+      style={{ width: "100%", height: "100%" }}
       resizeMode="cover"
       onError={() => setFailed(true)}
       accessibilityLabel={`Imagen de ${product.nombre}`}
@@ -93,7 +94,7 @@ function CardImage({ product }: { product: Producto }) {
     <View
       style={{
         width: "100%",
-        height: 92,
+        height: "100%",
         backgroundColor: colors.accentContainer,
         alignItems: "center",
         justifyContent: "center",
@@ -102,7 +103,7 @@ function CardImage({ product }: { product: Producto }) {
       <Text
         style={{
           color: colors.accent,
-          fontSize: 38,
+          fontSize: 36,
           fontWeight: "800",
         }}
       >
@@ -136,16 +137,18 @@ function AddButton({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={t("quick.add")}
+      hitSlop={6}
       style={({ pressed }) => [
         {
-          height: 36,
-          borderRadius: 10,
+          height: 40,
+          minWidth: 44,
+          borderRadius: 11,
           backgroundColor: colors.accent,
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
           gap: 5,
-          paddingHorizontal: 8,
+          paddingHorizontal: 10,
           opacity: pressed ? 0.82 : 1,
         },
         style,
@@ -164,7 +167,7 @@ function AddButton({
       <Text
         style={{
           color: colors.onAccent,
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: "700",
         }}
         numberOfLines={1}
@@ -182,10 +185,11 @@ function CalcButton({ onPress }: { onPress: () => void }) {
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={t("quick.calculate")}
+      hitSlop={6}
       style={({ pressed }) => ({
-        width: 36,
-        height: 36,
-        borderRadius: 10,
+        width: 40,
+        height: 40,
+        borderRadius: 11,
         borderWidth: 1,
         borderColor: colors.accent,
         alignItems: "center",
@@ -211,6 +215,7 @@ export function ProductCard({
   onAdd,
   onCalc,
   list = false,
+  cardWidth,
   style,
 }: {
   product: Producto;
@@ -218,6 +223,8 @@ export function ProductCard({
   onAdd: () => void;
   onCalc: () => void;
   list?: boolean;
+  /** Exact width in the adaptive grid; falls back to two columns. */
+  cardWidth?: number;
   style?: StyleProp<ViewStyle>;
 }) {
   const { colors, scheme } = useTheme();
@@ -249,25 +256,26 @@ export function ProductCard({
 
   if (list) {
     return (
-      <View style={[card, { flexDirection: "row", padding: 8, gap: 10 }]}>
+      <View style={[card, { flexDirection: "row", padding: 10, gap: 10 }]}>
         <DotPattern opacity={scheme === "dark" ? 0.06 : 0.03} />
-        <Thumb product={product} size={72} />
-        <View style={{ flex: 1, gap: 2, paddingVertical: 2 }}>
+        <Thumb product={product} size={76} />
+        <View style={{ flex: 1, gap: 3, paddingVertical: 2 }}>
           <Text
             numberOfLines={2}
             style={{
               color: colors.foreground,
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: "700",
+              lineHeight: 18,
             }}
           >
             {product.nombre}
           </Text>
-          <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 11 }}>
+          <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 12 }}>
             {meta}
           </Text>
           {price ? (
-            <Text numberOfLines={1} style={{ color: colors.accent, fontSize: 11 }}>
+            <Text numberOfLines={1} style={{ color: colors.accent, fontSize: 12 }}>
               {price}
             </Text>
           ) : null}
@@ -281,9 +289,9 @@ export function ProductCard({
   }
 
   return (
-    <View style={[card, { width: "48.5%" }]}>
+    <View style={[card, { width: cardWidth ?? "48.5%" }]}>
       <DotPattern opacity={scheme === "dark" ? 0.06 : 0.03} />
-      <View style={{ height: 92, backgroundColor: colors.accentContainer }}>
+      <View style={{ width: "100%", aspectRatio: 16 / 10, backgroundColor: colors.accentContainer }}>
         <CardImage product={product} />
         <LinearGradient
           pointerEvents="none"
@@ -303,23 +311,23 @@ export function ProductCard({
           }}
         />
       </View>
-      <View style={{ padding: 8, gap: 3 }}>
+      <View style={{ padding: 10, gap: 4 }}>
         <Text
           numberOfLines={2}
           style={{
             color: colors.foreground,
-            fontSize: 12.5,
+            fontSize: 13.5,
             fontWeight: "700",
-            lineHeight: 15,
+            lineHeight: 18,
           }}
         >
           {product.nombre}
         </Text>
-        <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 10.5 }}>
+        <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 11.5 }}>
           {meta}
         </Text>
         {price ? (
-          <Text numberOfLines={1} style={{ color: colors.accent, fontSize: 10.5 }}>
+          <Text numberOfLines={1} style={{ color: colors.accent, fontSize: 12 }}>
             {price}
           </Text>
         ) : null}
@@ -339,7 +347,7 @@ export function ProductCard({
   );
 }
 
-/** Two cards per row, or full-width rows in list mode. */
+/** Two to five cards per row, measured from the real container width. */
 export function ProductGrid({
   products,
   categorias,
@@ -353,6 +361,8 @@ export function ProductGrid({
   onCalc: (product: Producto) => void;
   list?: boolean;
 }) {
+  const [gridWidth, setGridWidth] = useState(0);
+
   if (list) {
     return (
       <View style={{ gap: 8 }}>
@@ -370,13 +380,25 @@ export function ProductGrid({
     );
   }
 
+  const columns = gridWidth > 0 ? gridColumns(gridWidth) : 2;
+  const gap = 8;
+  const cardWidth =
+    gridWidth > 0
+      ? Math.floor((gridWidth - gap * (columns - 1)) / columns)
+      : undefined;
+
   return (
     <View
+      onLayout={(event) => {
+        const next = event.nativeEvent.layout.width;
+        if (Math.abs(next - gridWidth) > 1) setGridWidth(next);
+      }}
       style={{
         flexDirection: "row",
         flexWrap: "wrap",
-        justifyContent: "space-between",
-        rowGap: 8,
+        justifyContent: "flex-start",
+        columnGap: gap,
+        rowGap: gap,
       }}
     >
       {products.map((product) => (
@@ -386,6 +408,7 @@ export function ProductGrid({
           categorias={categorias}
           onAdd={() => onAdd(product)}
           onCalc={() => onCalc(product)}
+          cardWidth={cardWidth}
         />
       ))}
     </View>

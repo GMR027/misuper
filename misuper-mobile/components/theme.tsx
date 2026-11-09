@@ -116,6 +116,7 @@ export function useTheme(): Theme {
 export function PageBackground() {
   const { scheme, colors, focusColor, focusIntensity, focusSpread } = useTheme();
   const { width, height } = useWindowDimensions();
+  const base = Math.min(width, height);
   const strength = focusIntensity / 100;
   const spread = focusSpread / 100;
   const dotTint = scheme === "dark" ? "#ffffff" : "#000000";
@@ -142,19 +143,19 @@ export function PageBackground() {
         <Circle
           cx={width * 0.08}
           cy={-height * 0.12}
-          r={width * 0.9 * spread}
+          r={base * 0.9 * spread}
           fill="url(#halo)"
         />
         <Circle
           cx={width * 1.02}
           cy={height * 0.04}
-          r={width * 0.75 * spread}
+          r={base * 0.75 * spread}
           fill="url(#halo)"
         />
         <Circle
           cx={width * 0.5}
           cy={height * 1.12}
-          r={width * 0.6 * spread}
+          r={base * 0.6 * spread}
           fill="url(#halo)"
         />
       </Svg>

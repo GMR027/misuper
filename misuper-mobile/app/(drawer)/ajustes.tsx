@@ -15,6 +15,7 @@ import { useTheme } from "@/components/theme";
 import { clearSession, logout, updateUser, useAuth } from "@/lib/auth";
 import { apiErrorMessage, apiFetch, getApiUrl } from "@/lib/api";
 import { t, useLocale } from "@/lib/i18n";
+import { useResponsive } from "@/lib/responsive";
 import {
   setSettings,
   useSettings,
@@ -28,6 +29,7 @@ export default function SettingsScreen() {
   useLocale();
   const { colors } = useTheme();
   const auth = useAuth();
+  const { useTwoPane } = useResponsive();
   const language = useSettings((s) => s.language);
   const [draft, setDraft] = useState(() => getApiUrl());
   const [saved, setSaved] = useState(false);
@@ -101,78 +103,85 @@ export default function SettingsScreen() {
     ]);
   };
 
-  return (
-    <Screen title={t("settings.title")}>
+  const accountCard = (
+    <View
+      style={{
+        backgroundColor: colors.surface,
+        borderRadius: 18,
+        borderWidth: 1,
+        borderColor: colors.border,
+        padding: 16,
+        gap: 10,
+      }}
+    >
+      <Text style={{ color: colors.foreground, fontSize: 17, fontWeight: "700" }}>
+        {t("account.title")}
+      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        {auth.user ? <Avatar user={auth.user} size={46} border /> : null}
+        <View style={{ flex: 1 }}>
+          <Text
+            numberOfLines={1}
+            style={{ color: colors.foreground, fontSize: 15, fontWeight: "700" }}
+          >
+            {auth.user?.nombre ?? "—"}
+          </Text>
+          <Text style={{ color: colors.muted, fontSize: 13 }}>
+            {auth.user?.email ?? ""}
+          </Text>
+        </View>
+      </View>
+      <TextField
+        value={nombre}
+        onChangeText={setNombre}
+        label={t("account.name")}
+        placeholder={t("account.namePlaceholder")}
+      />
+      <TextField
+        value={email}
+        onChangeText={setEmail}
+        label={t("account.email")}
+        placeholder={t("account.emailPlaceholder")}
+        keyboardType="email"
+      />
+      <Button
+        label={savingProfile ? t("common.loading") : t("account.saveProfile")}
+        icon="check"
+        onPress={() => void saveProfile()}
+        disabled={savingProfile}
+      />
+      {profileMessage ? (
+        <Text style={{ color: colors.muted, fontSize: 13 }}>
+          {profileMessage}
+        </Text>
+      ) : null}
+      <Button
+        label={t("account.logout")}
+        variant="outlined"
+        icon="arrow-back"
+        onPress={() => void logout()}
+      />
+      <Button
+        label={t("account.deleteAccount")}
+        variant="outlined"
+        icon="delete"
+        onPress={confirmDelete}
+      />
+    </View>
+  );
+
+  const appearanceColumn = (
+    <>
       <AppearanceEditor />
       <AvatarEditor />
-
-      <View
-        style={{
-          backgroundColor: colors.surface,
-          borderRadius: 18,
-          borderWidth: 1,
-          borderColor: colors.border,
-          padding: 16,
-          gap: 10,
-        }}
-      >
-        <Text style={{ color: colors.foreground, fontSize: 16, fontWeight: "700" }}>
-          {t("account.title")}
-        </Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          {auth.user ? <Avatar user={auth.user} size={46} border /> : null}
-          <View style={{ flex: 1 }}>
-            <Text
-              numberOfLines={1}
-              style={{ color: colors.foreground, fontSize: 14, fontWeight: "700" }}
-            >
-              {auth.user?.nombre ?? "—"}
-            </Text>
-            <Text style={{ color: colors.muted, fontSize: 12 }}>
-              {auth.user?.email ?? ""}
-            </Text>
-          </View>
-        </View>
-        <TextField
-          value={nombre}
-          onChangeText={setNombre}
-          label={t("account.name")}
-          placeholder={t("account.namePlaceholder")}
-        />
-        <TextField
-          value={email}
-          onChangeText={setEmail}
-          label={t("account.email")}
-          placeholder={t("account.emailPlaceholder")}
-          keyboardType="email"
-        />
-        <Button
-          label={savingProfile ? t("common.loading") : t("account.saveProfile")}
-          icon="check"
-          onPress={() => void saveProfile()}
-          disabled={savingProfile}
-        />
-        {profileMessage ? (
-          <Text style={{ color: colors.muted, fontSize: 12 }}>
-            {profileMessage}
-          </Text>
-        ) : null}
-        <Button
-          label={t("account.logout")}
-          variant="outlined"
-          icon="arrow-back"
-          onPress={() => void logout()}
-        />
-        <Button
-          label={t("account.deleteAccount")}
-          variant="outlined"
-          icon="delete"
-          onPress={confirmDelete}
-        />
-      </View>
-
       <ShareAppCard />
       <InstallAppCard />
+    </>
+  );
+
+  const preferencesColumn = (
+    <>
+      {accountCard}
 
       <Card>
         <M3Text variant="subtitle">{t("settings.language")}</M3Text>
@@ -233,6 +242,28 @@ export default function SettingsScreen() {
           {t("settings.androidHint")}
         </M3Text>
       </Card>
+    </>
+  );
+
+  return (
+    <Screen title={t("settings.title")}>
+      {useTwoPane ? (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            gap: 16,
+          }}
+        >
+          <View style={{ flex: 1, gap: 12 }}>{appearanceColumn}</View>
+          <View style={{ flex: 1, gap: 12 }}>{preferencesColumn}</View>
+        </View>
+      ) : (
+        <>
+          {appearanceColumn}
+          {preferencesColumn}
+        </>
+      )}
     </Screen>
   );
 }

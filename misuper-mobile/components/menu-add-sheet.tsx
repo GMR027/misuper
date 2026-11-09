@@ -333,7 +333,7 @@ export function MenuAddSheet({
                       >
                         {recipe.nombre}
                       </Text>
-                      <Text style={{ color: colors.muted, fontSize: 10 }}>
+                      <Text style={{ color: colors.muted, fontSize: 11.5 }}>
                         {`${t("recipes.minutes", {
                           count: recipe.tiempo_min,
                         })} · ${t("recipes.portionsCount", {

@@ -20,6 +20,7 @@ import { t, useLocale } from "@/lib/i18n";
 import { apiErrorMessage, apiFieldError, apiFetch, apiUpload } from "@/lib/api";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import type { Producto } from "@/lib/products";
+import { useResponsive } from "@/lib/responsive";
 import { showToast } from "@/lib/toast";
 
 interface TicketItemProposal {
@@ -76,6 +77,8 @@ export default function TicketsScreen() {
   useLocale();
   const { colors } = useTheme();
   const router = useRouter();
+  const { contentWidth } = useResponsive();
+  const ticketColumns = contentWidth >= 980 ? 3 : contentWidth >= 620 ? 2 : 1;
   const [reading, setReading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
@@ -316,7 +319,44 @@ export default function TicketsScreen() {
 
   return (
     <>
-      <Screen title={t("tickets.title")}>
+      <Screen
+        title={t("tickets.title")}
+        footer={
+          reviewing ? (
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderTopWidth: 1,
+                borderTopColor: colors.border,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                gap: 8,
+              }}
+            >
+              {reviewError ? (
+                <Text style={{ color: colors.error, fontSize: 12 }}>
+                  {reviewError}
+                </Text>
+              ) : null}
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                <Button
+                  label={saving ? t("tickets.confirming") : t("tickets.confirm")}
+                  icon="check"
+                  onPress={() => void confirm()}
+                  disabled={saving}
+                />
+                <Button
+                  label={t("tickets.discard")}
+                  variant="outlined"
+                  icon="delete"
+                  onPress={discard}
+                  disabled={saving}
+                />
+              </View>
+            </View>
+          ) : undefined
+        }
+      >
       {!reviewing ? (
         <TextureCard>
           <Text
@@ -478,106 +518,125 @@ export default function TicketsScreen() {
             </TextureCard>
           ) : null}
 
-          {draft.map((item) => (
-            <TextureCard key={item.key}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Text
-                  style={{
-                    flex: 1,
-                    color: colors.foreground,
-                    fontSize: 14,
-                    fontWeight: "700",
-                  }}
-                >
-                  {item.nombre.trim() === ""
-                    ? t("tickets.newItem")
-                    : item.nombre}
-                </Text>
-                {item.productoId !== null ? (
-                  <View
-                    style={{
-                      borderRadius: 6,
-                      paddingHorizontal: 7,
-                      paddingVertical: 2,
-                      backgroundColor: colors.accentContainer,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: colors.onAccentContainer,
-                        fontSize: 10,
-                        fontWeight: "700",
-                      }}
-                    >
-                      {t("tickets.catalog")}
-                    </Text>
-                  </View>
-                ) : null}
-                <Pressable
-                  onPress={() => setRemapKey(item.key)}
-                  hitSlop={6}
-                >
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              alignItems: "flex-start",
+              gap: 8,
+            }}
+          >
+            {draft.map((item) => (
+              <TextureCard
+                key={item.key}
+                style={{
+                  width:
+                    ticketColumns === 1
+                      ? "100%"
+                      : ticketColumns === 2
+                        ? "49%"
+                        : "32.5%",
+                }}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                   <Text
                     style={{
-                      color: colors.accent,
-                      fontSize: 10.5,
+                      flex: 1,
+                      color: colors.foreground,
+                      fontSize: 14,
                       fontWeight: "700",
                     }}
                   >
-                    {t("tickets.pickProduct")}
+                    {item.nombre.trim() === ""
+                      ? t("tickets.newItem")
+                      : item.nombre}
                   </Text>
-                </Pressable>
-                <IconButton
-                  icon="delete"
-                  label={t("tickets.removeItem")}
-                  onPress={() => removeItem(item.key)}
-                  size={32}
-                  iconSize={18}
-                  color={colors.error}
+                  {item.productoId !== null ? (
+                    <View
+                      style={{
+                        borderRadius: 6,
+                        paddingHorizontal: 7,
+                        paddingVertical: 2,
+                        backgroundColor: colors.accentContainer,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: colors.onAccentContainer,
+                          fontSize: 11,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {t("tickets.catalog")}
+                      </Text>
+                    </View>
+                  ) : null}
+                  <Pressable
+                    onPress={() => setRemapKey(item.key)}
+                    hitSlop={6}
+                  >
+                    <Text
+                      style={{
+                        color: colors.accent,
+                        fontSize: 12,
+                        fontWeight: "700",
+                      }}
+                    >
+                      {t("tickets.pickProduct")}
+                    </Text>
+                  </Pressable>
+                  <IconButton
+                    icon="delete"
+                    label={t("tickets.removeItem")}
+                    onPress={() => removeItem(item.key)}
+                    size={32}
+                    iconSize={18}
+                    color={colors.error}
+                  />
+                </View>
+
+                <TextField
+                  value={item.nombre}
+                  onChangeText={(value) => updateItem(item.key, { nombre: value })}
+                  label={t("tickets.itemName")}
+                  placeholder={t("tickets.itemNamePlaceholder")}
                 />
-              </View>
 
-              <TextField
-                value={item.nombre}
-                onChangeText={(value) => updateItem(item.key, { nombre: value })}
-                label={t("tickets.itemName")}
-                placeholder={t("tickets.itemNamePlaceholder")}
-              />
-
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                <View style={{ flex: 1 }}>
-                  <TextField
-                    value={item.cantidad}
-                    onChangeText={(value) =>
-                      updateItem(item.key, { cantidad: value })
-                    }
-                    label={t("tickets.quantity")}
-                    keyboardType="decimal"
-                  />
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  <View style={{ flex: 1 }}>
+                    <TextField
+                      value={item.cantidad}
+                      onChangeText={(value) =>
+                        updateItem(item.key, { cantidad: value })
+                      }
+                      label={t("tickets.quantity")}
+                      keyboardType="decimal"
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <TextField
+                      value={item.precio}
+                      onChangeText={(value) =>
+                        updateItem(item.key, { precio: value })
+                      }
+                      label={t("tickets.price")}
+                      keyboardType="decimal"
+                      prefix="$"
+                    />
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <TextField
-                    value={item.precio}
-                    onChangeText={(value) =>
-                      updateItem(item.key, { precio: value })
-                    }
-                    label={t("tickets.price")}
-                    keyboardType="decimal"
-                    prefix="$"
-                  />
-                </View>
-              </View>
 
-              <UnitPicker
-                value={item.unidad}
-                onChange={(unit) => updateItem(item.key, { unidad: unit })}
-              />
+                <UnitPicker
+                  value={item.unidad}
+                  onChange={(unit) => updateItem(item.key, { unidad: unit })}
+                />
 
-              <Text style={{ color: colors.muted, fontSize: 10 }}>
-                {`${formatQuantity(parseNumber(item.cantidad) || 0)} ${item.unidad}`}
-              </Text>
-            </TextureCard>
-          ))}
+                <Text style={{ color: colors.muted, fontSize: 11.5 }}>
+                  {`${formatQuantity(parseNumber(item.cantidad) || 0)} ${item.unidad}`}
+                </Text>
+              </TextureCard>
+            ))}
+          </View>
 
           <Button
             label={t("tickets.addItem")}
@@ -647,8 +706,8 @@ export default function TicketsScreen() {
                   selectable
                   style={{
                     color: colors.muted,
-                    fontSize: 10,
-                    lineHeight: 15,
+                    fontSize: 11.5,
+                    lineHeight: 16,
                     fontFamily: "monospace",
                   }}
                 >
@@ -657,28 +716,6 @@ export default function TicketsScreen() {
               ) : null}
             </TextureCard>
           ) : null}
-
-          {reviewError ? (
-            <Text style={{ color: colors.error, fontSize: 12 }}>
-              {reviewError}
-            </Text>
-          ) : null}
-
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            <Button
-              label={saving ? t("tickets.confirming") : t("tickets.confirm")}
-              icon="check"
-              onPress={() => void confirm()}
-              disabled={saving}
-            />
-            <Button
-              label={t("tickets.discard")}
-              variant="outlined"
-              icon="delete"
-              onPress={discard}
-              disabled={saving}
-            />
-          </View>
         </>
       )}
       </Screen>

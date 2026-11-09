@@ -1,4 +1,4 @@
-/** The toast pill, positioned above the dock and cart bar. */
+/** The toast pill, positioned above the navigation chrome. */
 
 import { View } from "react-native";
 import { Row, Shape, Surface } from "@expo/ui/jetpack-compose";
@@ -7,7 +7,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/components/theme";
 import { Compose } from "@/components/m3/host";
 import { M3Text, SymbolIcon } from "@/components/m3/text";
-import { CART_BAR_HEIGHT, DOCK_HEIGHT } from "@/lib/layout";
+import { CART_BAR_HEIGHT, DOCK_HEIGHT, RAIL_WIDTH } from "@/lib/layout";
+import { useResponsive } from "@/lib/responsive";
 import { useStore } from "@/lib/store";
 import { toastStore, type ToastKind } from "@/lib/toast";
 
@@ -15,13 +16,16 @@ export function ToastHost({ cartBar = false }: { cartBar?: boolean }) {
   const toast = useStore(toastStore);
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { useRail } = useResponsive();
 
   if (!toast) return null;
 
   const bottom =
     insets.bottom +
-    DOCK_HEIGHT +
+    (useRail ? 0 : DOCK_HEIGHT) +
     (cartBar ? CART_BAR_HEIGHT + 24 : 24);
+  const left = (useRail ? RAIL_WIDTH + insets.left : insets.left) + 16;
+  const right = insets.right + 16;
 
   const tone = toneFor(toast.kind, colors.success, colors.error);
 
@@ -30,8 +34,8 @@ export function ToastHost({ cartBar = false }: { cartBar?: boolean }) {
       pointerEvents="none"
       style={{
         position: "absolute",
-        left: 16,
-        right: 16,
+        left,
+        right,
         bottom,
       }}
     >

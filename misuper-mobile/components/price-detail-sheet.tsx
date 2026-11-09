@@ -227,7 +227,7 @@ export function PriceDetailSheet({
                     : "—"}
                 </Text>
                 {price ? (
-                  <Text style={{ color: colors.muted, fontSize: 10 }}>
+                  <Text style={{ color: colors.muted, fontSize: 11.5 }}>
                     {`${price.muestras} ${t("prices.samples")}${
                       price.fecha ? ` · ${price.fecha}` : ""
                     }${price.comercio ? ` · ${price.comercio}` : ""}`}
@@ -238,7 +238,7 @@ export function PriceDetailSheet({
                     <Text
                       style={{
                         color: colors.warning,
-                        fontSize: 9.5,
+                        fontSize: 11,
                         fontWeight: "700",
                       }}
                     >
@@ -249,7 +249,7 @@ export function PriceDetailSheet({
                     <Text
                       style={{
                         color: colors.accent,
-                        fontSize: 9.5,
+                        fontSize: 11,
                         fontWeight: "700",
                       }}
                     >
@@ -311,7 +311,7 @@ export function PriceDetailSheet({
                       {item.fecha}
                       {item.comercio ? ` · ${item.comercio}` : ""}
                     </Text>
-                    <Text style={{ color: colors.muted, fontSize: 10 }}>
+                    <Text style={{ color: colors.muted, fontSize: 11.5 }}>
                       {`${formatQuantity(item.cantidad)} ${
                         item.unidad
                       } · ${formatCurrency(item.precio_total)}`}
@@ -335,7 +335,7 @@ export function PriceDetailSheet({
                 </View>
               ))}
 
-              <Text style={{ color: colors.muted, fontSize: 9.5 }}>
+              <Text style={{ color: colors.muted, fontSize: 11 }}>
                 {t("prices.hint")}
               </Text>
             </>

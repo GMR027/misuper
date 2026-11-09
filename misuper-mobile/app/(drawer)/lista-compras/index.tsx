@@ -11,6 +11,7 @@ import { NativeContent } from "@/components/m3/host";
 import { TextField } from "@/components/m3/inputs";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { t, useLocale } from "@/lib/i18n";
+import { useResponsive } from "@/lib/responsive";
 import { showToast } from "@/lib/toast";
 
 interface ListaResumen {
@@ -29,6 +30,8 @@ export default function ShoppingListsScreen() {
   useLocale();
   const { colors } = useTheme();
   const router = useRouter();
+  const { contentWidth } = useResponsive();
+  const listColumns = contentWidth >= 900 ? 3 : contentWidth >= 560 ? 2 : 1;
   const [items, setItems] = useState<ListaResumen[]>([]);
   const [pendientes, setPendientes] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -121,14 +124,14 @@ export default function ShoppingListsScreen() {
         </View>
 
         {pendientes > 0 ? (
-          <TextureCard>
-            <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: "700" }}>
-              {t("shopping.pendingSummary", { count: pendientes })}
-            </Text>
-            <Text style={{ color: colors.muted, fontSize: 11 }}>
-              {t("shopping.pendingHint")}
-            </Text>
-          </TextureCard>
+            <TextureCard>
+              <Text style={{ color: colors.foreground, fontSize: 13, fontWeight: "700" }}>
+                {t("shopping.pendingSummary", { count: pendientes })}
+              </Text>
+              <Text style={{ color: colors.muted, fontSize: 11 }}>
+                {t("shopping.pendingHint")}
+              </Text>
+            </TextureCard>
         ) : null}
 
         {loading ? (
@@ -156,11 +159,27 @@ export default function ShoppingListsScreen() {
           </TextureCard>
         ) : null}
 
-        {items.map((list) => (
-          <Pressable
-            key={list.id}
-            onPress={() => router.push(`/lista-compras/${list.id}`)}
-          >
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+            gap: 8,
+          }}
+        >
+          {items.map((list) => (
+            <Pressable
+              key={list.id}
+              onPress={() => router.push(`/lista-compras/${list.id}`)}
+              style={{
+                width:
+                  listColumns === 1
+                    ? "100%"
+                    : listColumns === 2
+                      ? "48.9%"
+                      : "32.2%",
+              }}
+            >
             <TextureCard>
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
@@ -188,8 +207,9 @@ export default function ShoppingListsScreen() {
                 <Text style={{ color: colors.accent, fontSize: 20 }}>›</Text>
               </View>
             </TextureCard>
-          </Pressable>
-        ))}
+            </Pressable>
+          ))}
+        </View>
       </Screen>
 
       {createOpen ? (

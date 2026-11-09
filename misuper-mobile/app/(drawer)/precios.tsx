@@ -73,7 +73,7 @@ function Chip({
       <Text
         style={{
           color: active ? colors.onAccent : colors.muted,
-          fontSize: 10.5,
+          fontSize: 12,
           fontWeight: active ? "700" : "500",
         }}
       >
@@ -142,19 +142,19 @@ export default function PricesScreen() {
 
       {summary ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-          <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>
             {t("prices.summaryTotal", { count: summary.total })}
           </Text>
-          <Text style={{ color: colors.success, fontSize: 10.5 }}>
+          <Text style={{ color: colors.success, fontSize: 12 }}>
             {t("prices.summaryWithPrice", { count: summary.con_precio })}
           </Text>
-          <Text style={{ color: colors.warning, fontSize: 10.5 }}>
+          <Text style={{ color: colors.warning, fontSize: 12 }}>
             {t("prices.summaryWithoutPrice", { count: summary.sin_precio })}
           </Text>
-          <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>
             {t("prices.summaryOld", { count: summary.viejos })}
           </Text>
-          <Text style={{ color: colors.accent, fontSize: 10.5 }}>
+          <Text style={{ color: colors.accent, fontSize: 12 }}>
             {t("prices.summaryManual", { count: summary.manuales })}
           </Text>
         </View>
@@ -172,7 +172,7 @@ export default function PricesScreen() {
       </View>
 
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={{ flex: 1, color: colors.muted, fontSize: 10.5 }}>
+        <Text style={{ flex: 1, color: colors.muted, fontSize: 12 }}>
           {t("prices.results", { count: items.length })}
         </Text>
         {loading ? <Spinner /> : null}
@@ -247,23 +247,23 @@ export default function PricesScreen() {
                       numberOfLines={1}
                       style={{
                         color: colors.foreground,
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: "700",
                       }}
                     >
                       {item.nombre}
                     </Text>
-                    <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 10.5 }}>
+                    <Text numberOfLines={1} style={{ color: colors.muted, fontSize: 12 }}>
                       {`${item.categoria_nombre} · ${item.unidad_base}`}
                     </Text>
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
                       {item.viejo ? (
-                        <Text style={{ color: colors.warning, fontSize: 9, fontWeight: "700" }}>
+                        <Text style={{ color: colors.warning, fontSize: 11, fontWeight: "700" }}>
                           {t("prices.oldBadge")}
                         </Text>
                       ) : null}
                       {item.origen === "manual" ? (
-                        <Text style={{ color: colors.accent, fontSize: 9, fontWeight: "700" }}>
+                        <Text style={{ color: colors.accent, fontSize: 11, fontWeight: "700" }}>
                           {t("prices.manualBadge")}
                         </Text>
                       ) : null}
@@ -278,7 +278,7 @@ export default function PricesScreen() {
                     <Text
                       style={{
                         color: item.precio === null ? colors.muted : colors.foreground,
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: "800",
                       }}
                     >
@@ -287,14 +287,14 @@ export default function PricesScreen() {
                         : `${formatCurrency(item.precio)}/${unitLabel(item.unidad_base)}`}
                     </Text>
                     {item.fecha ? (
-                      <Text style={{ color: colors.muted, fontSize: 9.5 }}>
+                      <Text style={{ color: colors.muted, fontSize: 11.5 }}>
                         {item.fecha}
                       </Text>
                     ) : null}
                     {item.comercio ? (
                       <Text
                         numberOfLines={1}
-                        style={{ color: colors.muted, fontSize: 9.5 }}
+                        style={{ color: colors.muted, fontSize: 11.5 }}
                       >
                         {item.comercio}
                       </Text>

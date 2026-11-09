@@ -9,6 +9,7 @@ import { Spinner } from "@/components/m3/feedback";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
 import { getLocale, t, useLocale } from "@/lib/i18n";
+import { useResponsive } from "@/lib/responsive";
 
 interface CompraSummary {
   id: number;
@@ -49,6 +50,8 @@ export default function HistoryScreen() {
   useLocale();
   const { colors } = useTheme();
   const router = useRouter();
+  const { contentWidth } = useResponsive();
+  const historyColumns = contentWidth >= 980 ? 3 : contentWidth >= 620 ? 2 : 1;
   const [items, setItems] = useState<CompraSummary[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -155,71 +158,88 @@ export default function HistoryScreen() {
             {monthLabel(`${key}-01`)}
           </Text>
 
-          {compras.map((compra) => {
-            const title =
-              compra.comercio?.trim() !== ""
-                ? (compra.comercio as string)
-                : compra.ticket_titulo?.trim() !== ""
-                  ? (compra.ticket_titulo as string)
-                  : t("history.purchase");
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              alignItems: "flex-start",
+              gap: 8,
+            }}
+          >
+            {compras.map((compra) => {
+              const title =
+                compra.comercio?.trim() !== ""
+                  ? (compra.comercio as string)
+                  : compra.ticket_titulo?.trim() !== ""
+                    ? (compra.ticket_titulo as string)
+                    : t("history.purchase");
 
-            return (
-              <Pressable
-                key={compra.id}
-                onPress={() => router.push(`/historial/${compra.id}`)}
-              >
-                <TextureCard>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 10,
-                    }}
-                  >
-                    <View style={{ flex: 1, gap: 2 }}>
-                      <Text
-                        numberOfLines={1}
-                        style={{
-                          color: colors.foreground,
-                          fontSize: 14,
-                          fontWeight: "700",
-                        }}
-                      >
-                        {title}
-                      </Text>
-                      <Text
-                        numberOfLines={1}
-                        style={{ color: colors.muted, fontSize: 11 }}
-                      >
-                        {`${dayLabel(compra.fecha)} · ${t("history.itemsCount", {
-                          count: compra.items_count,
-                        })}`}
-                      </Text>
-                      {compra.kcal_total > 0 ? (
-                        <Text style={{ color: colors.muted, fontSize: 10 }}>
-                          {`${Math.round(compra.kcal_total)} kcal`}
+              return (
+                <Pressable
+                  key={compra.id}
+                  onPress={() => router.push(`/historial/${compra.id}`)}
+                  style={{
+                    width:
+                      historyColumns === 1
+                        ? "100%"
+                        : historyColumns === 2
+                          ? "48.9%"
+                          : "32.2%",
+                  }}
+                >
+                  <TextureCard>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                      }}
+                    >
+                      <View style={{ flex: 1, gap: 2 }}>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            color: colors.foreground,
+                            fontSize: 14,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {title}
                         </Text>
-                      ) : null}
+                        <Text
+                          numberOfLines={1}
+                          style={{ color: colors.muted, fontSize: 11 }}
+                        >
+                          {`${dayLabel(compra.fecha)} · ${t("history.itemsCount", {
+                            count: compra.items_count,
+                          })}`}
+                        </Text>
+                        {compra.kcal_total > 0 ? (
+                          <Text style={{ color: colors.muted, fontSize: 11.5 }}>
+                            {`${Math.round(compra.kcal_total)} kcal`}
+                          </Text>
+                        ) : null}
+                      </View>
+                      <View style={{ alignItems: "flex-end", gap: 2 }}>
+                        <Text
+                          style={{
+                            color: colors.foreground,
+                            fontSize: 15,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {formatCurrency(compra.total)}
+                        </Text>
+                        <Text style={{ color: colors.accent, fontSize: 18 }}>
+                          ›
+                        </Text>
+                      </View>
                     </View>
-                    <View style={{ alignItems: "flex-end", gap: 2 }}>
-                      <Text
-                        style={{
-                          color: colors.foreground,
-                          fontSize: 15,
-                          fontWeight: "700",
-                        }}
-                      >
-                        {formatCurrency(compra.total)}
-                      </Text>
-                      <Text style={{ color: colors.accent, fontSize: 18 }}>
-                        ›
-                      </Text>
-                    </View>
-                  </View>
-                </TextureCard>
-              </Pressable>
-            );
-          })}
+                  </TextureCard>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
       ))}
 

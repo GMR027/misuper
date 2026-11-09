@@ -16,6 +16,7 @@ import { TextField } from "@/components/m3/inputs";
 import { M3Text } from "@/components/m3/text";
 import type { Producto } from "@/lib/products";
 import { t, useLocale } from "@/lib/i18n";
+import { useResponsive } from "@/lib/responsive";
 import { apiErrorMessage, apiFieldError, apiFetch } from "@/lib/api";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { showToast } from "@/lib/toast";
@@ -52,6 +53,8 @@ export default function PurchaseDetailScreen() {
   useLocale();
   const { colors } = useTheme();
   const router = useRouter();
+  const { contentWidth } = useResponsive();
+  const itemColumns = contentWidth >= 900 ? 3 : contentWidth >= 560 ? 2 : 1;
   const params = useLocalSearchParams<{ id: string }>();
   const id = Number(params.id);
   const [compra, setCompra] = useState<CompraDetail | null>(null);
@@ -426,61 +429,80 @@ export default function PurchaseDetailScreen() {
               </TextureCard>
             ) : null}
 
-            {compra.items.map((item) => (
-              <TextureCard key={item.id}>
-                <View
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                alignItems: "flex-start",
+                gap: 8,
+              }}
+            >
+              {compra.items.map((item) => (
+                <TextureCard
+                  key={item.id}
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 8,
+                    width:
+                      itemColumns === 1
+                        ? "100%"
+                        : itemColumns === 2
+                          ? "49%"
+                          : "32.5%",
                   }}
                 >
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Text
-                      style={{
-                        color: colors.foreground,
-                        fontSize: 14,
-                        fontWeight: "700",
-                      }}
-                    >
-                      {item.nombre}
-                    </Text>
-                    <Text style={{ color: colors.muted, fontSize: 11 }}>
-                      {`${formatQuantity(item.cantidad)} ${item.unidad_base} · ${formatCurrency(item.precio_total)}`}
-                    </Text>
-                    {item.kcal !== null ? (
-                      <Text style={{ color: colors.muted, fontSize: 10 }}>
-                        {`${Math.round(item.kcal)} kcal`}
-                      </Text>
-                    ) : null}
-                  </View>
-                  <Pressable
-                    onPress={() => openEdit(item)}
-                    hitSlop={8}
-                    accessibilityRole="button"
-                    accessibilityLabel={t("history.editItem")}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
                   >
-                    <Text
-                      style={{
-                        color: colors.accent,
-                        fontSize: 12,
-                        fontWeight: "700",
-                      }}
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Text
+                        style={{
+                          color: colors.foreground,
+                          fontSize: 14,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {item.nombre}
+                      </Text>
+                      <Text style={{ color: colors.muted, fontSize: 11 }}>
+                        {`${formatQuantity(item.cantidad)} ${item.unidad_base} · ${formatCurrency(item.precio_total)}`}
+                      </Text>
+                      {item.kcal !== null ? (
+                        <Text style={{ color: colors.muted, fontSize: 11.5 }}>
+                          {`${Math.round(item.kcal)} kcal`}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <Pressable
+                      onPress={() => openEdit(item)}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel={t("history.editItem")}
                     >
-                      {t("history.editItem")}
-                    </Text>
-                  </Pressable>
-                  <IconButton
-                    icon="delete"
-                    label={t("history.deleteItem")}
-                    onPress={() => removeItem(item)}
-                    size={32}
-                    iconSize={18}
-                    color={colors.error}
-                  />
-                </View>
-              </TextureCard>
-            ))}
+                      <Text
+                        style={{
+                          color: colors.accent,
+                          fontSize: 12,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {t("history.editItem")}
+                      </Text>
+                    </Pressable>
+                    <IconButton
+                      icon="delete"
+                      label={t("history.deleteItem")}
+                      onPress={() => removeItem(item)}
+                      size={32}
+                      iconSize={18}
+                      color={colors.error}
+                    />
+                  </View>
+                </TextureCard>
+              ))}
+            </View>
 
             <Button
               label={t("history.deletePurchase")}
@@ -595,6 +617,8 @@ export default function PurchaseDetailScreen() {
             backgroundColor: "rgba(0,0,0,0.94)",
             paddingTop: insets.top + 8,
             paddingBottom: insets.bottom,
+            paddingLeft: insets.left,
+            paddingRight: insets.right,
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -604,7 +628,7 @@ export default function PurchaseDetailScreen() {
             style={{
               position: "absolute",
               top: insets.top + 10,
-              right: 16,
+              right: insets.right + 16,
               zIndex: 2,
             }}
           >

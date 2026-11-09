@@ -185,7 +185,7 @@ export function MenuEditSheet({
             <Text
               style={{
                 color: colors.muted,
-                fontSize: 10,
+                fontSize: 11.5,
                 fontWeight: "700",
                 textTransform: "uppercase",
                 letterSpacing: 0.5,
@@ -209,7 +209,7 @@ export function MenuEditSheet({
             <Text
               style={{
                 color: colors.muted,
-                fontSize: 10,
+                fontSize: 11.5,
                 fontWeight: "700",
                 textTransform: "uppercase",
                 letterSpacing: 0.5,

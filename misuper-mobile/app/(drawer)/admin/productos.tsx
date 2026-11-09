@@ -170,7 +170,7 @@ export default function AdminProductsScreen() {
               <Text
                 style={{
                   color: active ? colors.onAccent : colors.muted,
-                  fontSize: 10.5,
+                  fontSize: 12,
                   fontWeight: active ? "700" : "500",
                 }}
               >
@@ -180,7 +180,7 @@ export default function AdminProductsScreen() {
           );
         })}
       </View>
-      <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+      <Text style={{ color: colors.muted, fontSize: 12 }}>
         {t("admin.productCount", { count: total })}
       </Text>
       {loading ? <Spinner /> : null}
@@ -226,14 +226,14 @@ export default function AdminProductsScreen() {
                 style={{
                   color:
                     item.estado === "activo" ? colors.success : colors.muted,
-                  fontSize: 10,
+                  fontSize: 11.5,
                   fontWeight: "800",
                 }}
               >
                 {t(`admin.state.${item.estado}`)}
               </Text>
             </View>
-            <Text style={{ color: colors.muted, fontSize: 10.5 }}>
+            <Text style={{ color: colors.muted, fontSize: 12 }}>
               {`${item.categoria_nombre ?? t("quick.uncategorized")} · ${
                 item.unidad_base
               }`}

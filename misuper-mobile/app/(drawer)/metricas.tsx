@@ -189,7 +189,7 @@ export default function MetricsScreen() {
       <TextureCard>
         <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.muted, fontSize: 11 }}>
+            <Text style={{ color: colors.muted, fontSize: 12 }}>
               {t("metrics.yearTotal", { year })}
             </Text>
             <Text
@@ -242,7 +242,7 @@ export default function MetricsScreen() {
                     backgroundColor: active ? colors.accent : colors.accentContainer,
                   }}
                 />
-                <Text style={{ color: colors.muted, fontSize: 8.5 }}>
+                <Text style={{ color: colors.muted, fontSize: 12 }}>
                   {monthShort(item.mes)}
                 </Text>
               </View>
@@ -313,7 +313,7 @@ export default function MetricsScreen() {
               const active = item.anio === annual.anio;
               return (
                 <View key={item.anio} style={{ flex: 1, alignItems: "center", gap: 4 }}>
-                  <Text style={{ color: colors.muted, fontSize: 9 }}>
+                  <Text style={{ color: colors.muted, fontSize: 12 }}>
                     {formatCurrency(item.total)}
                   </Text>
                   <View
@@ -327,7 +327,7 @@ export default function MetricsScreen() {
                   <Text
                     style={{
                       color: active ? colors.accent : colors.muted,
-                      fontSize: 10,
+                      fontSize: 11.5,
                       fontWeight: active ? "800" : "500",
                     }}
                   >
@@ -372,7 +372,7 @@ export default function MetricsScreen() {
           >
             {t("metrics.topProducts")}
           </Text>
-          <Text style={{ color: colors.muted, fontSize: 11 }}>
+          <Text style={{ color: colors.muted, fontSize: 12 }}>
             {monthLong(month)} {year}
           </Text>
         </View>
@@ -400,7 +400,7 @@ export default function MetricsScreen() {
                 <Text
                   style={{
                     color: active ? colors.onAccent : colors.muted,
-                    fontSize: 10.5,
+                    fontSize: 12,
                     fontWeight: active ? "700" : "500",
                   }}
                 >
@@ -418,7 +418,7 @@ export default function MetricsScreen() {
         ) : null}
 
         {!topLoading && top.length === 0 ? (
-          <Text style={{ color: colors.muted, fontSize: 11, paddingVertical: 8 }}>
+          <Text style={{ color: colors.muted, fontSize: 12, paddingVertical: 8 }}>
             {t("metrics.noTop")}
           </Text>
         ) : null}
@@ -441,7 +441,7 @@ export default function MetricsScreen() {
                 style={{
                   width: 18,
                   color: colors.muted,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: "800",
                 }}
               >
