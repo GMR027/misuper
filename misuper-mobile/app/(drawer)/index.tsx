@@ -291,8 +291,18 @@ export default function HomeScreen() {
       ? isFrequent
         ? t("quick.itemCount", { count: visible.length })
         : sinConexion
-          ? t("quick.offlinePageStatus", pageLabel)
-          : t("quick.pageStatus", pageLabel)
+          ? t(
+              totalResultados === 1
+                ? "quick.offlinePageStatusOne"
+                : "quick.offlinePageStatus",
+              pageLabel,
+            )
+          : t(
+              totalResultados === 1
+                ? "quick.pageStatusOne"
+                : "quick.pageStatus",
+              pageLabel,
+            )
       : sinCatalogo
         ? t("quick.offlineEmpty")
         : "";
