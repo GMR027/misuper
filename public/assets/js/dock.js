@@ -166,7 +166,7 @@ function initBuscador(modal) {
                 return;
             }
 
-            const items = Array.isArray(data) ? data : [];
+            const items = Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : []);
 
             if (items.length === 0) {
                 limpiar(`No encontramos productos para «${q}».`);

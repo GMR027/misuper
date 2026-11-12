@@ -90,6 +90,12 @@ $navItems = [
         'icono' => 'bi-egg-fried',
         'desc' => 'Explora tu recetario',
     ],
+    'productos-omision' => [
+        'href' => '/productos-omision',
+        'label' => 'Productos por omisión',
+        'icono' => 'bi-slash-circle',
+        'desc' => 'Ingredientes que no cuentan en tus recetas',
+    ],
     'chef' => [
         'href' => '/chef',
         'label' => 'Chef',
@@ -125,7 +131,7 @@ $navGrupos = [
     'cocina' => [
         'label' => 'Cocina',
         'icono' => 'bi-egg-fried',
-        'items' => ['menu', 'recetas'],
+        'items' => ['menu', 'recetas', 'productos-omision'],
     ],
     'analisis' => [
         'label' => 'Análisis',

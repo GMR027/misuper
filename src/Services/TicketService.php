@@ -72,8 +72,22 @@ final class TicketService
      * @param array<string, mixed> $file Entrada de $_FILES['foto'].
      * @return array<string, mixed>
      */
-    public function procesar(int $usuarioId, array $file, ?string $titulo = null): array
-    {
+    public function procesar(
+        int $usuarioId,
+        array $file,
+        ?string $titulo = null,
+        ?string $clienteUuid = null
+    ): array {
+        // Reintento de una subida cuya respuesta se perdió: se devuelve el
+        // ticket ya guardado en vez de procesar la imagen otra vez.
+        if ($clienteUuid !== null) {
+            $existente = $this->tickets->findByClienteUuid($usuarioId, $clienteUuid);
+
+            if ($existente !== null) {
+                return $this->reanudar($usuarioId, $existente);
+            }
+        }
+
         if ($this->tickets->countRecent($usuarioId, 3600) >= self::MAX_POR_HORA) {
             throw new DomainException(
                 'Has subido demasiados tickets en la última hora. Inténtalo más tarde.',
@@ -142,59 +156,19 @@ final class TicketService
                 $tituloFinal,
                 self::UPLOAD_URL . '/' . $nombre,
                 $texto,
-                $totalDetectado
+                $totalDetectado,
+                $clienteUuid
             );
             $ticketCreado = $ticket;
             $catalogo = $this->productos->activosParaMatch($usuarioId);
-            $items = [];
 
-            foreach ($propuesta['items'] as $item) {
-                $coincidencia = $this->matcher->coincidir(
-                    (string) $item['nombre'],
-                    $catalogo,
-                    (float) $item['cantidad'],
-                    $item['medida'] ?? null,
-                    (bool) ($item['cantidad_explicita'] ?? false)
-                );
-
-                $unidad = $coincidencia['unidad_base'];
-                $medida = $item['medida'] ?? null;
-
-                if ($unidad === null && is_array($medida) && isset($medida['unidad'])) {
-                    $unidad = UnidadService::normalizar((string) $medida['unidad']);
-                }
-
-                if (!is_string($unidad) || !in_array($unidad, UnidadService::UNIDADES, true)) {
-                    $unidad = 'pza';
-                }
-
-                $items[] = [
-                    'nombre' => $item['nombre'],
-                    'cantidad' => $coincidencia['cantidad'],
-                    'precio_total' => round((float) $item['precio_total'], 2),
-                    'producto_id' => $coincidencia['producto_id'],
-                    'producto_nombre' => $coincidencia['producto_nombre'],
-                    'unidad_base' => $unidad,
-                    'confianza' => $coincidencia['confianza'],
-                ];
-            }
-
-            $suma = 0.0;
-
-            foreach ($items as $item) {
-                $suma += (float) $item['precio_total'];
-            }
-
-            return [
-                'ticket' => $ticket->toArray(),
-                'titulo' => $ticket->titulo,
-                'fecha' => $propuesta['fecha'] ?? (new \DateTimeImmutable('today'))->format('Y-m-d'),
-                'total_detectado' => $propuesta['total'],
-                'total_suma' => round($suma, 2),
-                'items' => $items,
-                'productos' => $catalogo,
-                'texto' => $texto,
-            ];
+            return $this->respuestaPropuesta(
+                $ticket,
+                $propuesta,
+                $texto,
+                $catalogo,
+                $propuesta['total']
+            );
         } catch (Throwable $error) {
             @unlink($destino);
 
@@ -208,6 +182,96 @@ final class TicketService
                 @unlink($procesado);
             }
         }
+    }
+
+    /**
+     * Respuesta de un ticket ya guardado cuyo cliente reintentó la subida.
+     *
+     * La propuesta se reconstruye desde el texto de OCR almacenado: el usuario
+     * la revisa igual que en la primera subida.
+     *
+     * @return array<string, mixed>
+     */
+    private function reanudar(int $usuarioId, Ticket $ticket): array
+    {
+        if ($ticket->estado !== 'procesado' || $ticket->compraId !== null) {
+            throw new DomainException('Este ticket ya fue confirmado.', 409);
+        }
+
+        $texto = $ticket->textoOcr ?? '';
+        $propuesta = $this->parser->parsear($texto);
+        $catalogo = $this->productos->activosParaMatch($usuarioId);
+        $total = $ticket->totalDetectado === null
+            ? null
+            : (float) $ticket->totalDetectado;
+
+        return $this->respuestaPropuesta($ticket, $propuesta, $texto, $catalogo, $total);
+    }
+
+    /**
+     * Cruza los artículos detectados con el catálogo y arma la respuesta
+     * editable que consume la app.
+     *
+     * @param array<string, mixed> $propuesta
+     * @param array<int, array<string, mixed>> $catalogo
+     * @return array<string, mixed>
+     */
+    private function respuestaPropuesta(
+        Ticket $ticket,
+        array $propuesta,
+        string $texto,
+        array $catalogo,
+        ?float $totalDetectado
+    ): array {
+        $items = [];
+
+        foreach ($propuesta['items'] ?? [] as $item) {
+            $coincidencia = $this->matcher->coincidir(
+                (string) $item['nombre'],
+                $catalogo,
+                (float) $item['cantidad'],
+                $item['medida'] ?? null,
+                (bool) ($item['cantidad_explicita'] ?? false)
+            );
+
+            $unidad = $coincidencia['unidad_base'];
+            $medida = $item['medida'] ?? null;
+
+            if ($unidad === null && is_array($medida) && isset($medida['unidad'])) {
+                $unidad = UnidadService::normalizar((string) $medida['unidad']);
+            }
+
+            if (!is_string($unidad) || !in_array($unidad, UnidadService::UNIDADES, true)) {
+                $unidad = 'pza';
+            }
+
+            $items[] = [
+                'nombre' => $item['nombre'],
+                'cantidad' => $coincidencia['cantidad'],
+                'precio_total' => round((float) $item['precio_total'], 2),
+                'producto_id' => $coincidencia['producto_id'],
+                'producto_nombre' => $coincidencia['producto_nombre'],
+                'unidad_base' => $unidad,
+                'confianza' => $coincidencia['confianza'],
+            ];
+        }
+
+        $suma = 0.0;
+
+        foreach ($items as $item) {
+            $suma += (float) $item['precio_total'];
+        }
+
+        return [
+            'ticket' => $ticket->toArray(),
+            'titulo' => $ticket->titulo,
+            'fecha' => $propuesta['fecha'] ?? (new \DateTimeImmutable('today'))->format('Y-m-d'),
+            'total_detectado' => $totalDetectado,
+            'total_suma' => round($suma, 2),
+            'items' => $items,
+            'productos' => $catalogo,
+            'texto' => $texto,
+        ];
     }
 
     /**

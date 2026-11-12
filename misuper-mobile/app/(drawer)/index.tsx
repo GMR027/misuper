@@ -7,7 +7,9 @@ import { BottomSheet } from "@/components/bottom-sheet";
 import { CalculatorSheet } from "@/components/calculator-sheet";
 import { CartSheet } from "@/components/cart-sheet";
 import { NewProductSheet } from "@/components/new-product-sheet";
+import { PendingBadge } from "@/components/pending-badge";
 import { ProductGrid } from "@/components/product-card";
+import { VoiceCartSheet } from "@/components/voice-cart-sheet";
 import { useTheme } from "@/components/theme";
 import { Button, IconButton } from "@/components/m3/buttons";
 import { ChipGrid, type ChipOption } from "@/components/m3/chips";
@@ -15,7 +17,7 @@ import { Spinner } from "@/components/m3/feedback";
 import { TextField } from "@/components/m3/inputs";
 import { Compose, M3Host } from "@/components/m3/host";
 import { M3Text, SymbolIcon } from "@/components/m3/text";
-import { apiErrorMessage, apiFetch } from "@/lib/api";
+import { apiErrorMessage } from "@/lib/api";
 import {
   addProduct,
   clearCart,
@@ -27,6 +29,13 @@ import { cartKcal } from "@/lib/nutrition";
 import { readText, writeText } from "@/lib/db";
 import { formatCurrency } from "@/lib/format";
 import { t, useLocale } from "@/lib/i18n";
+import {
+  buscarProductos,
+  leerCategorias,
+  leerFrecuentes,
+  syncCatalogo,
+  syncFrecuentes,
+} from "@/lib/offline/catalog";
 import type { Categoria, Producto } from "@/lib/products";
 import { showToast } from "@/lib/toast";
 
@@ -45,6 +54,11 @@ export default function HomeScreen() {
   const [categoriaId, setCategoriaId] = useState<number | null>(null);
   const [buscando, setBuscando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalResultados, setTotalResultados] = useState(0);
+  const [perPage, setPerPage] = useState(20);
+  const [sinConexion, setSinConexion] = useState(false);
+  const [sinCatalogo, setSinCatalogo] = useState(false);
   const [reload, setReload] = useState(0);
   const [list, setList] = useState(() => readText(VIEW_KEY) === "1");
   const [categoriesOpen, setCategoriesOpen] = useState(false);
@@ -54,6 +68,8 @@ export default function HomeScreen() {
   const [cartKey, setCartKey] = useState(0);
   const [calcProduct, setCalcProduct] = useState<Producto | null>(null);
   const [calcKey, setCalcKey] = useState(0);
+  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [voiceKey, setVoiceKey] = useState(0);
   const count = useCartCount();
   const total = useCartTotal();
   const cart = useCart();
@@ -67,25 +83,40 @@ export default function HomeScreen() {
     let alive = true;
 
     void (async () => {
+      // 1. Paint what the phone already has, without waiting for the network.
       try {
         const [cats, freq] = await Promise.all([
-          apiFetch<Categoria[]>("/api/categorias"),
-          apiFetch<Producto[]>("/api/productos/frecuentes"),
+          leerCategorias(),
+          leerFrecuentes(),
         ]);
 
         if (!alive) return;
 
-        setCategorias(Array.isArray(cats) ? cats : []);
-        setFrecuentes(Array.isArray(freq) ? freq : []);
-      } catch (caught) {
-        if (alive) setError(apiErrorMessage(caught));
+        if (cats.length > 0) setCategorias(cats);
+        if (freq.length > 0) setFrecuentes(freq);
+      } catch {
+        // First run: there is no local copy yet, the network fills it below.
+      }
+
+      // 2. Refresh the catalog snapshot and the frequent list when online.
+      try {
+        const cambiado = await syncCatalogo();
+        const cats = cambiado ? await leerCategorias() : null;
+
+        if (alive && cats !== null) setCategorias(cats);
+
+        const freq = await syncFrecuentes();
+
+        if (alive) setFrecuentes(freq);
+      } catch {
+        // Offline: the cached copy painted above is the best answer.
       }
     })();
 
     return () => {
       alive = false;
     };
-  }, []);
+  }, [reload]);
 
   useEffect(() => {
     const q = query.trim();
@@ -96,23 +127,34 @@ export default function HomeScreen() {
 
     const sequence = ++searchSeq.current;
     const timer = setTimeout(() => {
-      const params = new URLSearchParams();
-
       setBuscando(true);
       setError(null);
 
-      if (q !== "") params.set("q", q);
-      if (categoriaId !== null) params.set("categoria_id", String(categoriaId));
-
-      void apiFetch<Producto[]>(`/api/productos/buscar?${params.toString()}`)
+      void buscarProductos(q, categoriaId, page)
         .then((data) => {
           if (sequence !== searchSeq.current) return;
-          setResultados(Array.isArray(data) ? data : []);
+
+          const items = Array.isArray(data?.items) ? data.items : [];
+          const nextTotal = Number(data?.total ?? 0);
+
+          setResultados(items);
+          setTotalResultados(nextTotal);
+          setPerPage(Number(data?.per_page ?? 20));
+          setSinConexion(data.fuente === "local");
+          setSinCatalogo(data.sin_catalogo === true);
           setError(null);
+
+          if (page > 1 && nextTotal > 0 && items.length === 0) {
+            setPage(1);
+          }
         })
         .catch((caught) => {
           if (sequence !== searchSeq.current) return;
+
           setResultados([]);
+          setTotalResultados(0);
+          setSinConexion(false);
+          setSinCatalogo(false);
           setError(apiErrorMessage(caught));
         })
         .finally(() => {
@@ -121,7 +163,7 @@ export default function HomeScreen() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query, categoriaId, isFrequent, reload]);
+  }, [query, categoriaId, isFrequent, reload, page]);
 
   useEffect(() => {
     if (launchPromptShown) return;
@@ -141,17 +183,23 @@ export default function HomeScreen() {
 
   const refreshFrequent = async () => {
     try {
-      const freq = await apiFetch<Producto[]>("/api/productos/frecuentes");
-      setFrecuentes(Array.isArray(freq) ? freq : []);
+      setFrecuentes(await syncFrecuentes());
     } catch {
       // The purchase is already saved; only the suggestion list is stale.
     }
+  };
+
+  const limpiarAviso = () => {
+    setSinConexion(false);
+    setSinCatalogo(false);
   };
 
   const selectCategory = (value: number | null) => {
     setCategoriaId(value);
     setCategoriesOpen(false);
     setError(null);
+    setPage(1);
+    limpiarAviso();
 
     if (value === FREQUENT) {
       setQuery("");
@@ -162,6 +210,7 @@ export default function HomeScreen() {
 
     if (value === null && query.trim() === "") {
       setResultados([]);
+      setTotalResultados(0);
       setBuscando(false);
       return;
     }
@@ -172,9 +221,12 @@ export default function HomeScreen() {
   const changeQuery = (value: string) => {
     setQuery(value);
     setError(null);
+    setPage(1);
+    limpiarAviso();
 
     if (value.trim() === "" && categoriaId === null) {
       setResultados([]);
+      setTotalResultados(0);
       setBuscando(false);
     } else if (!isFrequent) {
       setBuscando(true);
@@ -189,6 +241,11 @@ export default function HomeScreen() {
   const openCart = () => {
     setCartKey((key) => key + 1);
     setCartOpen(true);
+  };
+
+  const openVoice = () => {
+    setVoiceKey((key) => key + 1);
+    setVoiceOpen(true);
   };
 
   const openCalc = (product: Producto) => {
@@ -222,11 +279,23 @@ export default function HomeScreen() {
 
   const title = isFrequent ? t("quick.frequent") : t("quick.results");
   const hasQuery = query.trim() !== "" || categoriaId !== null;
+  const totalPages = Math.max(1, Math.ceil(totalResultados / Math.max(1, perPage)));
+  const pageLabel = {
+    count: totalResultados,
+    page: Math.min(page, totalPages),
+    pages: totalPages,
+  };
   const status = searching
     ? t("quick.loading")
     : visible.length > 0
-      ? t("quick.itemCount", { count: visible.length })
-      : "";
+      ? isFrequent
+        ? t("quick.itemCount", { count: visible.length })
+        : sinConexion
+          ? t("quick.offlinePageStatus", pageLabel)
+          : t("quick.pageStatus", pageLabel)
+      : sinCatalogo
+        ? t("quick.offlineEmpty")
+        : "";
 
   return (
     <>
@@ -308,6 +377,8 @@ export default function HomeScreen() {
           </View>
         }
       >
+        <PendingBadge />
+
         <View
           style={{
             backgroundColor: colors.background,
@@ -331,6 +402,13 @@ export default function HomeScreen() {
               placeholder={t("quick.searchPlaceholder")}
               leadingIcon="search"
               modifiers={[weight(1)]}
+            />
+            <IconButton
+              icon="mic"
+              label={t("voice.open")}
+              onPress={openVoice}
+              variant="tonal"
+              size={44}
             />
             <IconButton
               icon="add"
@@ -437,6 +515,17 @@ export default function HomeScreen() {
             list={list}
           />
         ) : null}
+
+        {!isFrequent && !searching && visible.length > 0 && totalPages > 1 ? (
+          <Paginator
+            page={Math.min(page, totalPages)}
+            pages={totalPages}
+            onChange={(next) => {
+              setPage(next);
+              setBuscando(true);
+            }}
+          />
+        ) : null}
       </Screen>
 
       <BottomSheet
@@ -468,9 +557,19 @@ export default function HomeScreen() {
         key={`cart-${cartKey}`}
         visible={cartOpen}
         onClose={() => setCartOpen(false)}
-        onSaved={() => {
+        onSaved={(modo) => {
+          if (modo === "offline") {
+            showToast(t("sync.savedOffline"), "info");
+            return;
+          }
+
           showToast(t("cart.saved"), "success");
           void refreshFrequent();
+        }}
+        onDictate={() => {
+          setCartOpen(false);
+          // Let the cart sheet slide away before opening the voice sheet.
+          setTimeout(openVoice, 250);
         }}
       />
 
@@ -488,6 +587,149 @@ export default function HomeScreen() {
           }
         }}
       />
+
+      <VoiceCartSheet
+        key={`voice-${voiceKey}`}
+        visible={voiceOpen}
+        onClose={() => setVoiceOpen(false)}
+      />
     </>
+  );
+}
+
+/** Números de página visibles alrededor de la actual (máximo cinco). */
+function pageNumbers(current: number, pages: number): number[] {
+  const size = 5;
+  const end = Math.min(pages, Math.max(current, current + Math.floor(size / 2)));
+  const start = Math.max(1, Math.min(current - Math.floor(size / 2), end - size + 1));
+  const numeros: number[] = [];
+
+  for (let numero = start; numero <= end; numero += 1) {
+    numeros.push(numero);
+  }
+
+  return numeros;
+}
+
+function Paginator({
+  page,
+  pages,
+  onChange,
+}: {
+  page: number;
+  pages: number;
+  onChange: (page: number) => void;
+}) {
+  const { colors } = useTheme();
+
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        flexWrap: "wrap",
+        gap: 6,
+        paddingVertical: 14,
+      }}
+    >
+      <PageButton
+        label="‹"
+        accessibilityLabel={t("quick.previousPage")}
+        disabled={page <= 1}
+        onPress={() => onChange(page - 1)}
+      />
+      {pageNumbers(page, pages).map((numero) => {
+        const active = numero === page;
+
+        return (
+          <Pressable
+            key={numero}
+            onPress={() => {
+              if (!active) onChange(numero);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t("quick.goToPage", { page: numero })}
+            accessibilityState={{ selected: active }}
+            style={{
+              minWidth: 36,
+              height: 36,
+              borderRadius: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 8,
+              backgroundColor: active ? colors.accent : colors.surface,
+              borderWidth: 1,
+              borderColor: active ? colors.accent : colors.border,
+            }}
+          >
+            <Text
+              style={{
+                color: active ? colors.onAccent : colors.foreground,
+                fontSize: 14,
+                fontWeight: "700",
+              }}
+            >
+              {String(numero)}
+            </Text>
+          </Pressable>
+        );
+      })}
+      <PageButton
+        label="›"
+        accessibilityLabel={t("quick.nextPage")}
+        disabled={page >= pages}
+        onPress={() => onChange(page + 1)}
+      />
+    </View>
+  );
+}
+
+function PageButton({
+  label,
+  accessibilityLabel,
+  disabled,
+  onPress,
+}: {
+  label: string;
+  accessibilityLabel: string;
+  disabled: boolean;
+  onPress: () => void;
+}) {
+  const { colors } = useTheme();
+
+  return (
+    <Pressable
+      onPress={() => {
+        if (!disabled) onPress();
+      }}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled }}
+      style={{
+        minWidth: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 8,
+        backgroundColor: colors.surface,
+        borderWidth: 1,
+        borderColor: colors.border,
+        opacity: disabled ? 0.4 : 1,
+      }}
+    >
+      <Text
+        style={{
+          color: colors.foreground,
+          fontSize: 20,
+          lineHeight: 22,
+          fontWeight: "700",
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }

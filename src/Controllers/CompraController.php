@@ -208,7 +208,9 @@ final class CompraController
             Response::fail('VALIDATION_ERROR', 'La categoría no es válida.', 422);
         }
 
-        Response::ok($this->compras->buscarProductos($usuario['id'], $q, $categoriaId));
+        $page = ProductoService::enteroPositivo($_GET['page'] ?? null) ?? 1;
+
+        Response::ok($this->compras->buscarProductos($usuario['id'], $q, $categoriaId, $page));
     }
 
     /**

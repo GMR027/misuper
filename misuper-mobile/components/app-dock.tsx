@@ -1,11 +1,19 @@
 /** The app's navigation: a five-slot bottom dock on phones, a rail when wide. */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { usePathname, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Column, Row, Shape, Spacer, Surface } from "@expo/ui/jetpack-compose";
+import {
+  Badge as ComposeBadge,
+  BadgedBox,
+  Column,
+  Row,
+  Shape,
+  Spacer,
+  Surface,
+} from "@expo/ui/jetpack-compose";
 import {
   fillMaxSize,
   fillMaxWidth,
@@ -32,6 +40,7 @@ import type { Producto } from "@/lib/products";
 import { useResponsive } from "@/lib/responsive";
 import { showToast } from "@/lib/toast";
 import { closeMenu, openMenu, useMenuOpen } from "@/lib/ui-store";
+import { refreshAppUpdate, useAppUpdate } from "@/lib/app-update-store";
 import { t } from "@/lib/i18n";
 
 type DockRoute = "/" | "/notas" | "/tickets" | "/ajustes";
@@ -49,6 +58,12 @@ export function AppDock() {
   const [searchKey, setSearchKey] = useState(0);
   const [calcProduct, setCalcProduct] = useState<Producto | null>(null);
   const [calcKey, setCalcKey] = useState(0);
+  const update = useAppUpdate();
+  const updateAvailable = update.status === "outdated";
+
+  useEffect(() => {
+    void refreshAppUpdate();
+  }, []);
 
   const openSearch = () => {
     setSearchKey((key) => key + 1);
@@ -130,6 +145,7 @@ export function AppDock() {
                     active={false}
                     onPress={openMenu}
                     compact={compactRail}
+                    dot={updateAvailable}
                   />
                   <RailItem
                     icon="settings"
@@ -207,6 +223,7 @@ export function AppDock() {
                   label={t("menu.title")}
                   active={false}
                   onPress={openMenu}
+                  dot={updateAvailable}
                 />
               </Row>
             </M3Host>
@@ -267,18 +284,49 @@ export function AppDock() {
   );
 }
 
+function DockSymbol({
+  name,
+  size,
+  tint,
+  label,
+  dot,
+}: {
+  name: SymbolName;
+  size: number;
+  tint: string;
+  label: string;
+  dot: boolean;
+}) {
+  const { colors } = useTheme();
+
+  if (!dot) {
+    return <SymbolIcon name={name} size={size} tint={tint} label={label} />;
+  }
+
+  return (
+    <BadgedBox>
+      <BadgedBox.Badge>
+        <ComposeBadge containerColor={colors.error} />
+      </BadgedBox.Badge>
+      <SymbolIcon name={name} size={size} tint={tint} label={label} />
+    </BadgedBox>
+  );
+}
+
 function RailItem({
   icon,
   label,
   active,
   onPress,
   compact = false,
+  dot = false,
 }: {
   icon: SymbolName;
   label: string;
   active: boolean;
   onPress: () => void;
   compact?: boolean;
+  dot?: boolean;
 }) {
   const { colors } = useTheme();
   const ink = active ? colors.onAccentContainer : colors.muted;
@@ -304,11 +352,12 @@ function RailItem({
         verticalArrangement="center"
         modifiers={[size(RAIL_ITEM_WIDTH, itemHeight)]}
       >
-        <SymbolIcon
+        <DockSymbol
           name={icon}
           size={compact ? 20 : 22}
           tint={active ? colors.accent : colors.muted}
           label={label}
+          dot={dot}
         />
         <M3Text
           variant="caption"
@@ -328,11 +377,13 @@ function DockItem({
   label,
   active,
   onPress,
+  dot = false,
 }: {
   icon: SymbolName;
   label: string;
   active: boolean;
   onPress: () => void;
+  dot?: boolean;
 }) {
   const { colors } = useTheme();
   return (
@@ -349,11 +400,12 @@ function DockItem({
         verticalArrangement="center"
         modifiers={[size(52, 52)]}
       >
-        <SymbolIcon
+        <DockSymbol
           name={icon}
           size={24}
           tint={active ? colors.accent : colors.muted}
           label={label}
+          dot={dot}
         />
         <Surface
           color={active ? colors.accent : "#00000000"}

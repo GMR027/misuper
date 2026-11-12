@@ -40,9 +40,15 @@ export function ProductPickerSheet({
             ? "/api/productos/frecuentes"
             : `/api/productos/buscar?q=${encodeURIComponent(query.trim())}`;
 
-        void apiFetch<Producto[]>(path)
+        void apiFetch<Producto[] | { items: Producto[] }>(path)
           .then((data) => {
-            if (alive) setItems((Array.isArray(data) ? data : []).slice(0, 40));
+            if (!alive) return;
+            const items = Array.isArray(data)
+              ? data
+              : Array.isArray(data?.items)
+                ? data.items
+                : [];
+            setItems(items.slice(0, 40));
           })
           .catch(() => {
             if (alive) setItems([]);

@@ -1,11 +1,5 @@
-import { useState } from "react";
-import {
-  Alert,
-  Image,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, Image, Pressable, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { ProductPickerSheet } from "@/components/product-picker-sheet";
@@ -17,35 +11,23 @@ import { Button, IconButton } from "@/components/m3/buttons";
 import { Spinner } from "@/components/m3/feedback";
 import { TextField } from "@/components/m3/inputs";
 import { t, useLocale } from "@/lib/i18n";
-import { apiErrorMessage, apiFieldError, apiFetch, apiUpload } from "@/lib/api";
-import { formatCurrency, formatQuantity } from "@/lib/format";
+import { apiErrorMessage, apiFieldError, apiFetch, isOfflineError } from "@/lib/api";
+import { formatCurrency, formatDateTime, formatQuantity } from "@/lib/format";
+import {
+  capturarTicket,
+  descartarTicketPendiente,
+  marcarTicketConfirmado,
+  puedeSubir,
+  refrescarTicketsPendientes,
+  subirTicketPendiente,
+  useTicketsPendientes,
+  MAX_PENDIENTES,
+  type TicketItemProposal,
+  type TicketPendiente,
+} from "@/lib/offline/tickets";
 import type { Producto } from "@/lib/products";
 import { useResponsive } from "@/lib/responsive";
 import { showToast } from "@/lib/toast";
-
-interface TicketItemProposal {
-  nombre: string;
-  cantidad: number;
-  precio_total: number;
-  producto_id: number | null;
-  producto_nombre: string | null;
-  unidad_base: string;
-}
-
-interface TicketProposal {
-  ticket: {
-    id: number;
-    titulo: string;
-    estado: string;
-    total_detectado: number | null;
-  };
-  titulo: string;
-  fecha: string;
-  total_detectado: number | null;
-  total_suma: number;
-  items: TicketItemProposal[];
-  texto: string;
-}
 
 interface DraftItem {
   key: string;
@@ -94,12 +76,55 @@ export default function TicketsScreen() {
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [itemSeq, setItemSeq] = useState(0);
   const [remapKey, setRemapKey] = useState<string | null>(null);
+  /** Local row of the pending ticket under review, if it came from the queue. */
+  const [pendienteId, setPendienteId] = useState<number | null>(null);
+  const pendientes = useTicketsPendientes();
 
   const reviewing = ticketId !== null;
+
+  useEffect(() => {
+    void refrescarTicketsPendientes();
+  }, []);
+
+  const estadoEtiqueta = (pendiente: TicketPendiente): string => {
+    switch (pendiente.estado) {
+      case "capturado":
+        return t("tickets.stateQueued");
+      case "subiendo":
+        return t("tickets.stateUploading");
+      case "subido":
+        return t("tickets.stateReady");
+      default:
+        return t("tickets.stateError");
+    }
+  };
+
+  const abrirRevision = (pendiente: TicketPendiente) => {
+    const propuesta = pendiente.propuesta;
+
+    if (propuesta === null) {
+      showToast(t("tickets.stillProcessing"), "info");
+      return;
+    }
+
+    setPendienteId(pendiente.id);
+    setPhoto(pendiente.archivo);
+    setTicketId(propuesta.ticket.id);
+    setTitulo(propuesta.titulo);
+    setFecha(propuesta.fecha);
+    setComercio("");
+    setTotalDetectado(propuesta.total_detectado);
+    setDraft(propuesta.items.map(draftFromProposal));
+    setOcrText(propuesta.texto ?? "");
+    setShowOcr(false);
+    setReviewError(null);
+    setUploadError(null);
+  };
 
   const reset = () => {
     setPhoto(null);
     setTicketId(null);
+    setPendienteId(null);
     setTitulo("");
     setFecha("");
     setComercio("");
@@ -112,39 +137,42 @@ export default function TicketsScreen() {
   };
 
   const uploadAsset = async (asset: ImagePicker.ImagePickerAsset) => {
+    if (pendientes.length >= MAX_PENDIENTES) {
+      showToast(t("tickets.queueFull", { count: MAX_PENDIENTES }), "error");
+      return;
+    }
+
     setReading(true);
     setUploadError(null);
 
     try {
-      if (ticketId !== null) {
-        await apiFetch<{ deleted: boolean }>(`/api/tickets/${ticketId}`, {
-          method: "DELETE",
-        }).catch(() => undefined);
+      // The photo is copied out of the picker's cache first, so nothing is
+      // lost if the upload fails or the app is killed.
+      const pendiente = await capturarTicket({
+        uri: asset.uri,
+        fileName: asset.fileName,
+        mimeType: asset.mimeType,
+      });
+
+      if (!(await puedeSubir())) {
+        showToast(t("tickets.queued"), "info");
+        return;
       }
 
-      const form = new FormData();
-      form.append(
-        "foto",
-        {
-          uri: asset.uri,
-          name: asset.fileName ?? "ticket.jpg",
-          type: asset.mimeType ?? "image/jpeg",
-        } as unknown as Blob,
-      );
+      const listo = await subirTicketPendiente(pendiente.id);
 
-      const data = await apiUpload<TicketProposal>("/api/tickets", form);
+      if (listo.propuesta === null) {
+        throw new Error(t("tickets.readFailed"));
+      }
 
-      setPhoto(asset.uri);
-      setTicketId(data.ticket.id);
-      setTitulo(data.titulo);
-      setFecha(data.fecha);
-      setComercio("");
-      setTotalDetectado(data.total_detectado);
-      setDraft(data.items.map(draftFromProposal));
-      setOcrText(data.texto ?? "");
+      abrirRevision(listo);
       showToast(t("tickets.readDone"), "success");
     } catch (caught) {
-      setUploadError(apiErrorMessage(caught));
+      if (isOfflineError(caught)) {
+        showToast(t("tickets.queued"), "info");
+      } else {
+        setUploadError(apiErrorMessage(caught));
+      }
     } finally {
       setReading(false);
     }
@@ -215,7 +243,9 @@ export default function TicketsScreen() {
         style: "destructive",
         onPress: () => {
           void (async () => {
-            if (ticketId !== null) {
+            if (pendienteId !== null) {
+              await descartarTicketPendiente(pendienteId).catch(() => undefined);
+            } else if (ticketId !== null) {
               try {
                 await apiFetch<{ deleted: boolean }>(`/api/tickets/${ticketId}`, {
                   method: "DELETE",
@@ -229,6 +259,40 @@ export default function TicketsScreen() {
         },
       },
     ]);
+  };
+
+  const descartarPendiente = (pendiente: TicketPendiente) => {
+    Alert.alert(
+      t("tickets.discardPendingTitle"),
+      t("tickets.discardPendingBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("tickets.discard"),
+          style: "destructive",
+          onPress: () => {
+            void descartarTicketPendiente(pendiente.id).catch(() => undefined);
+          },
+        },
+      ],
+    );
+  };
+
+  const reintentar = async (pendiente: TicketPendiente) => {
+    try {
+      const listo = await subirTicketPendiente(pendiente.id);
+
+      if (listo.propuesta !== null) {
+        abrirRevision(listo);
+        showToast(t("tickets.readDone"), "success");
+      }
+    } catch (caught) {
+      if (isOfflineError(caught)) {
+        showToast(t("tickets.queued"), "info");
+      } else {
+        showToast(apiErrorMessage(caught), "error");
+      }
+    }
   };
 
   const confirm = async () => {
@@ -305,10 +369,19 @@ export default function TicketsScreen() {
       );
 
       showToast(t("tickets.saved"), "success");
+
+      if (pendienteId !== null) {
+        await marcarTicketConfirmado(pendienteId).catch(() => undefined);
+      }
+
       reset();
       router.push(`/historial/${compra.id}`);
     } catch (caught) {
-      setReviewError(apiFieldError(caught) ?? apiErrorMessage(caught));
+      if (pendienteId !== null && isOfflineError(caught)) {
+        setReviewError(t("tickets.needConnection"));
+      } else {
+        setReviewError(apiFieldError(caught) ?? apiErrorMessage(caught));
+      }
     } finally {
       setSaving(false);
     }
@@ -413,6 +486,91 @@ export default function TicketsScreen() {
             <Text style={{ color: colors.error, fontSize: 12 }}>
               {uploadError}
             </Text>
+          ) : null}
+
+          {pendientes.length > 0 ? (
+            <View style={{ gap: 8, paddingTop: 4 }}>
+              <View style={{ gap: 2 }}>
+                <Text
+                  style={{
+                    color: colors.foreground,
+                    fontSize: 15,
+                    fontWeight: "700",
+                  }}
+                >
+                  {t("tickets.pendingTitle", { count: pendientes.length })}
+                </Text>
+                <Text
+                  style={{ color: colors.muted, fontSize: 11.5, lineHeight: 16 }}
+                >
+                  {t("tickets.pendingHint")}
+                </Text>
+              </View>
+
+              {pendientes.map((item) => (
+                <TextureCard key={item.id}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                    }}
+                  >
+                    <Image
+                      source={{ uri: item.archivo }}
+                      style={{ width: 44, height: 58, borderRadius: 6 }}
+                      resizeMode="cover"
+                    />
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Text
+                        style={{
+                          color: colors.foreground,
+                          fontSize: 13,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {estadoEtiqueta(item)}
+                      </Text>
+                      <Text style={{ color: colors.muted, fontSize: 11 }}>
+                        {formatDateTime(item.creadoEn)}
+                      </Text>
+                      {item.estado === "error" && item.ultimoError !== null ? (
+                        <Text style={{ color: colors.error, fontSize: 11 }}>
+                          {item.ultimoError}
+                        </Text>
+                      ) : null}
+                    </View>
+                    {item.estado === "subiendo" ? <Spinner /> : null}
+                  </View>
+
+                  <View
+                    style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+                  >
+                    {item.estado === "subido" ? (
+                      <Button
+                        label={t("tickets.review")}
+                        icon="check"
+                        onPress={() => abrirRevision(item)}
+                      />
+                    ) : null}
+                    {item.estado === "error" ? (
+                      <Button
+                        label={t("tickets.retry")}
+                        variant="outlined"
+                        icon="refresh"
+                        onPress={() => void reintentar(item)}
+                      />
+                    ) : null}
+                    <Button
+                      label={t("tickets.discard")}
+                      variant="outlined"
+                      icon="delete"
+                      onPress={() => descartarPendiente(item)}
+                    />
+                  </View>
+                </TextureCard>
+              ))}
+            </View>
           ) : null}
 
           <Pressable onPress={() => router.push("/historial")}>

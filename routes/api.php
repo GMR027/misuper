@@ -21,6 +21,7 @@ use App\Controllers\MobileAuthController;
 use App\Controllers\NotaController;
 use App\Controllers\PrecioController;
 use App\Controllers\ProductoController;
+use App\Controllers\ProductoOmisionController;
 use App\Controllers\RecetaController;
 use App\Controllers\TicketController;
 use App\Middleware\AdminMiddleware;
@@ -63,6 +64,12 @@ return static function (string $method, string $path): void {
 
             case 'GET /api/app/version':
                 (new AppReleaseController())->show();
+
+                return;
+
+            // Copia local del catálogo para la app móvil (con versionado).
+            case 'GET /api/mobile/catalogo':
+                (new ProductoController())->catalogoMovil();
 
                 return;
 
@@ -128,6 +135,16 @@ return static function (string $method, string $path): void {
 
             case 'GET /api/productos/buscar':
                 (new CompraController())->buscar();
+
+                return;
+
+            case 'GET /api/productos-omision':
+                (new ProductoOmisionController())->index();
+
+                return;
+
+            case 'POST /api/productos-omision':
+                (new ProductoOmisionController())->store();
 
                 return;
 
@@ -748,6 +765,15 @@ return static function (string $method, string $path): void {
         if (preg_match('#^/api/admin/lotes/([a-f0-9]{32})/recetas/([1-9][0-9]*)$#', $path, $matches) === 1) {
             if ($method === 'DELETE') {
                 (new ImportacionController())->quitarReceta($matches[1], (int) $matches[2]);
+
+                return;
+            }
+        }
+
+        // Productos por omisión: /api/productos-omision/{id}
+        if (preg_match('#^/api/productos-omision/([1-9][0-9]*)$#', $path, $matches) === 1) {
+            if ($method === 'DELETE') {
+                (new ProductoOmisionController())->destroy((int) $matches[1]);
 
                 return;
             }

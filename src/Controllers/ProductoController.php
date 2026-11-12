@@ -46,6 +46,24 @@ final class ProductoController
     }
 
     /**
+     * GET /api/mobile/catalogo?version= — copia local del catálogo de la app.
+     *
+     * Con la versión vigente responde solo { version, sin_cambios: true }.
+     */
+    public function catalogoMovil(): void
+    {
+        $usuario = AuthMiddleware::require();
+        $version = isset($_GET['version']) && is_string($_GET['version'])
+            ? trim($_GET['version'])
+            : '';
+
+        Response::ok($this->productos->snapshotMovil(
+            (int) $usuario['id'],
+            $version === '' ? null : $version
+        ));
+    }
+
+    /**
      * POST /api/productos — alta de un producto propio del usuario.
      */
     public function store(): void

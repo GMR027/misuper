@@ -2,7 +2,7 @@
   "expo": {
     "name": "Mi Súper",
     "slug": "misuper-mobile",
-    "version": "0.1.11",
+    "version": "0.1.12",
     "scheme": "misuper",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
@@ -20,7 +20,7 @@
         "monochromeImage": "./assets/monochrome-icon.png",
         "backgroundColor": "#0a5540"
       },
-      "versionCode": 12,
+      "versionCode": 13,
       "permissions": [
         "android.permission.REQUEST_INSTALL_PACKAGES"
       ],
@@ -43,7 +43,14 @@
       "expo-status-bar",
       "./plugins/release-signing.js",
       "./plugins/debug-app-id.js",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Mi Súper usa el micrófono para dictar productos.",
+          "speechRecognitionPermission": "Mi Súper usa el reconocimiento de voz para dictar productos."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

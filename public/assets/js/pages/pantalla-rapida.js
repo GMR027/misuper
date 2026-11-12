@@ -56,6 +56,8 @@ async function init(root) {
         chipsSheet: root.querySelector('[data-categorias-sheet-grid]'),
         results: root.querySelector('[data-resultados]'),
         resultsStatus: root.querySelector('[data-resultados-status]'),
+        resultsSentinel: root.querySelector('[data-resultados-sentinel]'),
+        resultsMore: root.querySelector('[data-resultados-mas]'),
         toggleVista: root.querySelector('[data-toggle-vista]'),
         vistaIcon: root.querySelector('[data-vista-icon]'),
         frequentSection: root.querySelector('[data-frecuentes]'),
@@ -88,6 +90,7 @@ async function init(root) {
     let frecuentesCache = null;
     let searchTimer = null;
     let searchSequence = 0;
+    let cargandoMas = false;
     let productoCalculo = null;
     let comerciosCargados = false;
     let vistaLista = leerVistaLista();
@@ -113,6 +116,7 @@ async function init(root) {
 
     bindLogout();
     bindSearch();
+    bindResultados();
     bindSheets();
     bindVista();
     bindCart();
@@ -184,6 +188,31 @@ async function init(root) {
             window.clearTimeout(searchTimer);
             buscar();
         });
+    }
+
+    /**
+     * Desplazamiento infinito: la página siguiente se pide cuando el centinela
+     * del final de la lista entra en pantalla. El botón sirve de respaldo.
+     */
+    function bindResultados() {
+        if (el.resultsMore instanceof HTMLButtonElement) {
+            el.resultsMore.addEventListener('click', () => {
+                void cargarMas();
+            });
+        }
+
+        if (el.resultsSentinel instanceof HTMLElement && 'IntersectionObserver' in window) {
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    if (entries.some((entry) => entry.isIntersecting)) {
+                        void cargarMas();
+                    }
+                },
+                { rootMargin: '200px 0px' },
+            );
+
+            observer.observe(el.resultsSentinel);
+        }
     }
 
     function bindSheets() {
@@ -317,7 +346,7 @@ async function init(root) {
         }
 
         if (q === '' && categoria === null) {
-            setState({ items: [] });
+            setState({ items: [], page: 1, total: 0 });
             return;
         }
 
@@ -344,16 +373,83 @@ async function init(root) {
                 return;
             }
 
-            setState({ items: Array.isArray(data) ? data : [], busqueda: q });
+            setState({
+                items: Array.isArray(data?.items) ? data.items : [],
+                page: Number(data?.page ?? 1),
+                per_page: Number(data?.per_page ?? 20),
+                total: Number(data?.total ?? 0),
+                busqueda: q,
+            });
         } catch (error) {
             if (sequence !== searchSequence) {
                 return;
             }
 
-            setState({ items: [] });
+            setState({ items: [], page: 1, total: 0 });
 
             if (!redirectIfSessionLost(error)) {
                 showToast(error?.message ?? 'No se pudo buscar productos.', 'error');
+            }
+        }
+    }
+
+    /**
+     * Carga la siguiente página de resultados sin perder los ya mostrados.
+     */
+    async function cargarMas() {
+        if (
+            cargandoMas
+            || state.frecuentes_activo
+            || state.items.length >= state.total
+        ) {
+            return;
+        }
+
+        const sequence = searchSequence;
+        const params = new URLSearchParams();
+
+        if (state.busqueda !== '') {
+            params.set('q', state.busqueda);
+        }
+
+        if (state.categoria_activa !== null) {
+            params.set('categoria_id', String(state.categoria_activa));
+        }
+
+        params.set('page', String(state.page + 1));
+
+        cargandoMas = true;
+
+        if (el.resultsMore instanceof HTMLButtonElement) {
+            el.resultsMore.disabled = true;
+            el.resultsMore.textContent = 'Cargando…';
+        }
+
+        try {
+            const data = await fetchApi(`/api/productos/buscar?${params.toString()}`);
+
+            if (sequence !== searchSequence) {
+                return;
+            }
+
+            const nuevos = Array.isArray(data?.items) ? data.items : [];
+
+            setState({
+                items: [...state.items, ...nuevos],
+                page: Number(data?.page ?? state.page + 1),
+                per_page: Number(data?.per_page ?? state.per_page),
+                total: Number(data?.total ?? state.total),
+            });
+        } catch (error) {
+            if (sequence === searchSequence && !redirectIfSessionLost(error)) {
+                showToast(error?.message ?? 'No se pudieron cargar más productos.', 'error');
+            }
+        } finally {
+            cargandoMas = false;
+
+            if (el.resultsMore instanceof HTMLButtonElement) {
+                el.resultsMore.disabled = false;
+                el.resultsMore.textContent = 'Cargar más';
             }
         }
     }
@@ -414,7 +510,7 @@ async function init(root) {
             if (state.busqueda !== '' || id !== null) {
                 buscar();
             } else {
-                setState({ items: [] });
+                setState({ items: [], page: 1, total: 0 });
             }
 
             cerrarSheetCategorias();
@@ -485,7 +581,7 @@ async function init(root) {
             }
         }
 
-        setState({ items: frecuentesCache, categoria_activa: null, busqueda: '', frecuentes_activo: true });
+        setState({ items: frecuentesCache, categoria_activa: null, busqueda: '', frecuentes_activo: true, page: 1, total: frecuentesCache.length });
 
         if (el.resultsStatus instanceof HTMLElement) {
             const total = frecuentesCache.length;
@@ -644,6 +740,8 @@ async function init(root) {
                 }
             }
 
+            actualizarMas(false);
+
             return;
         }
 
@@ -657,9 +755,34 @@ async function init(root) {
 
         if (el.resultsStatus instanceof HTMLElement) {
             const singular = items.length === 1;
-            el.resultsStatus.textContent = state.frecuentes_activo
-                ? `${items.length} ${singular ? 'producto frecuente' : 'productos frecuentes'}`
-                : `${items.length} ${singular ? 'producto' : 'productos'}`;
+
+            if (state.frecuentes_activo) {
+                el.resultsStatus.textContent = `${items.length} ${singular ? 'producto frecuente' : 'productos frecuentes'}`;
+            } else if (state.total > items.length) {
+                el.resultsStatus.textContent = `${items.length} de ${state.total} productos`;
+            } else {
+                el.resultsStatus.textContent = `${items.length} ${singular ? 'producto' : 'productos'}`;
+            }
+        }
+
+        actualizarMas(!state.frecuentes_activo && items.length < state.total);
+    }
+
+    /**
+     * Muestra u oculta el centinela de la siguiente página.
+     *
+     * @param {boolean} hayMas
+     */
+    function actualizarMas(hayMas) {
+        if (!(el.resultsSentinel instanceof HTMLElement)) {
+            return;
+        }
+
+        el.resultsSentinel.hidden = !hayMas;
+
+        if (hayMas && el.resultsMore instanceof HTMLButtonElement && !cargandoMas) {
+            el.resultsMore.disabled = false;
+            el.resultsMore.textContent = 'Cargar más';
         }
     }
 

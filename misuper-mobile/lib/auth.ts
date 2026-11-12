@@ -8,6 +8,8 @@
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { clearCart } from "@/lib/cart";
+import { limpiarTicketsPendientes } from "@/lib/offline/tickets";
+import { resetOfflineData } from "@/lib/offline/schema";
 import { createStore, useStore } from "@/lib/store";
 import { readText, writeText } from "@/lib/db";
 import {
@@ -104,6 +106,9 @@ async function saveSession(token: string, user: AuthUser): Promise<void> {
 export async function clearSession(): Promise<void> {
   // The cart belongs to the signed-in account; never hand it to the next one.
   clearCart();
+  // Same for the offline catalog, cached prices, pending syncs and photos.
+  await limpiarTicketsPendientes().catch(() => undefined);
+  await resetOfflineData().catch(() => undefined);
   setAuthToken(null);
   await deleteSecret(TOKEN_KEY);
   await deleteSecret(USER_KEY);

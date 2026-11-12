@@ -12,6 +12,9 @@ export const state = {
     busqueda: '',
     frecuentes_activo: false,
     carrito_abierto: true,
+    page: 1,
+    per_page: 20,
+    total: 0,
 };
 
 const renderers = new Set();

@@ -46,12 +46,12 @@ export function DockSearchSheet({
       setLoading(true);
       setError(null);
 
-      void apiFetch<Producto[]>(
+      void apiFetch<Producto[] | { items: Producto[] }>(
         `/api/productos/buscar?q=${encodeURIComponent(q)}`,
       )
         .then((data) => {
           if (current !== sequence.current) return;
-          setResults(Array.isArray(data) ? data : []);
+          setResults(Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []);
         })
         .catch((caught) => {
           if (current !== sequence.current) return;

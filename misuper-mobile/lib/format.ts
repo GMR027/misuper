@@ -28,6 +28,22 @@ export function todayISO(): string {
   return local.toISOString().slice(0, 10);
 }
 
+/** A short date and time ("8 nov, 18:30"), or "" when the value is invalid. */
+export function formatDateTime(iso: string): string {
+  const date = new Date(iso);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(LOCALES[getLocale()], {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 /** A quantity with at most 3 decimals ("1.25", "2"). */
 export function formatQuantity(value: number): string {
   return new Intl.NumberFormat(LOCALES[getLocale()], {

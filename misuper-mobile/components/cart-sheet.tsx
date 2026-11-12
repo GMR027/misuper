@@ -1,6 +1,6 @@
 /** The slide-up cart: edit quantities/prices and save the whole purchase. */
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Column,
   Row,
@@ -17,7 +17,7 @@ import { BottomSheet } from "@/components/bottom-sheet";
 import { Button, IconButton } from "@/components/m3/buttons";
 import { TextField } from "@/components/m3/inputs";
 import { M3Text, SymbolIcon } from "@/components/m3/text";
-import { apiFetch, apiFieldError, apiErrorMessage } from "@/lib/api";
+import { apiFetch, apiFieldError, apiErrorMessage, isOfflineError } from "@/lib/api";
 import {
   clearCart,
   removeItem,
@@ -29,16 +29,20 @@ import {
 import { formatCurrency, formatQuantity, todayISO, unitLabel } from "@/lib/format";
 import { cartKcal, itemKcal } from "@/lib/nutrition";
 import { t } from "@/lib/i18n";
+import { encolarCompra, type CompraPayload } from "@/lib/offline/outbox";
+import { nuevoUuid } from "@/lib/offline/uuid";
 import { parseDecimal, roundMoney } from "@/lib/numbers";
 
 export function CartSheet({
   visible,
   onClose,
   onSaved,
+  onDictate,
 }: {
   visible: boolean;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (modo: "online" | "offline") => void;
+  onDictate?: () => void;
 }) {
   const cart = useCart();
   const total = useCartTotal();
@@ -47,6 +51,8 @@ export function CartSheet({
   const [comercio, setComercio] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** One id per sheet: retrying the same cart returns the same purchase. */
+  const clienteUuid = useRef(nuevoUuid()).current;
 
   const save = async () => {
     if (saving) return;
@@ -66,35 +72,51 @@ export function CartSheet({
     setSaving(true);
     setError(null);
 
+    const payload: CompraPayload = {
+      fecha: date,
+      comercio: comercio.trim(),
+      cliente_uuid: clienteUuid,
+      items: cart.map((item) =>
+        item.producto_id !== null
+          ? {
+              producto_id: item.producto_id,
+              unidad_base: item.unidad_base,
+              cantidad: item.cantidad,
+              precio_total: item.precio_total,
+            }
+          : {
+              nombre_libre: item.nombre,
+              unidad_base: item.unidad_base,
+              cantidad: item.cantidad,
+              precio_total: item.precio_total,
+            },
+      ),
+    };
+
     try {
       await apiFetch<{ id: number }>("/api/compras", {
         method: "POST",
-        body: {
-          fecha: date,
-          comercio: comercio.trim(),
-          items: cart.map((item) =>
-            item.producto_id !== null
-              ? {
-                  producto_id: item.producto_id,
-                  unidad_base: item.unidad_base,
-                  cantidad: item.cantidad,
-                  precio_total: item.precio_total,
-                }
-              : {
-                  nombre_libre: item.nombre,
-                  unidad_base: item.unidad_base,
-                  cantidad: item.cantidad,
-                  precio_total: item.precio_total,
-                },
-          ),
-        },
+        body: payload,
       });
 
       clearCart();
-      onSaved();
+      onSaved("online");
       onClose();
     } catch (caught) {
-      setError(apiFieldError(caught) ?? apiErrorMessage(caught));
+      if (!isOfflineError(caught)) {
+        setError(apiFieldError(caught) ?? apiErrorMessage(caught));
+        return;
+      }
+
+      // No signal: the purchase waits on the phone and uploads later.
+      try {
+        await encolarCompra(payload);
+        clearCart();
+        onSaved("offline");
+        onClose();
+      } catch (queueError) {
+        setError(apiErrorMessage(queueError));
+      }
     } finally {
       setSaving(false);
     }
@@ -105,6 +127,16 @@ export function CartSheet({
       visible={visible}
       onClose={onClose}
       title={t("cart.title")}
+      actions={
+        onDictate ? (
+          <IconButton
+            icon="mic"
+            label={t("voice.open")}
+            onPress={onDictate}
+            disabled={saving}
+          />
+        ) : undefined
+      }
       footer={
         <>
           <Row

@@ -28,13 +28,21 @@ final class TicketRepository
         string $titulo,
         string $ruta,
         string $textoOcr,
-        ?string $totalDetectado
+        ?string $totalDetectado,
+        ?string $clienteUuid = null
     ): Ticket {
         $statement = $this->pdo->prepare(
-            'INSERT INTO tickets (usuario_id, titulo, ruta, texto_ocr, total_detectado)
-             VALUES (?, ?, ?, ?, ?)'
+            'INSERT INTO tickets (usuario_id, cliente_uuid, titulo, ruta, texto_ocr, total_detectado)
+             VALUES (?, ?, ?, ?, ?, ?)'
         );
-        $statement->execute([$usuarioId, $titulo, $ruta, $textoOcr, $totalDetectado]);
+        $statement->execute([
+            $usuarioId,
+            $clienteUuid,
+            $titulo,
+            $ruta,
+            $textoOcr,
+            $totalDetectado,
+        ]);
 
         $ticket = $this->findOwned((int) $this->pdo->lastInsertId(), $usuarioId);
 
@@ -43,6 +51,24 @@ final class TicketRepository
         }
 
         return $ticket;
+    }
+
+    /**
+     * Ticket ya subido con el UUID de reintento que mandó el cliente.
+     */
+    public function findByClienteUuid(int $usuarioId, string $clienteUuid): ?Ticket
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::COLUMNS . '
+             FROM tickets t
+             WHERE t.usuario_id = ? AND t.cliente_uuid = ?
+             LIMIT 1'
+        );
+        $statement->execute([$usuarioId, $clienteUuid]);
+
+        $row = $statement->fetch();
+
+        return $row === false ? null : Ticket::fromRow($row);
     }
 
     public function findOwned(int $id, int $usuarioId): ?Ticket

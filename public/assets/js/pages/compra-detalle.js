@@ -526,7 +526,7 @@ function init(root) {
                 return;
             }
 
-            renderResultados(Array.isArray(data) ? data : []);
+            renderResultados(Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : []));
         } catch (error) {
             if (sequence !== searchSequence) {
                 return;

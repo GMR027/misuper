@@ -144,6 +144,12 @@ ob_start();
                 </div>
 
                 <div class="row g-3 quick-results" data-resultados></div>
+
+                <div class="text-center mt-3" data-resultados-sentinel hidden>
+                    <button class="btn btn-outline-secondary" type="button" data-resultados-mas>
+                        Cargar más
+                    </button>
+                </div>
             </section>
         </div>
     </div>

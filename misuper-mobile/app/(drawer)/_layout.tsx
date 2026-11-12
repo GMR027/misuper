@@ -2,6 +2,7 @@ import { View } from "react-native";
 import { Stack } from "expo-router/stack";
 import { usePathname } from "expo-router";
 import { AppDock } from "@/components/app-dock";
+import { OfflineSync } from "@/components/offline-sync";
 import { ToastHost } from "@/components/toast-host";
 import { useTheme } from "@/components/theme";
 
@@ -22,8 +23,10 @@ export default function AppLayout() {
         <Stack.Screen name="tickets" />
         <Stack.Screen name="gastos" />
         <Stack.Screen name="ajustes" />
+        <Stack.Screen name="productos-omision" />
       </Stack>
       <AppDock />
+      <OfflineSync />
       <ToastHost cartBar={pathname === "/"} />
     </View>
   );

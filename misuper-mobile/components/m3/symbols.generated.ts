@@ -13,6 +13,7 @@ import homeSymbol from "@/assets/symbols/home.xml";
 import infoSymbol from "@/assets/symbols/info.xml";
 import languageSymbol from "@/assets/symbols/language.xml";
 import menuSymbol from "@/assets/symbols/menu.xml";
+import micSymbol from "@/assets/symbols/mic.xml";
 import receiptLongSymbol from "@/assets/symbols/receipt-long.xml";
 import refreshSymbol from "@/assets/symbols/refresh.xml";
 import savingsSymbol from "@/assets/symbols/savings.xml";
@@ -41,6 +42,7 @@ export const SYMBOLS = {
   info: infoSymbol,
   language: languageSymbol,
   menu: menuSymbol,
+  mic: micSymbol,
   "receipt-long": receiptLongSymbol,
   refresh: refreshSymbol,
   savings: savingsSymbol,

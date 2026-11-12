@@ -38,6 +38,7 @@ final class RecetaService
     private readonly RecetaImagenService $imagenes;
     private readonly PrecioService $precios;
     private readonly NutricionService $nutricion;
+    private readonly ProductoOmisionService $omisiones;
 
     public function __construct(
         ?CompraRepository $compras = null,
@@ -47,7 +48,8 @@ final class RecetaService
         ?CategoriaRecetaRepository $categoriasRepo = null,
         ?RecetaImagenService $imagenes = null,
         ?PrecioService $precios = null,
-        ?NutricionService $nutricion = null
+        ?NutricionService $nutricion = null,
+        ?ProductoOmisionService $omisiones = null
     ) {
         $this->compras = $compras ?? new CompraRepository();
         $this->productos = $productos ?? new ProductoRepository();
@@ -57,6 +59,7 @@ final class RecetaService
         $this->imagenes = $imagenes ?? new RecetaImagenService();
         $this->precios = $precios ?? new PrecioService();
         $this->nutricion = $nutricion ?? new NutricionService();
+        $this->omisiones = $omisiones ?? new ProductoOmisionService();
     }
 
     /**
@@ -135,6 +138,7 @@ final class RecetaService
         $pantry = $this->indiceDespensa($despensa);
         $sinCompras = $soloDespensa && $despensaSeleccionada['compras'] === [];
         $favoritos = array_flip($this->recetas->favoritos($usuarioId));
+        $omitidos = $this->omisiones->tokens($usuarioId);
         $items = [];
 
         foreach ($this->recetas->allPublic() as $receta) {
@@ -176,7 +180,7 @@ final class RecetaService
                 }
             }
 
-            $match = $this->matchReceta($receta, $pantry);
+            $match = $this->matchReceta($receta, $pantry, $omitidos);
 
             if ($soloDespensa && $match['faltan_principales'] > 0) {
                 continue;
@@ -249,7 +253,11 @@ final class RecetaService
 
         $despensaSeleccionada = $this->resolverDespensa($usuarioId, $filtros['compras'] ?? null);
         $pantry = $this->indiceDespensa($despensaSeleccionada['despensa']);
-        $match = $this->matchReceta($receta, $pantry);
+        $match = $this->matchReceta(
+            $receta,
+            $pantry,
+            $this->omisiones->tokens($usuarioId)
+        );
 
         $receta['coincidencia'] = $match['coincidencia'];
         $receta['tiene_count'] = $match['tiene_count'];
@@ -333,6 +341,7 @@ final class RecetaService
 
         $despensa = $this->compras->despensa($usuarioId);
         $pantry = $this->indiceDespensa($despensa);
+        $omitidos = $this->omisiones->tokens($usuarioId);
         $agrupados = [];
         $recetasSeleccionadas = [];
 
@@ -363,6 +372,12 @@ final class RecetaService
                     continue;
                 }
 
+                $nombreIngrediente = (string) ($ingrediente['nombre'] ?? '');
+
+                if ($this->estaOmitido($nombreIngrediente, $omitidos)) {
+                    continue;
+                }
+
                 $unidad = (string) ($ingrediente['unidad'] ?? '');
                 $cantidad = $ingrediente['cantidad'] ?? null;
 
@@ -371,7 +386,6 @@ final class RecetaService
                 }
 
                 $cantidadEscalada = round((float) $cantidad * $factor, 3);
-                $nombreIngrediente = (string) ($ingrediente['nombre'] ?? '');
                 $producto = $productoIndex[NormalizadorService::normalizar(
                     (string) ($ingrediente['producto'] ?? $nombreIngrediente)
                 )] ?? null;
@@ -1010,9 +1024,10 @@ final class RecetaService
 
     /**
      * @param array<int, array{nombre: string, tokens: array<int, string>, veces: int}> $pantry
+     * @param array<int, array<int, string>> $omitidos
      * @return array{coincidencia: float, tiene_count: int, total: int, faltan: array<int, string>, faltan_principales: int, resumen: array<int, string>}
      */
-    private function matchReceta(array $receta, array $pantry): array
+    private function matchReceta(array $receta, array $pantry, array $omitidos = []): array
     {
         $totalPeso = 0.0;
         $matchPeso = 0.0;
@@ -1032,6 +1047,11 @@ final class RecetaService
             }
 
             $nombre = (string) ($ingrediente['nombre'] ?? '');
+
+            if ($this->estaOmitido($nombre, $omitidos)) {
+                continue;
+            }
+
             $principal = (bool) ($ingrediente['principal'] ?? false);
             $peso = $principal ? 3.0 : 1.0;
             $total++;
@@ -1061,6 +1081,34 @@ final class RecetaService
             'faltan_principales' => $faltanPrincipales,
             'resumen' => $resumen,
         ];
+    }
+
+    /**
+     * Un ingrediente está omitido cuando los tokens de algún producto omitido
+     * están contenidos en los suyos. La relación es en una sola dirección:
+     * "aceite" omite "aceite de oliva", pero no al revés.
+     *
+     * @param array<int, array<int, string>> $omitidos
+     */
+    private function estaOmitido(string $nombre, array $omitidos): bool
+    {
+        if ($omitidos === [] || $nombre === '') {
+            return false;
+        }
+
+        $tokens = NormalizadorService::tokensNombre($nombre);
+
+        if ($tokens === []) {
+            return false;
+        }
+
+        foreach ($omitidos as $omitido) {
+            if (NormalizadorService::tokensContenidos($omitido, $tokens)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

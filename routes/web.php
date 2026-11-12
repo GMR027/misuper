@@ -10,6 +10,7 @@ use App\Controllers\MenuController;
 use App\Controllers\MetricaController;
 use App\Controllers\NotaController;
 use App\Controllers\PrecioController;
+use App\Controllers\ProductoOmisionController;
 use App\Controllers\RecetaController;
 use App\Controllers\TicketController;
 use App\Middleware\AdminMiddleware;
@@ -163,6 +164,11 @@ HTML;
 
         case 'GET /recetas':
             (new RecetaController())->vista();
+
+            return;
+
+        case 'GET /productos-omision':
+            (new ProductoOmisionController())->vista();
 
             return;
 

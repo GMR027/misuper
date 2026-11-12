@@ -334,6 +334,88 @@ final class ProductoRepository
     }
 
     /**
+     * Catálogo activo para la copia local de la app móvil.
+     *
+     * Incluye los productos compartidos y los personales del usuario, y el
+     * nombre normalizado con el que el cliente busca sin conexión.
+     *
+     * @return array<int, array{
+     *     id: int, nombre: string, nombre_normalizado: string, nombre_orden: string,
+     *     categoria_id: int, unidad_base: string, imagen_url: string|null,
+     *     kcal_100: float|null, peso_pieza_g: float|null
+     * }>
+     */
+    public function catalogoParaMovil(int $usuarioId): array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT p.id, p.nombre, p.categoria_id, p.unidad_base, p.imagen_url,
+                    p.kcal_100, p.peso_pieza_g
+             FROM productos p
+             WHERE p.estado = 'activo' AND (p.usuario_id IS NULL OR p.usuario_id = ?)
+             ORDER BY p.nombre ASC, p.id ASC"
+        );
+        $statement->execute([$usuarioId]);
+
+        $productos = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $nombre = (string) $row['nombre'];
+
+            $productos[] = [
+                'id' => (int) $row['id'],
+                'nombre' => $nombre,
+                'nombre_normalizado' => NormalizadorService::paraBusqueda($nombre),
+                // MySQL ordena sin acentos y con el espacio antes que las
+                // letras; el cliente ordena por esta clave para dar el mismo
+                // orden con la collation binaria de SQLite.
+                'nombre_orden' => NormalizadorService::normalizar($nombre),
+                'categoria_id' => (int) $row['categoria_id'],
+                'unidad_base' => (string) $row['unidad_base'],
+                'imagen_url' => isset($row['imagen_url']) ? (string) $row['imagen_url'] : null,
+                'kcal_100' => isset($row['kcal_100']) ? (float) $row['kcal_100'] : null,
+                'peso_pieza_g' => isset($row['peso_pieza_g']) ? (float) $row['peso_pieza_g'] : null,
+            ];
+        }
+
+        return $productos;
+    }
+
+    /**
+     * Huella del catálogo visible para el usuario.
+     *
+     * Cambia cuando se crea, edita, activa o desactiva un producto, y cuando
+     * cambia el nombre de una categoría. El cliente la envía para evitar
+     * descargar el snapshot completo sin necesidad.
+     */
+    public function versionCatalogo(int $usuarioId): string
+    {
+        $productos = $this->pdo->prepare(
+            "SELECT COUNT(*) AS total, COALESCE(MAX(id), 0) AS ultimo_id,
+                    COALESCE(MAX(updated_at), '') AS ultima_fecha
+             FROM productos
+             WHERE estado = 'activo' AND (usuario_id IS NULL OR usuario_id = ?)"
+        );
+        $productos->execute([$usuarioId]);
+        $fila = $productos->fetch() ?: [];
+
+        $categorias = $this->pdo
+            ->query(
+                "SELECT COUNT(*) AS total,
+                        COALESCE(MD5(GROUP_CONCAT(CONCAT(id, ':', nombre) ORDER BY id)), '') AS huella
+                 FROM categorias"
+            )
+            ->fetch() ?: [];
+
+        return sha1(implode('|', [
+            (int) ($fila['total'] ?? 0),
+            (int) ($fila['ultimo_id'] ?? 0),
+            (string) ($fila['ultima_fecha'] ?? ''),
+            (int) ($categorias['total'] ?? 0),
+            (string) ($categorias['huella'] ?? ''),
+        ]));
+    }
+
+    /**
      * Datos nutricionales de varios productos en una sola consulta.
      *
      * @param array<int, int|string> $ids

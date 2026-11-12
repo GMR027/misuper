@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Compra;
 use App\Models\CompraItem;
 use App\Repositories\CompraRepository;
 use App\Repositories\TicketRepository;
@@ -12,6 +13,7 @@ use App\Validators\CompraValidator;
 use DomainException;
 use InvalidArgumentException;
 use PDO;
+use PDOException;
 use Throwable;
 
 /**
@@ -25,8 +27,6 @@ final class CompraService
     public const PER_PAGE = 20;
 
     private const MAX_FRECUENTES = 8;
-
-    private const MAX_BUSQUEDA = 10;
 
     private readonly PDO $pdo;
 
@@ -121,7 +121,31 @@ final class CompraService
      */
     public function crear(int $usuarioId, array $data): array
     {
-        return $this->crearInterno($usuarioId, $data, null, null);
+        $clienteUuid = $this->clienteUuid($data);
+
+        if ($clienteUuid !== null) {
+            $existente = $this->compras->findByClienteUuid($usuarioId, $clienteUuid);
+
+            if ($existente !== null) {
+                return $this->resumen($existente);
+            }
+        }
+
+        try {
+            return $this->crearInterno($usuarioId, $data, null, null, $clienteUuid);
+        } catch (PDOException $error) {
+            // Dos reintentos idénticos a la vez: el índice único elige uno y
+            // el otro devuelve la compra que ganó.
+            if ($clienteUuid !== null && (string) $error->getCode() === '23000') {
+                $existente = $this->compras->findByClienteUuid($usuarioId, $clienteUuid);
+
+                if ($existente !== null) {
+                    return $this->resumen($existente);
+                }
+            }
+
+            throw $error;
+        }
     }
 
     /**
@@ -148,7 +172,8 @@ final class CompraService
         int $usuarioId,
         array $data,
         ?int $ticketId,
-        ?string $titulo = null
+        ?string $titulo = null,
+        ?string $clienteUuid = null
     ): array {
         $this->pdo->beginTransaction();
 
@@ -156,7 +181,8 @@ final class CompraService
             $compraId = $this->compras->create(
                 $usuarioId,
                 (string) $data['fecha'],
-                $this->normalizarComercio($data['comercio'] ?? null)
+                $this->normalizarComercio($data['comercio'] ?? null),
+                $clienteUuid
             );
 
             foreach ($data['items'] as $item) {
@@ -436,19 +462,34 @@ final class CompraService
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array{items: array<int, array<string, mixed>>, total: int, page: int, per_page: int}
      */
-    public function buscarProductos(int $usuarioId, string $q, ?int $categoriaId): array
-    {
-        return $this->aplicarPrecios(
+    public function buscarProductos(
+        int $usuarioId,
+        string $q,
+        ?int $categoriaId,
+        int $page = 1
+    ): array {
+        $page = max(1, $page);
+        $q = NormalizadorService::normalizar($q);
+
+        $items = $this->aplicarPrecios(
             $this->compras->buscarActivos(
-                NormalizadorService::normalizar($q),
+                $q,
                 $categoriaId,
-                self::MAX_BUSQUEDA,
-                $usuarioId
+                self::PER_PAGE,
+                $usuarioId,
+                ($page - 1) * self::PER_PAGE
             ),
             $usuarioId
         );
+
+        return [
+            'items' => $items,
+            'total' => $this->compras->contarActivos($q, $categoriaId, $usuarioId),
+            'page' => $page,
+            'per_page' => self::PER_PAGE,
+        ];
     }
 
     /**
@@ -509,6 +550,28 @@ final class CompraService
             $unidad,
             $this->normalizarComercio($item['comercio'] ?? null)
         );
+    }
+
+    /**
+     * UUID de reintento que manda la app móvil, o null si no viene.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function clienteUuid(array $data): ?string
+    {
+        $uuid = $data['cliente_uuid'] ?? null;
+
+        return is_string($uuid) && trim($uuid) !== '' ? trim($uuid) : null;
+    }
+
+    /**
+     * Resumen de una compra ya existente, con la misma forma que un alta nueva.
+     *
+     * @return array{id: int, fecha: string, total: float, comercio: string|null, items_count: int, ticket_id: int|null, ticket_titulo: string|null}
+     */
+    private function resumen(Compra $compra): array
+    {
+        return $compra->toSummaryArray($this->compras->countItems($compra->id));
     }
 
     private function normalizarComercio(mixed $valor): ?string

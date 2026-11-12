@@ -55,6 +55,22 @@ final class NormalizadorService
     }
 
     /**
+     * Texto listo para comparar por tokens en el cliente: minúsculas, sin
+     * acentos, sin signos y con espacios simples.
+     *
+     * La app móvil guarda este valor junto a cada producto para buscar en su
+     * copia local sin conexión; el cliente debe aplicar la misma
+     * transformación al término buscado.
+     */
+    public static function paraBusqueda(string $texto): string
+    {
+        $texto = self::normalizar($texto);
+        $texto = preg_replace('/[^a-z0-9]+/u', ' ', $texto) ?? '';
+
+        return trim(preg_replace('/\s+/u', ' ', $texto) ?? '');
+    }
+
+    /**
      * Prepara un texto para usarlo dentro de un LIKE con ESCAPE '!'.
      */
     public static function patronLike(string $texto): string
@@ -246,10 +262,12 @@ final class NormalizadorService
     }
 
     /**
+     * Indica si todos los tokens de `$necesarios` aparecen en `$disponibles`.
+     *
      * @param array<int, string> $necesarios
      * @param array<int, string> $disponibles
      */
-    private static function tokensContenidos(array $necesarios, array $disponibles): bool
+    public static function tokensContenidos(array $necesarios, array $disponibles): bool
     {
         foreach ($necesarios as $token) {
             $encontrado = false;

@@ -1,14 +1,20 @@
 /** The dock's menu sheet: user, sections and logout, like the web. */
 
+import type { ComponentProps } from "react";
+import { useEffect } from "react";
 import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
+import { Row } from "@expo/ui/jetpack-compose";
+import { padding } from "@expo/ui/jetpack-compose/modifiers";
 import { BottomSheet } from "@/components/bottom-sheet";
 import { Avatar } from "@/components/avatar";
 import { NativeContent } from "@/components/m3/host";
 import { ListRow } from "@/components/m3/lists";
+import { Badge } from "@/components/m3/feedback";
 import { SymbolIcon } from "@/components/m3/text";
 import { useTheme } from "@/components/theme";
 import { logout, useAuth } from "@/lib/auth";
+import { refreshAppUpdate, useAppUpdate } from "@/lib/app-update-store";
 import { t } from "@/lib/i18n";
 
 type MenuRoute =
@@ -19,6 +25,7 @@ type MenuRoute =
   | "/historial"
   | "/lista-compras"
   | "/recetas"
+  | "/productos-omision"
   | "/menu"
   | "/metricas"
   | "/precios"
@@ -26,6 +33,11 @@ type MenuRoute =
   | "/admin/productos"
   | "/admin/usuarios"
   | "/ajustes";
+
+/** ListRow has no side padding; the menu sheet adds it once here. */
+function MenuRow(props: Omit<ComponentProps<typeof ListRow>, "modifiers">) {
+  return <ListRow {...props} modifiers={[padding(16, 0, 16, 0)]} />;
+}
 
 function SectionLabel({ label }: { label: string }) {
   const { colors } = useTheme();
@@ -60,10 +72,15 @@ export function MenuSheet({
   const auth = useAuth();
   const router = useRouter();
   const user = auth.user;
+  const update = useAppUpdate();
+
+  useEffect(() => {
+    void refreshAppUpdate();
+  }, []);
 
   const go = (path: MenuRoute) => {
     onClose();
-    router.navigate(path);
+    router.navigate(path as Parameters<typeof router.navigate>[0]);
   };
 
   return (
@@ -100,25 +117,25 @@ export function MenuSheet({
       ) : null}
 
       <SectionLabel label={t("menu.shopping")} />
-      <ListRow
+      <MenuRow
         title={t("drawer.home")}
         onPress={() => go("/")}
         leading={<SymbolIcon name="home" size={22} />}
         trailing={<SymbolIcon name="chevron-right" size={18} />}
       />
-      <ListRow
+      <MenuRow
         title={t("shopping.title")}
         onPress={() => go("/lista-compras")}
         leading={<SymbolIcon name="shopping-cart" size={22} />}
         trailing={<SymbolIcon name="chevron-right" size={18} />}
       />
-      <ListRow
+      <MenuRow
         title={t("drawer.tickets")}
         onPress={() => go("/tickets")}
         leading={<SymbolIcon name="receipt-long" size={22} />}
         trailing={<SymbolIcon name="chevron-right" size={18} />}
       />
-      <ListRow
+      <MenuRow
         title={t("history.title")}
         onPress={() => go("/historial")}
         leading={<SymbolIcon name="list" size={22} />}
@@ -127,27 +144,33 @@ export function MenuSheet({
 
 
       <SectionLabel label={t("menu.kitchen")} />
-      <ListRow
+      <MenuRow
         title={t("menu.weekly")}
         onPress={() => go("/menu")}
         leading={<SymbolIcon name="menu" size={22} />}
         trailing={<SymbolIcon name="chevron-right" size={18} />}
       />
-      <ListRow
+      <MenuRow
         title={t("recipes.title")}
         onPress={() => go("/recetas")}
         leading={<SymbolIcon name="list" size={22} />}
         trailing={<SymbolIcon name="chevron-right" size={18} />}
       />
+      <MenuRow
+        title={t("omissions.title")}
+        onPress={() => go("/productos-omision")}
+        leading={<SymbolIcon name="close" size={22} />}
+        trailing={<SymbolIcon name="chevron-right" size={18} />}
+      />
 
       <SectionLabel label={t("menu.analysis")} />
-      <ListRow
+      <MenuRow
         title={t("metrics.title")}
         onPress={() => go("/metricas")}
         leading={<SymbolIcon name="grid-view" size={22} />}
         trailing={<SymbolIcon name="chevron-right" size={18} />}
       />
-      <ListRow
+      <MenuRow
         title={t("prices.title")}
         onPress={() => go("/precios")}
         leading={<SymbolIcon name="savings" size={22} />}
@@ -155,7 +178,7 @@ export function MenuSheet({
       />
 
       <SectionLabel label={t("menu.personalSection")} />
-      <ListRow
+      <MenuRow
         title={t("drawer.notes")}
         onPress={() => go("/notas")}
         leading={<SymbolIcon name="list" size={22} />}
@@ -165,19 +188,19 @@ export function MenuSheet({
       {user?.rol === "admin" ? (
         <>
           <SectionLabel label={t("menu.adminSection")} />
-          <ListRow
+          <MenuRow
             title={t("admin.recipes")}
             onPress={() => go("/admin/recetas")}
             leading={<SymbolIcon name="list" size={22} />}
             trailing={<SymbolIcon name="chevron-right" size={18} />}
           />
-          <ListRow
+          <MenuRow
             title={t("admin.products")}
             onPress={() => go("/admin/productos")}
             leading={<SymbolIcon name="shopping-cart" size={22} />}
             trailing={<SymbolIcon name="chevron-right" size={18} />}
           />
-          <ListRow
+          <MenuRow
             title={t("admin.users")}
             onPress={() => go("/admin/usuarios")}
             leading={<SymbolIcon name="info" size={22} />}
@@ -187,13 +210,20 @@ export function MenuSheet({
       ) : null}
 
       <SectionLabel label={t("menu.settingsSection")} />
-      <ListRow
+      <MenuRow
         title={t("drawer.settings")}
         onPress={() => go("/ajustes")}
         leading={<SymbolIcon name="settings" size={22} />}
-        trailing={<SymbolIcon name="chevron-right" size={18} />}
+        trailing={
+          <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 6 }}>
+            {update.status === "outdated" ? (
+              <Badge kind="warning">{t("install.updateShort")}</Badge>
+            ) : null}
+            <SymbolIcon name="chevron-right" size={18} />
+          </Row>
+        }
       />
-      <ListRow
+      <MenuRow
         title={t("account.logout")}
         onPress={() => {
           onClose();

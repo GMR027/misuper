@@ -1,6 +1,6 @@
 /** Download and install the latest APK, with an update indicator. */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Linking, Text, View } from "react-native";
 import { File, Paths } from "expo-file-system";
 import * as IntentLauncher from "expo-intent-launcher";
@@ -8,15 +8,11 @@ import { Button } from "@/components/m3/buttons";
 import { ProgressBar, Spinner } from "@/components/m3/feedback";
 import { TextureCard } from "@/components/texture-card";
 import { useTheme } from "@/components/theme";
-import { apiErrorMessage } from "@/lib/api";
 import {
   apkUrl,
-  fetchAppRelease,
   installedApp,
-  updateStatus,
-  type AppRelease,
-  type UpdateStatus,
 } from "@/lib/app-release";
+import { refreshAppUpdate, useAppUpdate } from "@/lib/app-update-store";
 import { t, useLocale } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
 
@@ -53,9 +49,7 @@ export function InstallAppCard() {
   useLocale();
   const { colors } = useTheme();
   const installed = installedApp();
-  const [release, setRelease] = useState<AppRelease | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { release, status, loading, checked, error } = useAppUpdate();
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState<{
     written: number;
@@ -63,42 +57,14 @@ export function InstallAppCard() {
   } | null>(null);
   const lastPercent = useRef(-1);
 
-  const check = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      setRelease(await fetchAppRelease());
-    } catch (caught) {
-      setError(apiErrorMessage(caught));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  // The card owns the first check of the session; other screens reuse it.
   useEffect(() => {
-    let alive = true;
-
-    void (async () => {
-      try {
-        const data = await fetchAppRelease();
-
-        if (alive) setRelease(data);
-      } catch (caught) {
-        if (alive) setError(apiErrorMessage(caught));
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
+    void refreshAppUpdate();
   }, []);
 
-  const status: UpdateStatus | null = release
-    ? updateStatus(release, installed)
-    : null;
+  const check = () => {
+    void refreshAppUpdate(true);
+  };
 
   const badge =
     status === null
@@ -254,19 +220,20 @@ export function InstallAppCard() {
 
       {status === "outdated" ? (
         <Button
-          label={downloading ? t("install.downloading") : t("install.update")}
+          label={downloading ? t("install.downloading") : t("install.downloadUpdate")}
           icon="refresh"
           onPress={() => void install()}
           disabled={downloading}
         />
       ) : null}
 
-      <Button
-        label={t("install.download")}
-        variant={status === "outdated" ? "outlined" : "filled"}
-        onPress={() => void install()}
-        disabled={downloading}
-      />
+      {status === null && checked && !loading ? (
+        <Button
+          label={t("install.download")}
+          onPress={() => void install()}
+          disabled={downloading}
+        />
+      ) : null}
 
       <Button
         label={t("install.check")}

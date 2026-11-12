@@ -11,6 +11,9 @@ import { getSettings } from "@/lib/settings";
 const DEFAULT_API_URL = "https://misuper.iguzman.com.mx";
 const ENV_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").trim();
 
+/** JSON requests give up after this and count as offline. */
+const REQUEST_TIMEOUT_MS = 15_000;
+
 let authToken: string | null = null;
 let unauthorizedHandler: (() => void) | null = null;
 
@@ -86,11 +89,15 @@ export async function apiFetch<T>(
   }
 
   let response: Awaited<ReturnType<typeof fetch>>;
+  // A phone on a bad network can leave `fetch` hanging for a minute; after
+  // this the request counts as offline and the caller can queue the work.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
     response = await fetch(
       `${base}${path.startsWith("/") ? path : `/${path}`}`,
-      { method, headers, body },
+      { method, headers, body, signal: controller.signal },
     );
   } catch {
     throw new ApiError(
@@ -98,6 +105,8 @@ export async function apiFetch<T>(
       0,
       "NETWORK_ERROR",
     );
+  } finally {
+    clearTimeout(timeout);
   }
 
   const text = await response.text();
@@ -246,6 +255,17 @@ export function apiErrorMessage(error: unknown): string {
   return error instanceof Error
     ? error.message
     : "No se pudo conectar con el servidor.";
+}
+
+/**
+ * True when the request never reached the server: no signal, a wrong URL or a
+ * dropped connection. Status 0 covers NO_SERVER and NETWORK_ERROR.
+ */
+export function isOfflineError(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    (error.status === 0 || error.code === "NETWORK_ERROR")
+  );
 }
 
 /** The first field error of a 422, when the API sends one. */

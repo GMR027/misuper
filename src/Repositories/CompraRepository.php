@@ -33,14 +33,37 @@ final class CompraRepository
         $this->pdo = $pdo ?? Database::connection();
     }
 
-    public function create(int $usuarioId, string $fecha, ?string $comercio = null): int
-    {
+    public function create(
+        int $usuarioId,
+        string $fecha,
+        ?string $comercio = null,
+        ?string $clienteUuid = null
+    ): int {
         $statement = $this->pdo->prepare(
-            'INSERT INTO compras (usuario_id, fecha, comercio, total) VALUES (?, ?, ?, 0)'
+            'INSERT INTO compras (usuario_id, cliente_uuid, fecha, comercio, total)
+             VALUES (?, ?, ?, ?, 0)'
         );
-        $statement->execute([$usuarioId, $fecha, $comercio]);
+        $statement->execute([$usuarioId, $clienteUuid, $fecha, $comercio]);
 
         return (int) $this->pdo->lastInsertId();
+    }
+
+    /**
+     * Compra ya creada con el UUID de reintento que mandó el cliente.
+     */
+    public function findByClienteUuid(int $usuarioId, string $clienteUuid): ?Compra
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT ' . self::COMPRA_COLUMNS . '
+             FROM compras c
+             WHERE c.usuario_id = ? AND c.cliente_uuid = ?
+             LIMIT 1'
+        );
+        $statement->execute([$usuarioId, $clienteUuid]);
+
+        $row = $statement->fetch();
+
+        return $row === false ? null : Compra::fromRow($row);
     }
 
     public function findOwned(int $id, int $usuarioId): ?Compra
@@ -537,11 +560,91 @@ final class CompraRepository
     }
 
     /**
-     * Búsqueda de productos activos sin paginación (máximo 10 por defecto).
+     * Búsqueda paginada de productos activos.
      *
      * @return array<int, array<string, mixed>>
      */
-    public function buscarActivos(string $q, ?int $categoriaId, int $limit, ?int $usuarioId = null): array
+    public function buscarActivos(
+        string $q,
+        ?int $categoriaId,
+        int $limit,
+        ?int $usuarioId = null,
+        int $offset = 0
+    ): array {
+        $filtros = $this->filtrosActivos($q, $categoriaId, $usuarioId);
+        $selectPrecio = $usuarioId !== null
+            ? 'ROUND(ult.precio_unidad, 4) AS ultimo_precio'
+            : 'NULL AS ultimo_precio';
+
+        $statement = $this->pdo->prepare(
+            'SELECT p.id, p.nombre, p.categoria_id, c.nombre AS categoria_nombre,
+                    p.unidad_base, p.imagen_url, p.kcal_100, p.peso_pieza_g,
+                    p.estado, p.created_at, p.updated_at,
+                    ' . $selectPrecio . '
+             FROM productos p
+             INNER JOIN categorias c ON c.id = p.categoria_id' . $filtros['join'] . '
+             WHERE ' . implode(' AND ', $filtros['where']) . '
+             ORDER BY p.nombre ASC, p.id ASC
+             LIMIT ? OFFSET ?'
+        );
+
+        $index = 1;
+
+        foreach (array_merge($filtros['joinParams'], $filtros['params']) as $param) {
+            $statement->bindValue(
+                $index++,
+                $param,
+                is_int($param) ? PDO::PARAM_INT : PDO::PARAM_STR
+            );
+        }
+
+        $statement->bindValue($index++, max(0, $limit), PDO::PARAM_INT);
+        $statement->bindValue($index, max(0, $offset), PDO::PARAM_INT);
+        $statement->execute();
+
+        return array_map(
+            static function (array $row): array {
+                $producto = Producto::fromRow($row)->toPublicArray();
+                $producto['ultimo_precio'] = isset($row['ultimo_precio'])
+                    ? (float) $row['ultimo_precio']
+                    : null;
+
+                return $producto;
+            },
+            $statement->fetchAll()
+        );
+    }
+
+    /**
+     * Total de productos activos que cumplen la búsqueda.
+     */
+    public function contarActivos(string $q, ?int $categoriaId, ?int $usuarioId = null): int
+    {
+        $filtros = $this->filtrosActivos($q, $categoriaId, $usuarioId);
+
+        $statement = $this->pdo->prepare(
+            'SELECT COUNT(*)
+             FROM productos p
+             INNER JOIN categorias c ON c.id = p.categoria_id
+             WHERE ' . implode(' AND ', $filtros['where'])
+        );
+        $statement->execute($filtros['params']);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    /**
+     * Construye el WHERE de la búsqueda activa. Los parámetros del LEFT JOIN
+     * de precios van aparte porque se enlazan antes que los del WHERE.
+     *
+     * @return array{
+     *     where: array<int, string>,
+     *     params: array<int, mixed>,
+     *     join: string,
+     *     joinParams: array<int, mixed>
+     * }
+     */
+    private function filtrosActivos(string $q, ?int $categoriaId, ?int $usuarioId): array
     {
         $where = ["p.estado = 'activo'"];
         $params = [];
@@ -581,45 +684,11 @@ final class CompraRepository
             $params[] = $categoriaId;
         }
 
-        $selectPrecio = $usuarioId !== null
-            ? 'ROUND(ult.precio_unidad, 4) AS ultimo_precio'
-            : 'NULL AS ultimo_precio';
-
-        $statement = $this->pdo->prepare(
-            'SELECT p.id, p.nombre, p.categoria_id, c.nombre AS categoria_nombre,
-                    p.unidad_base, p.imagen_url, p.kcal_100, p.peso_pieza_g,
-                    p.estado, p.created_at, p.updated_at,
-                    ' . $selectPrecio . '
-             FROM productos p
-             INNER JOIN categorias c ON c.id = p.categoria_id' . $join . '
-             WHERE ' . implode(' AND ', $where) . '
-             ORDER BY p.nombre ASC, p.id ASC
-             LIMIT ?'
-        );
-
-        $index = 1;
-
-        foreach (array_merge($joinParams, $params) as $param) {
-            $statement->bindValue(
-                $index++,
-                $param,
-                is_int($param) ? PDO::PARAM_INT : PDO::PARAM_STR
-            );
-        }
-
-        $statement->bindValue($index, $limit, PDO::PARAM_INT);
-        $statement->execute();
-
-        return array_map(
-            static function (array $row): array {
-                $producto = Producto::fromRow($row)->toPublicArray();
-                $producto['ultimo_precio'] = isset($row['ultimo_precio'])
-                    ? (float) $row['ultimo_precio']
-                    : null;
-
-                return $producto;
-            },
-            $statement->fetchAll()
-        );
+        return [
+            'where' => $where,
+            'params' => $params,
+            'join' => $join,
+            'joinParams' => $joinParams,
+        ];
     }
 }

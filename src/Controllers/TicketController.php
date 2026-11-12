@@ -8,6 +8,7 @@ use App\Middleware\AuthMiddleware;
 use App\Middleware\CsrfMiddleware;
 use App\Services\TicketService;
 use App\Support\Response;
+use App\Validators\CompraValidator;
 use DomainException;
 
 /**
@@ -51,11 +52,28 @@ final class TicketController
         // El OCR puede tardar más que una petición normal.
         @set_time_limit(120);
 
+        $clienteUuid = isset($_POST['cliente_uuid']) && is_string($_POST['cliente_uuid'])
+            ? trim($_POST['cliente_uuid'])
+            : '';
+        $uuidError = CompraValidator::validarClienteUuid(
+            $clienteUuid === '' ? null : $clienteUuid
+        );
+
+        if ($uuidError !== null) {
+            Response::fail(
+                'VALIDATION_ERROR',
+                'Revisa los datos enviados.',
+                422,
+                ['cliente_uuid' => $uuidError]
+            );
+        }
+
         try {
             $data = $this->tickets->procesar(
                 $usuario['id'],
                 is_array($_FILES['foto'] ?? null) ? $_FILES['foto'] : [],
-                isset($_POST['titulo']) && is_string($_POST['titulo']) ? $_POST['titulo'] : null
+                isset($_POST['titulo']) && is_string($_POST['titulo']) ? $_POST['titulo'] : null,
+                $clienteUuid === '' ? null : $clienteUuid
             );
         } catch (DomainException $error) {
             $this->responderError($error);

@@ -37,6 +37,12 @@ final class CompraValidator
             $errors['comercio'] = $comercioError;
         }
 
+        $uuidError = self::validarClienteUuid($data['cliente_uuid'] ?? null);
+
+        if ($uuidError !== null) {
+            $errors['cliente_uuid'] = $uuidError;
+        }
+
         $items = $data['items'] ?? null;
 
         if (!is_array($items) || !array_is_list($items)) {
@@ -238,6 +244,29 @@ final class CompraValidator
         }
 
         return $errors;
+    }
+
+    /**
+     * UUID que envía la app móvil para reintentar un guardado sin duplicarlo.
+     * Ausente o null = operación normal, sin idempotencia.
+     */
+    public static function validarClienteUuid(mixed $valor): ?string
+    {
+        if ($valor === null) {
+            return null;
+        }
+
+        if (
+            !is_string($valor)
+            || preg_match(
+                '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+                trim($valor)
+            ) !== 1
+        ) {
+            return 'El identificador de reintento no es válido.';
+        }
+
+        return null;
     }
 
     private static function validarComercio(mixed $valor): ?string

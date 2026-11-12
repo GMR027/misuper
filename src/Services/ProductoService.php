@@ -53,6 +53,40 @@ final class ProductoService
     }
 
     /**
+     * Snapshot del catálogo para la copia local de la app móvil.
+     *
+     * Si el cliente ya tiene la versión vigente solo recibe la confirmación,
+     * sin los cientos de productos.
+     *
+     * @return array{
+     *     version: string,
+     *     sin_cambios: bool,
+     *     generado_en?: string,
+     *     categorias?: array<int, array{id: int, nombre: string}>,
+     *     productos?: array<int, array<string, mixed>>
+     * }
+     */
+    public function snapshotMovil(int $usuarioId, ?string $versionConocida = null): array
+    {
+        $version = $this->productos->versionCatalogo($usuarioId);
+
+        if ($versionConocida !== null && hash_equals($version, $versionConocida)) {
+            return [
+                'version' => $version,
+                'sin_cambios' => true,
+            ];
+        }
+
+        return [
+            'version' => $version,
+            'sin_cambios' => false,
+            'generado_en' => gmdate('c'),
+            'categorias' => $this->productos->categorias(),
+            'productos' => $this->productos->catalogoParaMovil($usuarioId),
+        ];
+    }
+
+    /**
      * Catálogo del panel Admin: activos e inactivos según el filtro.
      *
      * @return array{items: array<int, array<string, mixed>>, total: int, page: int, per_page: int}
