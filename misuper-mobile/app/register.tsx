@@ -9,6 +9,7 @@ import { getApiUrl } from "@/lib/api";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { register } from "@/lib/auth";
 import { t, useLocale } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 
 /** Registration against the web backend; the token is returned right away. */
 export default function RegisterScreen() {
@@ -103,7 +104,7 @@ export default function RegisterScreen() {
         ) : null}
         <Button
           label={busy ? t("register.creating") : t("register.submit")}
-          icon="check"
+          icon={ICONOS.acciones.confirmar.android}
           onPress={() => void submit()}
           disabled={busy}
         />
@@ -121,7 +122,7 @@ export default function RegisterScreen() {
         <Button
           label={t("register.serverChange")}
           variant="outlined"
-          icon="settings"
+          icon={ICONOS.navegacion.ajustes.android}
           onPress={() => router.replace("/login")}
         />
       </Card>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Middleware\CsrfMiddleware;
 use App\Support\Asset;
 use App\Support\AvatarCatalog;
+use App\Support\Iconos;
 
 /** @var string $title */
 /** @var string $content */
@@ -57,67 +58,67 @@ $navItems = [
     'inicio' => [
         'href' => '/',
         'label' => 'Inicio',
-        'icono' => 'bi-house-door-fill',
+        'icono' => 'inicio',
         'desc' => 'Captura rápida y carrito',
     ],
     'lista-compras' => [
         'href' => '/lista-compras',
         'label' => 'Por comprar',
-        'icono' => 'bi-cart-check',
+        'icono' => 'por-comprar',
         'desc' => 'Lo que falta para tu próxima compra',
     ],
     'ticket' => [
         'href' => '/ticket',
         'label' => 'Ticket',
-        'icono' => 'bi-receipt-cutoff',
+        'icono' => 'ticket',
         'desc' => 'Escanea y registra una compra',
     ],
     'historial' => [
         'href' => '/historial',
         'label' => 'Historial',
-        'icono' => 'bi-clock-history',
+        'icono' => 'historial',
         'desc' => 'Compras y gastos anteriores',
     ],
     'menu' => [
         'href' => '/menu',
         'label' => 'Menú semanal',
-        'icono' => 'bi-calendar3-week-fill',
+        'icono' => 'menu-semanal',
         'desc' => 'Planifica los platillos de la semana',
     ],
     'recetas' => [
         'href' => '/recetas',
         'label' => 'Recetas',
-        'icono' => 'bi-egg-fried',
+        'icono' => 'recetas',
         'desc' => 'Explora tu recetario',
     ],
     'productos-omision' => [
         'href' => '/productos-omision',
         'label' => 'Productos por omisión',
-        'icono' => 'bi-slash-circle',
+        'icono' => 'productos-omision',
         'desc' => 'Ingredientes que no cuentan en tus recetas',
     ],
     'chef' => [
         'href' => '/chef',
         'label' => 'Chef',
-        'icono' => 'bi-stars',
+        'icono' => 'chef',
         'desc' => 'Genera recetas con IA',
     ],
     'metricas' => [
         'href' => '/metricas',
         'label' => 'Métricas',
-        'icono' => 'bi-bar-chart-line-fill',
+        'icono' => 'metricas',
         'desc' => 'Gastos y hábitos de compra',
     ],
     'costos' => [
         'href' => '/costos',
         'label' => 'Precios y costos',
-        'icono' => 'bi-tags-fill',
+        'icono' => 'precios',
         'desc' => 'Precios por producto y comercio',
     ],
     'notas' => [
         'href' => '/notas',
         'label' => 'Notas',
-        'icono' => 'bi-journal-richtext',
+        'icono' => 'notas',
         'desc' => 'Recordatorios y listas rápidas',
     ],
 ];
@@ -125,22 +126,22 @@ $navItems = [
 $navGrupos = [
     'compras' => [
         'label' => 'Compras',
-        'icono' => 'bi-bag-check-fill',
+        'icono' => 'compras',
         'items' => ['inicio', 'lista-compras', 'ticket', 'historial'],
     ],
     'cocina' => [
         'label' => 'Cocina',
-        'icono' => 'bi-egg-fried',
+        'icono' => 'cocina',
         'items' => ['menu', 'recetas', 'productos-omision'],
     ],
     'analisis' => [
         'label' => 'Análisis',
-        'icono' => 'bi-graph-up-arrow',
+        'icono' => 'analisis',
         'items' => ['metricas', 'costos'],
     ],
     'personal' => [
         'label' => 'Personal',
-        'icono' => 'bi-journal-richtext',
+        'icono' => 'personal',
         'items' => ['notas'],
     ],
 ];
@@ -151,36 +152,36 @@ if ($esAdmin) {
 
 $navAdmin = [
     'label' => 'Administración',
-    'icono' => 'bi-shield-lock-fill',
+    'icono' => 'admin',
     'items' => [
         'admin-recetas' => [
             'href' => '/admin/recetas',
             'label' => 'Catálogo de recetas',
-            'icono' => 'bi-egg-fried',
+            'icono' => 'admin-recetas',
             'desc' => 'Crear, editar y publicar recetas',
         ],
         'admin-categorias' => [
             'href' => '/admin/recetas/categorias',
             'label' => 'Categorías',
-            'icono' => 'bi-grid-3x3-gap-fill',
+            'icono' => 'admin-categorias',
             'desc' => 'Bebidas, guisados, ensaladas…',
         ],
         'admin-tipos' => [
             'href' => '/admin/recetas/tipos',
             'label' => 'Tipos de dieta',
-            'icono' => 'bi-tags-fill',
+            'icono' => 'admin-tipos',
             'desc' => 'Vegetariano, sin gluten, kosher…',
         ],
         'admin-productos' => [
             'href' => '/admin/productos',
             'label' => 'Productos',
-            'icono' => 'bi-box-seam',
+            'icono' => 'admin-productos',
             'desc' => 'Catálogo y fotografías',
         ],
         'admin-usuarios' => [
             'href' => '/admin/usuarios',
             'label' => 'Usuarios',
-            'icono' => 'bi-people-fill',
+            'icono' => 'admin-usuarios',
             'desc' => 'Cuentas y roles',
         ],
     ],
@@ -220,6 +221,7 @@ $grupoActivo = static function (array $claves) use ($active): bool {
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/avatars.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/modes.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/shell.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/controles.css'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body class="app<?= $active === 'inicio' ? ' app--quick' : '' ?>" data-user-role="<?= htmlspecialchars((string) ($usuario['rol'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
     <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
@@ -233,7 +235,7 @@ $grupoActivo = static function (array $claves) use ($active): bool {
             <?php if (!$ocultarNav): ?>
                 <nav class="app-nav" aria-label="Navegación principal">
                     <a class="app-nav__link<?= $active === 'inicio' ? ' is-active' : '' ?>" href="/"<?= $active === 'inicio' ? ' aria-current="page"' : '' ?>>
-                        <i class="bi bi-house-door-fill" aria-hidden="true"></i>
+                        <?= Iconos::render('navegacion', 'inicio') ?>
                         <span>Inicio</span>
                     </a>
                     <?php foreach ($gruposTablet as $gid): ?>
@@ -251,13 +253,13 @@ $grupoActivo = static function (array $claves) use ($active): bool {
                             aria-expanded="false"
                             aria-controls="nav-menu-<?= htmlspecialchars($gid, ENT_QUOTES, 'UTF-8') ?>"
                         >
-                            <i class="bi <?= htmlspecialchars($grupo['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i>
+                            <?= Iconos::render('grupos', $grupo['icono']) ?>
                             <span><?= htmlspecialchars($grupo['label'], ENT_QUOTES, 'UTF-8') ?></span>
                             <i class="bi bi-chevron-down app-nav__chevron" aria-hidden="true"></i>
                         </button>
                     <?php endforeach; ?>
                     <a class="app-nav__link<?= $active === 'notas' ? ' is-active' : '' ?>" href="/notas"<?= $active === 'notas' ? ' aria-current="page"' : '' ?>>
-                        <i class="bi bi-journal-richtext" aria-hidden="true"></i>
+                        <?= Iconos::render('navegacion', 'notas') ?>
                         <span>Notas</span>
                     </a>
                     <?php if ($esAdmin): ?>
@@ -269,7 +271,7 @@ $grupoActivo = static function (array $claves) use ($active): bool {
                             aria-expanded="false"
                             aria-controls="nav-menu-admin"
                         >
-                            <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
+                            <?= Iconos::render('grupos', 'admin') ?>
                             <span>Admin</span>
                             <i class="bi bi-chevron-down app-nav__chevron" aria-hidden="true"></i>
                         </button>
@@ -318,7 +320,7 @@ $grupoActivo = static function (array $claves) use ($active): bool {
                 <?php foreach ($grupo['items'] as $clave): ?>
                     <?php $item = $navItems[$clave]; ?>
                     <a class="nav-menu__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
-                        <span class="nav-menu__icon"><i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i></span>
+                        <span class="nav-menu__icon"><?= Iconos::render('navegacion', $item['icono']) ?></span>
                         <span class="nav-menu__text">
                             <strong><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></strong>
                             <small><?= htmlspecialchars($item['desc'], ENT_QUOTES, 'UTF-8') ?></small>
@@ -333,7 +335,7 @@ $grupoActivo = static function (array $claves) use ($active): bool {
                 <p class="nav-menu__label"><?= htmlspecialchars($navAdmin['label'], ENT_QUOTES, 'UTF-8') ?></p>
                 <?php foreach ($navAdmin['items'] as $clave => $item): ?>
                     <a class="nav-menu__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
-                        <span class="nav-menu__icon"><i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i></span>
+                        <span class="nav-menu__icon"><?= Iconos::render('navegacion', $item['icono']) ?></span>
                         <span class="nav-menu__text">
                             <strong><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></strong>
                             <small><?= htmlspecialchars($item['desc'], ENT_QUOTES, 'UTF-8') ?></small>
@@ -347,11 +349,11 @@ $grupoActivo = static function (array $claves) use ($active): bool {
     <div class="nav-menu nav-menu--account" id="nav-menu-cuenta" data-menu-panel="cuenta" hidden>
         <p class="nav-menu__label">Cuenta</p>
         <a class="nav-menu__link nav-menu__link--simple<?= $active === 'ajustes' ? ' is-active' : '' ?>" href="/ajustes"<?= $active === 'ajustes' ? ' aria-current="page"' : '' ?>>
-            <span class="nav-menu__icon"><i class="bi bi-sliders2" aria-hidden="true"></i></span>
+            <span class="nav-menu__icon"><?= Iconos::render('navegacion', 'ajustes') ?></span>
             <span class="nav-menu__text"><strong>Ajustes</strong><small>Perfil, tema y preferencias</small></span>
         </a>
         <button class="nav-menu__link nav-menu__link--simple nav-menu__link--danger" type="button" data-logout>
-            <span class="nav-menu__icon"><i class="bi bi-box-arrow-right" aria-hidden="true"></i></span>
+            <span class="nav-menu__icon"><?= Iconos::render('acciones', 'salir') ?></span>
             <span class="nav-menu__text"><strong>Cerrar sesión</strong><small>Salir de tu cuenta</small></span>
         </button>
     </div>
@@ -365,7 +367,7 @@ $grupoActivo = static function (array $claves) use ($active): bool {
                         <?php foreach ($grupo['items'] as $clave): ?>
                             <?php $item = $navItems[$clave]; ?>
                             <a class="app-sidebar__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
-                                <i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i>
+                                <?= Iconos::render('navegacion', $item['icono']) ?>
                                 <span><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
                             </a>
                         <?php endforeach; ?>
@@ -374,7 +376,7 @@ $grupoActivo = static function (array $claves) use ($active): bool {
                         <p class="app-sidebar__label"><?= htmlspecialchars($navAdmin['label'], ENT_QUOTES, 'UTF-8') ?></p>
                         <?php foreach ($navAdmin['items'] as $clave => $item): ?>
                             <a class="app-sidebar__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
-                                <i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i>
+                                <?= Iconos::render('navegacion', $item['icono']) ?>
                                 <span><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
                             </a>
                         <?php endforeach; ?>
@@ -392,19 +394,19 @@ $grupoActivo = static function (array $claves) use ($active): bool {
         <nav class="app-dock" data-dock aria-label="Navegación rápida">
             <div class="app-dock__bar">
                 <a class="app-dock__item app-dock__item--inicio<?= $active === 'inicio' ? ' is-active' : '' ?>" href="/" aria-label="Inicio" title="Inicio"<?= $active === 'inicio' ? ' aria-current="page"' : '' ?>>
-                    <i class="bi bi-house-door-fill" aria-hidden="true"></i>
+                    <?= Iconos::render('navegacion', 'inicio') ?>
                 </a>
                 <a class="app-dock__item app-dock__item--notas<?= $active === 'notas' ? ' is-active' : '' ?>" href="/notas" aria-label="Notas" title="Notas"<?= $active === 'notas' ? ' aria-current="page"' : '' ?>>
-                    <i class="bi bi-journal-richtext" aria-hidden="true"></i>
+                    <?= Iconos::render('navegacion', 'notas') ?>
                 </a>
                 <button class="app-dock__fab" type="button" data-dock-nuevo aria-expanded="false" aria-controls="dock-search-modal" aria-label="Buscar producto" title="Buscar producto">
-                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    <?= Iconos::render('acciones', 'agregar') ?>
                 </button>
                 <a class="app-dock__item app-dock__item--ticket<?= $active === 'ticket' ? ' is-active' : '' ?>" href="/ticket" aria-label="Ticket" title="Ticket"<?= $active === 'ticket' ? ' aria-current="page"' : '' ?>>
-                    <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+                    <?= Iconos::render('navegacion', 'ticket') ?>
                 </a>
                 <button class="app-dock__item app-dock__item--menu" type="button" data-dock-menu aria-expanded="false" aria-controls="dock-menu-modal" aria-label="Abrir menú" title="Menú">
-                    <i class="bi bi-list" aria-hidden="true"></i>
+                    <?= Iconos::render('acciones', 'menu') ?>
                 </button>
             </div>
         </nav>
@@ -416,10 +418,10 @@ $grupoActivo = static function (array $claves) use ($active): bool {
                 <span class="dock-modal__grabber" aria-hidden="true"></span>
                 <div class="dock-modal__head">
                     <h2 class="dock-modal__title" id="dock-search-title">
-                        <i class="bi bi-search" aria-hidden="true"></i> Buscar producto
+                        <?= Iconos::render('acciones', 'buscar') ?> Buscar producto
                     </h2>
-                    <button class="dock-modal__close" type="button" data-dock-close aria-label="Cerrar">
-                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    <button class="icon-btn dock-modal__close" type="button" data-dock-close aria-label="Cerrar">
+                        <?= Iconos::render('acciones', 'cerrar') ?>
                     </button>
                 </div>
                 <div class="dock-modal__body">
@@ -430,7 +432,7 @@ $grupoActivo = static function (array $claves) use ($active): bool {
                 </div>
                 <div class="dock-modal__foot">
                     <a class="btn btn-outline-primary w-100" href="/">
-                        <i class="bi bi-cart3" aria-hidden="true"></i> Ir a Inicio
+                        <?= Iconos::render('navegacion', 'inicio') ?> Ir a Inicio
                     </a>
                 </div>
             </div>
@@ -441,8 +443,8 @@ $grupoActivo = static function (array $claves) use ($active): bool {
                 <span class="dock-modal__grabber" aria-hidden="true"></span>
                 <div class="dock-modal__head">
                     <h2 class="dock-modal__title" id="dock-menu-title">Menú</h2>
-                    <button class="dock-modal__close" type="button" data-dock-close aria-label="Cerrar">
-                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    <button class="icon-btn dock-modal__close" type="button" data-dock-close aria-label="Cerrar">
+                        <?= Iconos::render('acciones', 'cerrar') ?>
                     </button>
                 </div>
                 <div class="dock-user">
@@ -466,7 +468,7 @@ $grupoActivo = static function (array $claves) use ($active): bool {
                         <?php foreach ($grupo['items'] as $clave): ?>
                             <?php $item = $navItems[$clave]; ?>
                             <a class="dock-menu__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
-                                <span class="dock-menu__icon"><i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i></span>
+                                <span class="dock-menu__icon"><?= Iconos::render('navegacion', $item['icono']) ?></span>
                                 <span class="dock-menu__text"><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
                                 <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
                             </a>
@@ -476,7 +478,7 @@ $grupoActivo = static function (array $claves) use ($active): bool {
                         <p class="dock-menu__label"><?= htmlspecialchars($navAdmin['label'], ENT_QUOTES, 'UTF-8') ?></p>
                         <?php foreach ($navAdmin['items'] as $clave => $item): ?>
                             <a class="dock-menu__link<?= $active === $clave ? ' is-active' : '' ?>" href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $active === $clave ? ' aria-current="page"' : '' ?>>
-                                <span class="dock-menu__icon"><i class="bi <?= htmlspecialchars($item['icono'], ENT_QUOTES, 'UTF-8') ?>" aria-hidden="true"></i></span>
+                                <span class="dock-menu__icon"><?= Iconos::render('navegacion', $item['icono']) ?></span>
                                 <span class="dock-menu__text"><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
                                 <i class="bi bi-chevron-right dock-menu__chevron" aria-hidden="true"></i>
                             </a>

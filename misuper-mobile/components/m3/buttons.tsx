@@ -49,11 +49,14 @@ const BUTTONS = {
   elevated: ElevatedButton,
 };
 
+export type ButtonTone = "default" | "danger";
+
 /** A Material 3 button with an optional leading symbol. Draws its own Host outside Compose. */
 export function Button({
   label,
   onPress,
   variant = "filled",
+  tone = "default",
   icon,
   disabled = false,
   modifiers,
@@ -62,6 +65,7 @@ export function Button({
   label: string;
   onPress: () => void;
   variant?: ButtonVariant;
+  tone?: ButtonTone;
   icon?: SymbolName;
   disabled?: boolean;
   modifiers?: ModifierConfig[];
@@ -70,7 +74,9 @@ export function Button({
   const { colors } = useTheme();
   const Component = BUTTONS[variant];
   const filled = variant === "filled";
-  const contentColor = filled ? colors.onAccent : undefined;
+  const danger = tone === "danger";
+  const containerColor = danger ? colors.error : colors.accent;
+  const contentColor = danger ? colors.onError : colors.onAccent;
   return (
     <Compose style={style}>
       <Component
@@ -78,21 +84,26 @@ export function Button({
         enabled={!disabled}
         colors={
           filled
-            ? { containerColor: colors.accent, contentColor: colors.onAccent }
-            : undefined
+            ? { containerColor, contentColor }
+            : danger
+              ? { contentColor: colors.error }
+              : undefined
         }
       >
         {icon ? (
           <>
             <SymbolIcon
               name={icon}
-              size={18}
-              tint={filled ? contentColor : undefined}
+              size={20}
+              tint={filled ? contentColor : danger ? colors.error : undefined}
             />
             <Spacer modifiers={[width(8)]} />
           </>
         ) : null}
-        <M3Text variant="label" color={filled ? null : undefined}>
+        <M3Text
+          variant="label"
+          color={filled ? null : danger ? colors.error : undefined}
+        >
           {label}
         </M3Text>
       </Component>
@@ -115,8 +126,9 @@ export function IconButton({
   label,
   onPress,
   variant = "standard",
+  tone = "default",
   disabled = false,
-  size = 40,
+  size = 48,
   iconSize = 24,
   color,
   style,
@@ -125,6 +137,7 @@ export function IconButton({
   label: string;
   onPress: () => void;
   variant?: IconButtonVariant;
+  tone?: ButtonTone;
   disabled?: boolean;
   size?: number;
   iconSize?: number;
@@ -133,6 +146,7 @@ export function IconButton({
 }) {
   const { colors } = useTheme();
   const Component = ICON_BUTTONS[variant];
+  const contentColor = color ?? (tone === "danger" ? colors.error : undefined);
   return (
     <Compose style={style}>
       <Component
@@ -140,16 +154,56 @@ export function IconButton({
         enabled={!disabled}
         colors={
           variant === "filled"
-            ? { containerColor: colors.accent, contentColor: colors.onAccent }
-            : color
-              ? { contentColor: color }
+            ? {
+                containerColor:
+                  tone === "danger" ? colors.error : colors.accent,
+                contentColor:
+                  tone === "danger" ? colors.onError : colors.onAccent,
+              }
+            : contentColor
+              ? { contentColor }
               : undefined
         }
         modifiers={[sizeModifier(size, size)]}
       >
-        <SymbolIcon name={icon} size={iconSize} label={label} />
+        <SymbolIcon
+          name={icon}
+          size={iconSize}
+          label={label}
+          tint={
+            variant === "filled"
+              ? tone === "danger"
+                ? colors.onError
+                : colors.onAccent
+              : contentColor
+          }
+        />
       </Component>
     </Compose>
+  );
+}
+
+/** Listo para el selector de vista: un icono que comunica su estado. */
+export function IconToggle({
+  icon,
+  label,
+  selected,
+  onPress,
+}: {
+  icon: SymbolName;
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <IconButton
+      icon={icon}
+      label={label}
+      onPress={onPress}
+      variant={selected ? "tonal" : "standard"}
+      size={40}
+      iconSize={20}
+    />
   );
 }
 
@@ -205,13 +259,13 @@ export function CompactButton({
       verticalAlignment="center"
       horizontalArrangement="center"
       modifiers={[
-        height(34),
+        height(40),
         clip(Shapes.Material.Pill),
         background(container),
         ...(variant === "outlined"
           ? [border(1, colors.border)]
           : []),
-        padding(10, 0, 10, 0),
+        padding(12, 0, 12, 0),
         ...(disabled ? [alpha(0.45)] : [clickable(onPress)]),
         ...(modifiers ?? []),
       ]}

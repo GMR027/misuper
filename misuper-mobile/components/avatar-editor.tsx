@@ -11,6 +11,7 @@ import { useTheme } from "@/components/theme";
 import { apiErrorMessage, apiFetch, apiUpload } from "@/lib/api";
 import { updateUser, useAuth, type AuthUser } from "@/lib/auth";
 import { avatarGradient } from "@/lib/avatars";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
 
@@ -132,7 +133,7 @@ export function AvatarEditor() {
           <Button
             label={t("avatar.remove")}
             variant="outlined"
-            icon="delete"
+            icon={ICONOS.acciones.quitar.android}
             onPress={remove}
             disabled={busy}
           />
@@ -175,7 +176,7 @@ export function AvatarEditor() {
           <Text style={caption(colors)}>{t("avatar.photoHint")}</Text>
           <Button
             label={busy ? t("avatar.uploading") : t("avatar.choosePhoto")}
-            icon="upload-file"
+            icon={ICONOS.acciones.subir.android}
             onPress={() => void pickPhoto()}
             disabled={busy}
           />

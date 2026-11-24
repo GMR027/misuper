@@ -10,6 +10,7 @@ import {
 import { IconButton } from "@/components/m3/buttons";
 import { M3Host } from "@/components/m3/host";
 import { M3Text } from "@/components/m3/text";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t } from "@/lib/i18n";
 
 export function DrawerTopAppBar({
@@ -26,7 +27,7 @@ export function DrawerTopAppBar({
         horizontalArrangement={{ spacedBy: 4 }}
         modifiers={[fillMaxWidth(), height(64), padding(4, 0, 16, 0)]}
       >
-        <IconButton icon="menu" label={t("drawer.open")} onPress={onMenu} />
+        <IconButton icon={ICONOS.acciones.menu.android} label={t("drawer.open")} onPress={onMenu} />
         <M3Text variant="title" maxLines={1} modifiers={[weight(1)]}>
           {title}
         </M3Text>

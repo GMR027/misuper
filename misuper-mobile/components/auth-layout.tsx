@@ -15,6 +15,7 @@ import { PageBackground, useTheme } from "@/components/theme";
 import { pageGutter } from "@/lib/layout";
 import { useResponsive } from "@/lib/responsive";
 import { t } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 
 export function AuthLayout({
   title,
@@ -75,7 +76,7 @@ export function AuthLayout({
         >
           <View style={{ flex: useTwoPane ? 1 : undefined, width: "100%" }}>
             <Card>
-              <SymbolIcon name="shopping-cart" size={32} tint={colors.accent} />
+              <SymbolIcon name={ICONOS.navegacion["por-comprar"].android} size={32} tint={colors.accent} />
               <M3Text variant="headline">{title}</M3Text>
               <M3Text variant="body" color="muted">
                 {subtitle}

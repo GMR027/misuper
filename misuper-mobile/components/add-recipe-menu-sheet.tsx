@@ -11,6 +11,7 @@ import { useTheme } from "@/components/theme";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { getLocale, t, useLocale } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
+import { ICONOS } from "@/lib/iconos.generated";
 
 interface Semana {
   semana: string;
@@ -174,7 +175,7 @@ export function AddRecipeMenuSheet({
       footer={
         <Button
           label={saving ? t("common.loading") : t("recipes.addToMenuAction")}
-          icon="check"
+          icon={ICONOS.acciones.guardar.android}
           onPress={() => void save()}
           disabled={saving || week === ""}
         />

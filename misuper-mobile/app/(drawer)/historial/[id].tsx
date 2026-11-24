@@ -15,6 +15,7 @@ import { NativeContent } from "@/components/m3/host";
 import { TextField } from "@/components/m3/inputs";
 import { M3Text } from "@/components/m3/text";
 import type { Producto } from "@/lib/products";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import { useResponsive } from "@/lib/responsive";
 import { apiErrorMessage, apiFieldError, apiFetch } from "@/lib/api";
@@ -342,7 +343,7 @@ export default function PurchaseDetailScreen() {
                     photoLoading ? t("common.loading") : t("history.viewTicket")
                   }
                   variant="outlined"
-                  icon="receipt-long"
+                  icon={ICONOS.navegacion.ticket.android}
                   onPress={() => void openTicketPhoto()}
                   disabled={photoLoading}
                 />
@@ -383,7 +384,7 @@ export default function PurchaseDetailScreen() {
               ) : null}
               <Button
                 label={savingData ? t("common.loading") : t("history.saveData")}
-                icon="check"
+                icon={ICONOS.acciones.guardar.android}
                 onPress={() => void saveData()}
                 disabled={savingData}
               />
@@ -409,7 +410,7 @@ export default function PurchaseDetailScreen() {
               <Button
                 label={t("history.addItem")}
                 variant="outlined"
-                icon="add"
+                icon={ICONOS.acciones.agregar.android}
                 onPress={openAdd}
               />
             </View>
@@ -492,10 +493,10 @@ export default function PurchaseDetailScreen() {
                       </Text>
                     </Pressable>
                     <IconButton
-                      icon="delete"
+                      icon={ICONOS.acciones.quitar.android}
                       label={t("history.deleteItem")}
                       onPress={() => removeItem(item)}
-                      size={32}
+                      size={36}
                       iconSize={18}
                       color={colors.error}
                     />
@@ -507,7 +508,8 @@ export default function PurchaseDetailScreen() {
             <Button
               label={t("history.deletePurchase")}
               variant="outlined"
-              icon="delete"
+              tone="danger"
+              icon={ICONOS.acciones.eliminar.android}
               onPress={removePurchase}
             />
           </>
@@ -521,7 +523,7 @@ export default function PurchaseDetailScreen() {
         footer={
           <Button
             label={savingItem ? t("common.loading") : t("common.save")}
-            icon="check"
+            icon={ICONOS.acciones.guardar.android}
             onPress={() => void saveItem()}
             disabled={savingItem}
           />
@@ -546,7 +548,7 @@ export default function PurchaseDetailScreen() {
                 : t("history.pickProduct")
             }
             variant="outlined"
-            icon="search"
+            icon={ICONOS.acciones.buscar.android}
             onPress={() => {
               setEditorOpen(false);
               setPickerOpen(true);

@@ -11,6 +11,7 @@ import { CART_BAR_HEIGHT, DOCK_HEIGHT, RAIL_WIDTH } from "@/lib/layout";
 import { useResponsive } from "@/lib/responsive";
 import { useStore } from "@/lib/store";
 import { toastStore, type ToastKind } from "@/lib/toast";
+import { ICONOS } from "@/lib/iconos.generated";
 
 export function ToastHost({ cartBar = false }: { cartBar?: boolean }) {
   const toast = useStore(toastStore);
@@ -61,7 +62,11 @@ export function ToastHost({ cartBar = false }: { cartBar?: boolean }) {
             modifiers={[fillMaxWidth()]}
           >
             <SymbolIcon
-              name={toast.kind === "error" ? "info" : "check"}
+              name={
+                toast.kind === "error"
+                  ? ICONOS.acciones.info.android
+                  : ICONOS.acciones.exito.android
+              }
               size={18}
               tint={tone}
             />

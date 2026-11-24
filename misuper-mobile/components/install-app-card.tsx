@@ -15,6 +15,7 @@ import {
 import { refreshAppUpdate, useAppUpdate } from "@/lib/app-update-store";
 import { t, useLocale } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
+import { ICONOS } from "@/lib/iconos.generated";
 
 const APK_FILE = "misuper-update.apk";
 
@@ -221,7 +222,7 @@ export function InstallAppCard() {
       {status === "outdated" ? (
         <Button
           label={downloading ? t("install.downloading") : t("install.downloadUpdate")}
-          icon="refresh"
+          icon={ICONOS.acciones.actualizar.android}
           onPress={() => void install()}
           disabled={downloading}
         />

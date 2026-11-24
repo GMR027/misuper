@@ -7,6 +7,7 @@ import { SymbolIcon } from "@/components/m3/text";
 import { useTheme } from "@/components/theme";
 import { t, useLocale } from "@/lib/i18n";
 import { usePendientes } from "@/lib/offline/outbox";
+import { ICONOS } from "@/lib/iconos.generated";
 
 export function PendingBadge() {
   useLocale();
@@ -35,7 +36,7 @@ export function PendingBadge() {
           borderColor: `${colors.warning}55`,
         }}
       >
-        <SymbolIcon name="upload-file" size={18} tint={colors.warning} />
+        <SymbolIcon name={ICONOS.acciones.subir.android} size={18} tint={colors.warning} />
         <Text
           style={{ color: colors.warning, fontSize: 12, fontWeight: "700" }}
         >

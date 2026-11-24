@@ -9,6 +9,7 @@ import { Spinner } from "@/components/m3/feedback";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
 import { getLocale, t, useLocale } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 import { useResponsive } from "@/lib/responsive";
 
 interface CompraSummary {
@@ -247,7 +248,7 @@ export default function HistoryScreen() {
         <Button
           label={loadingMore ? t("common.loading") : t("history.loadMore")}
           variant="outlined"
-          icon="refresh"
+          icon={ICONOS.acciones["cargar-mas"].android}
           onPress={() => void loadMore()}
           disabled={loadingMore}
         />

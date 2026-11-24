@@ -1,0 +1,416 @@
+/*
+ * controles.css — sistema de botones e iconos de Mi Súper.
+ *
+ * Se carga después de theme.css, texture.css, modes.css y shell.css para que
+ * los controles compartan medidas, estados y jerarquía en toda la app.
+ * Los colores salen de las variables de la paleta activa: las 15 paletas y
+ * el modo oscuro funcionan sin reglas adicionales.
+ */
+
+:root {
+    --control-h-sm: 2.25rem;
+    --control-h-md: 2.75rem;
+    --control-h-lg: 3.25rem;
+    --control-radius: 0.75rem;
+    --control-radius-pill: 999px;
+    --control-icon-sm: 1.125rem;
+    --control-icon-md: 1.25rem;
+    --control-icon-lg: 1.5rem;
+    --control-gap: 0.5rem;
+    --control-ring: 0 0 0 3px rgba(var(--focus-rgb), 0.32);
+    --control-shadow: 0 8px 20px rgba(var(--shadow-rgb), 0.14);
+    --control-shadow-strong: 0 14px 28px rgba(var(--shadow-rgb), 0.22);
+}
+
+/* Botones ------------------------------------------------------------- */
+
+.btn {
+    --bs-btn-border-radius: var(--control-radius);
+    --bs-btn-padding-y: 0.55rem;
+    --bs-btn-padding-x: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--control-gap);
+    min-height: var(--control-h-md);
+    font-weight: 650;
+    line-height: 1.15;
+    text-decoration: none;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.btn > .bi {
+    flex: 0 0 auto;
+    margin-right: 0;
+    font-size: var(--control-icon-md);
+    line-height: 1;
+}
+
+.admin-actions .btn .bi {
+    margin-right: 0;
+}
+
+.btn-sm {
+    min-height: var(--control-h-sm);
+    padding: 0.35rem 0.7rem;
+    font-size: 0.82rem;
+}
+
+.btn-sm > .bi {
+    font-size: var(--control-icon-sm);
+}
+
+.btn-lg {
+    min-height: var(--control-h-lg);
+    padding: 0.7rem 1.3rem;
+    font-size: 1rem;
+}
+
+.btn-lg > .bi {
+    font-size: var(--control-icon-lg);
+}
+
+.btn:focus-visible {
+    outline: none;
+    box-shadow: var(--control-ring);
+}
+
+.btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.btn:disabled,
+.btn.disabled {
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.55;
+}
+
+/* Jerarquía tonal: menos ruido que un contorno y más énfasis que el texto. */
+.btn-tonal {
+    color: var(--p-900);
+    background: rgba(var(--p-rgb), 0.12);
+    border: 1px solid rgba(var(--p-rgb), 0.2);
+}
+
+.btn-tonal:hover:not(:disabled),
+.btn-tonal:focus-visible:not(:disabled) {
+    color: var(--p-950);
+    background: rgba(var(--p-rgb), 0.18);
+    border-color: rgba(var(--p-rgb), 0.32);
+}
+
+.btn-danger {
+    color: #fff;
+    background: #b03a35;
+    border: 1px solid transparent;
+    box-shadow: 0 10px 22px rgba(176, 58, 53, 0.18);
+}
+
+.btn-danger:hover:not(:disabled),
+.btn-danger:focus-visible:not(:disabled) {
+    color: #fff;
+    background: #8f2b26;
+    border-color: transparent;
+}
+
+.btn-outline-danger {
+    --bs-btn-color: #b03a35;
+    --bs-btn-border-color: #eccac7;
+    --bs-btn-hover-bg: #b03a35;
+    --bs-btn-hover-border-color: #b03a35;
+    --bs-btn-active-bg: #8f2b26;
+    --bs-btn-active-border-color: #8f2b26;
+    background: var(--surface);
+}
+
+.btn-outline-secondary {
+    background: var(--surface);
+}
+
+.btn-link {
+    min-height: auto;
+    padding: 0;
+    box-shadow: none;
+}
+
+/* Los botones compactos de la pantalla rápida conservan su geometría: son
+ * iconos con una caja propia, no botones con texto. */
+.btn.quick-toolbar__menu {
+    padding: 0;
+    border-radius: 50%;
+}
+
+.btn.quick-toolbar__new,
+.btn.result__calc {
+    padding: 0 0.75rem;
+}
+
+.btn.quick-toolbar__toggle {
+    padding-inline: 0.75rem;
+}
+
+.btn.password-field__toggle {
+    padding: 0 0.75rem;
+}
+
+/* Botones de icono ---------------------------------------------------- */
+
+.icon-btn {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: var(--control-h-md);
+    height: var(--control-h-md);
+    padding: 0;
+    color: var(--muted);
+    font: inherit;
+    line-height: 1;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--control-radius);
+    cursor: pointer;
+    text-decoration: none;
+    transition:
+        color 0.15s ease,
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.icon-btn > .bi {
+    font-size: var(--control-icon-md);
+    line-height: 1;
+}
+
+.icon-btn:hover,
+.icon-btn:focus-visible {
+    color: var(--ink);
+    background: var(--surface-3);
+}
+
+.icon-btn:focus-visible {
+    outline: none;
+    border-color: var(--p-300);
+    box-shadow: var(--control-ring);
+}
+
+.icon-btn:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.icon-btn:disabled,
+.icon-btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.icon-btn--tonal {
+    color: var(--p-800);
+    background: rgba(var(--p-rgb), 0.12);
+}
+
+.icon-btn--tonal:hover,
+.icon-btn--tonal:focus-visible {
+    color: var(--p-950);
+    background: rgba(var(--p-rgb), 0.2);
+}
+
+.icon-btn--outlined {
+    color: var(--body-ink);
+    background: var(--surface);
+    border-color: var(--border-strong);
+}
+
+.icon-btn--outlined:hover,
+.icon-btn--outlined:focus-visible {
+    color: var(--ink);
+    background: var(--surface-2);
+    border-color: var(--scroll-thumb-hover);
+}
+
+.icon-btn--filled {
+    color: #fff;
+    background: var(--p-700);
+    border-color: transparent;
+    box-shadow: var(--control-shadow);
+}
+
+.icon-btn--filled:hover,
+.icon-btn--filled:focus-visible {
+    color: #fff;
+    background: var(--p-900);
+}
+
+.icon-btn--danger {
+    color: #b03a35;
+}
+
+.icon-btn--danger:hover,
+.icon-btn--danger:focus-visible {
+    color: #8f2b26;
+    background: rgba(176, 58, 53, 0.1);
+}
+
+.icon-btn--sm {
+    width: var(--control-h-sm);
+    height: var(--control-h-sm);
+    border-radius: 0.65rem;
+}
+
+.icon-btn--sm > .bi {
+    font-size: var(--control-icon-sm);
+}
+
+.icon-btn--lg {
+    width: var(--control-h-lg);
+    height: var(--control-h-lg);
+}
+
+.icon-btn--lg > .bi {
+    font-size: var(--control-icon-lg);
+}
+
+.icon-btn--pill {
+    border-radius: var(--control-radius-pill);
+}
+
+/* Las acciones de fila no deben apretarse ni parecer enlaces sueltos. */
+.table-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.table-actions .btn {
+    min-height: var(--control-h-sm);
+}
+
+.table-actions .icon-btn {
+    width: var(--control-h-sm);
+    height: var(--control-h-sm);
+}
+
+/* Los botones de cerrar heredados conservan su posición, pero comparten
+ * tamaño, foco y estado hover con el resto de iconos. */
+.quick-cart__close,
+.quick-sheet__close,
+.dock-modal__close,
+.note-icon-btn,
+.ticket-photo-modal__close,
+.note-lightbox__close {
+    display: inline-grid;
+    place-items: center;
+    width: var(--control-h-md);
+    height: var(--control-h-md);
+    padding: 0;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--control-radius);
+    cursor: pointer;
+    transition:
+        color 0.15s ease,
+        background-color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.quick-cart__close:hover,
+.quick-sheet__close:hover,
+.dock-modal__close:hover,
+.note-icon-btn:hover,
+.ticket-photo-modal__close:hover,
+.note-lightbox__close:hover,
+.quick-cart__close:focus-visible,
+.quick-sheet__close:focus-visible,
+.dock-modal__close:focus-visible,
+.note-icon-btn:focus-visible,
+.ticket-photo-modal__close:focus-visible,
+.note-lightbox__close:focus-visible {
+    color: var(--ink);
+    background: var(--surface-3);
+    border-color: var(--border);
+}
+
+.quick-cart__close:focus-visible,
+.quick-sheet__close:focus-visible,
+.dock-modal__close:focus-visible,
+.note-icon-btn:focus-visible,
+.ticket-photo-modal__close:focus-visible,
+.note-lightbox__close:focus-visible {
+    outline: none;
+    box-shadow: var(--control-ring);
+}
+
+.note-icon-btn--danger {
+    color: #b03a35;
+}
+
+.note-icon-btn--danger:hover,
+.note-icon-btn--danger:focus-visible {
+    color: #8f2b26;
+    background: rgba(176, 58, 53, 0.1);
+}
+
+/* Objetivo táctil cómodo en pantallas pequeñas. */
+@media (max-width: 767.98px) {
+    .btn:not(.btn-sm):not(.btn-link) {
+        min-height: var(--control-h-md);
+    }
+
+    .icon-btn {
+        min-width: var(--control-h-md);
+        min-height: var(--control-h-md);
+    }
+}
+
+@media (max-width: 991.98px) {
+    .admin-actions .btn {
+        min-width: var(--control-h-md);
+        min-height: var(--control-h-md);
+        padding-inline: 0.55rem;
+    }
+}
+
+html[data-mode="dark"] .btn-danger {
+    color: #3b0907;
+    background: #ffb4ae;
+}
+
+html[data-mode="dark"] .btn-danger:hover:not(:disabled),
+html[data-mode="dark"] .btn-danger:focus-visible:not(:disabled) {
+    background: #ffd7d3;
+}
+
+html[data-mode="dark"] .icon-btn--danger,
+html[data-mode="dark"] .note-icon-btn--danger {
+    color: #ffb4ae;
+}
+
+html[data-mode="dark"] .icon-btn--danger:hover,
+html[data-mode="dark"] .note-icon-btn--danger:hover {
+    color: #ffd7d3;
+    background: rgba(190, 60, 55, 0.2);
+}
+
+/* Un solo acceso al carrito visible por breakpoint en la pantalla rápida:
+ * escritorio usa el resumen del héroe, móvil vertical la barra y móvil
+ * horizontal la barra inferior. */
+@media (min-width: 768px) {
+    .quick-page .quick-toolbar__cart {
+        display: none;
+    }
+}
+
+@media (orientation: landscape) and (max-width: 767.98px) {
+    .quick-page .quick-toolbar__cart {
+        display: none;
+    }
+}

@@ -10,6 +10,7 @@ import { TextField } from "@/components/m3/inputs";
 import { useTheme } from "@/components/theme";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { formatCurrency, formatQuantity, unitLabel } from "@/lib/format";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
 
@@ -172,7 +173,7 @@ export function PriceDetailSheet({
       footer={
         <Button
           label={saving ? t("common.loading") : t("prices.saveManual")}
-          icon="check"
+          icon={ICONOS.acciones.guardar.android}
           onPress={() => void save()}
           disabled={saving || loading}
         />
@@ -271,7 +272,7 @@ export function PriceDetailSheet({
                 <Button
                   label={t("prices.removeManual")}
                   variant="outlined"
-                  icon="delete"
+                  icon={ICONOS.acciones.eliminar.android}
                   onPress={() => void remove()}
                   disabled={saving}
                 />

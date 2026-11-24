@@ -16,6 +16,7 @@ import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { DOCK_HEIGHT, RAIL_WIDTH } from "@/lib/layout";
 import { useResponsive } from "@/lib/responsive";
 import { t, useLocale } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 import {
   EMPTY_RECIPE_FILTERS,
   readSelectedPurchases,
@@ -217,7 +218,7 @@ export default function RecipesScreen() {
         onChangeText={(value) => patch({ q: value })}
         label={t("recipes.search")}
         placeholder={t("recipes.searchPlaceholder")}
-        leadingIcon="search"
+        leadingIcon={ICONOS.acciones.buscar.android}
       />
 
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -495,7 +496,7 @@ export default function RecipesScreen() {
           </Pressable>
           <Button
             label={t("recipes.createList")}
-            icon="shopping-cart"
+            icon={ICONOS.navegacion["por-comprar"].android}
             onPress={() => setMultiOpen(true)}
           />
         </View>

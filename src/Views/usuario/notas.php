@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Middleware\AuthMiddleware;
 use App\Services\NotaService;
+use App\Support\Iconos;
 
 $usuario = $usuario ?? AuthMiddleware::usuario();
 
@@ -21,7 +22,7 @@ ob_start();
     <div class="notes-head">
         <div>
             <h2 class="mb-1">
-                <span class="title-icon"><i class="bi bi-journal-richtext" aria-hidden="true"></i></span>
+                <span class="title-icon"><?= Iconos::render('navegacion', 'notas') ?></span>
                 Notas
             </h2>
             <p class="text-muted mb-0">
@@ -30,14 +31,14 @@ ob_start();
         </div>
 
         <button class="btn btn-primary" type="button" data-nota-nueva>
-            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <?= Iconos::render('acciones', 'agregar') ?>
             Nueva nota
         </button>
     </div>
 
     <div class="notes-toolbar">
         <div class="notes-search">
-            <i class="bi bi-search" aria-hidden="true"></i>
+            <?= Iconos::render('acciones', 'buscar') ?>
             <input
                 class="form-control"
                 type="search"
@@ -149,8 +150,8 @@ ob_start();
 
 <!-- Foto ampliada -->
 <div class="app-modal note-lightbox" data-foto-modal hidden role="dialog" aria-modal="true" aria-label="Foto ampliada">
-    <button class="note-lightbox__close" type="button" aria-label="Cerrar" data-foto-cerrar>
-        <i class="bi bi-x-lg" aria-hidden="true"></i>
+    <button class="icon-btn note-lightbox__close" type="button" aria-label="Cerrar" data-foto-cerrar>
+        <?= Iconos::render('acciones', 'cerrar') ?>
     </button>
     <img class="note-lightbox__img" alt="Foto de la nota" data-foto-grande>
 </div>

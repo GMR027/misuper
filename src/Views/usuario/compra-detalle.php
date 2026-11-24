@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Middleware\AuthMiddleware;
+use App\Support\Iconos;
 
 $usuario = $usuario ?? AuthMiddleware::usuario();
 
@@ -231,13 +232,13 @@ ob_start();
                     </div>
 
                     <button
-                        class="detail-item__remove btn btn-sm btn-outline-danger"
+                        class="detail-item__remove icon-btn icon-btn--sm icon-btn--danger"
                         type="button"
                         data-remove-item
                         data-item-id="<?= $itemId ?>"
                         aria-label="Borrar <?= htmlspecialchars((string) $item['nombre'], ENT_QUOTES, 'UTF-8') ?>"
                     >
-                        ×
+                        <?= Iconos::render('acciones', 'quitar') ?>
                     </button>
                 </li>
             <?php endforeach; ?>
@@ -351,8 +352,8 @@ ob_start();
 </div>
 
 <div class="app-modal ticket-photo-modal" data-ticket-foto-modal hidden role="dialog" aria-modal="true" aria-label="Ticket original">
-    <button class="ticket-photo-modal__close" type="button" data-ticket-foto-close aria-label="Cerrar foto del ticket">
-        <i class="bi bi-x-lg" aria-hidden="true"></i>
+    <button class="icon-btn ticket-photo-modal__close" type="button" data-ticket-foto-close aria-label="Cerrar foto del ticket">
+        <?= Iconos::render('acciones', 'cerrar') ?>
     </button>
     <img class="ticket-photo-modal__img" alt="Foto del ticket original" data-ticket-foto-img>
 </div>

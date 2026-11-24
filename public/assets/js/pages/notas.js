@@ -3,6 +3,7 @@
  */
 
 import { fetchApi } from '../modules/api.js';
+import { icono as iconoHtml } from '../modules/iconos.generated.js';
 import { showToast } from '../modules/toast.js';
 
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -156,11 +157,11 @@ function init(root) {
         const acciones = document.createElement('div');
         acciones.className = 'note-card__actions';
 
-        const editar = iconButton('bi-pencil', 'Editar nota');
+        const editar = iconButton('editar', 'Editar nota');
         editar.dataset.editar = String(nota.id);
         editar.addEventListener('click', () => abrirEditor(nota));
 
-        const borrar = iconButton('bi-trash3', 'Eliminar nota', true);
+        const borrar = iconButton('eliminar', 'Eliminar nota', true);
         borrar.dataset.borrar = String(nota.id);
         borrar.addEventListener('click', () => abrirConfirmacion(nota));
 
@@ -425,7 +426,7 @@ function init(root) {
         quitar.className = 'note-photo__remove';
         quitar.type = 'button';
         quitar.setAttribute('aria-label', 'Quitar foto');
-        quitar.innerHTML = '<i class="bi bi-x-lg" aria-hidden="true"></i>';
+        quitar.innerHTML = iconoHtml('acciones', 'quitar');
         quitar.addEventListener('click', onRemove);
         caja.append(quitar);
 
@@ -637,13 +638,13 @@ function init(root) {
      * @param {boolean} [peligro]
      * @returns {HTMLButtonElement}
      */
-    function iconButton(icono, label, peligro = false) {
+    function iconButton(accion, label, peligro = false) {
         const boton = document.createElement('button');
         boton.type = 'button';
-        boton.className = peligro ? 'note-icon-btn note-icon-btn--danger' : 'note-icon-btn';
+        boton.className = peligro ? 'icon-btn icon-btn--sm icon-btn--danger' : 'icon-btn icon-btn--sm';
         boton.title = label;
         boton.setAttribute('aria-label', label);
-        boton.innerHTML = `<i class="bi ${icono}" aria-hidden="true"></i>`;
+        boton.innerHTML = iconoHtml('acciones', accion);
 
         return boton;
     }

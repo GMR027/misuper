@@ -16,7 +16,6 @@ import {
   Surface,
 } from "@expo/ui/jetpack-compose";
 import {
-  clickable,
   fillMaxSize,
   fillMaxWidth,
   height,
@@ -28,15 +27,28 @@ import { useTheme } from "@/components/theme";
 import { IconButton } from "@/components/m3/buttons";
 import { M3Host } from "@/components/m3/host";
 import { M3Text, SymbolIcon, type SymbolName } from "@/components/m3/text";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 
 type DrawerPage = "index" | "tickets" | "gastos" | "ajustes";
 
 const PAGES: { page: DrawerPage; icon: SymbolName; label: string }[] = [
-  { page: "index", icon: "home", label: "drawer.home" },
-  { page: "tickets", icon: "receipt-long", label: "drawer.tickets" },
-  { page: "gastos", icon: "savings", label: "drawer.spending" },
-  { page: "ajustes", icon: "settings", label: "drawer.settings" },
+  { page: "index", icon: ICONOS.navegacion.inicio.android, label: "drawer.home" },
+  {
+    page: "tickets",
+    icon: ICONOS.navegacion.ticket.android,
+    label: "drawer.tickets",
+  },
+  {
+    page: "gastos",
+    icon: ICONOS.navegacion.gastos.android,
+    label: "drawer.spending",
+  },
+  {
+    page: "ajustes",
+    icon: ICONOS.navegacion.ajustes.android,
+    label: "drawer.settings",
+  },
 ];
 
 export function AppDrawer({ navigation, state }: DrawerContentComponentProps) {
@@ -69,7 +81,7 @@ export function AppDrawer({ navigation, state }: DrawerContentComponentProps) {
               {t("app.name")}
             </M3Text>
             <IconButton
-              icon="close"
+              icon={ICONOS.acciones.cerrar.android}
               label={t("common.close")}
               onPress={() => navigation.closeDrawer()}
             />
@@ -106,22 +118,11 @@ export function AppDrawer({ navigation, state }: DrawerContentComponentProps) {
           <HorizontalDivider color={colors.border} />
           <Row
             verticalAlignment="center"
-            horizontalArrangement={{ spacedBy: 8 }}
             modifiers={[fillMaxWidth(), padding(16, 12, 16, 12)]}
           >
             <M3Text variant="caption" color="muted">
               {`v${Constants.expoConfig?.version ?? "0.1.0"}`}
             </M3Text>
-            <Row
-              verticalAlignment="center"
-              horizontalArrangement={{ spacedBy: 6 }}
-              modifiers={[clickable(() => show("ajustes"))]}
-            >
-              <SymbolIcon name="info" size={16} label={t("drawer.settings")} />
-              <M3Text variant="caption" color="muted">
-                {t("settings.title")}
-              </M3Text>
-            </Row>
           </Row>
         </Column>
       </M3Host>

@@ -10,6 +10,7 @@ import { M3Text } from "@/components/m3/text";
 import { padding } from "@expo/ui/jetpack-compose/modifiers";
 import { useTheme } from "@/components/theme";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import type { MenuItem } from "@/lib/menu";
 import { showToast } from "@/lib/toast";
@@ -161,7 +162,7 @@ export function MenuEditSheet({
             <View style={{ flex: 1 }}>
               <Button
                 label={saving ? t("common.loading") : t("common.save")}
-                icon="check"
+                icon={ICONOS.acciones.guardar.android}
                 onPress={() => void save()}
                 disabled={saving}
               />
@@ -170,7 +171,7 @@ export function MenuEditSheet({
               <Button
                 label={t("menu.delete")}
                 variant="outlined"
-                icon="delete"
+                icon={ICONOS.acciones.eliminar.android}
                 onPress={remove}
                 disabled={saving}
               />
@@ -258,7 +259,7 @@ export function MenuEditSheet({
               <Button
                 label={t("menu.replaceRecipe")}
                 variant="outlined"
-                icon="refresh"
+                icon={ICONOS.acciones.reintentar.android}
                 onPress={onReplace}
                 disabled={saving}
               />

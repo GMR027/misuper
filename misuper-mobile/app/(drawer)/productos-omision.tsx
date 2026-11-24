@@ -14,6 +14,7 @@ import { useTheme } from "@/components/theme";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { t, useLocale } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
+import { ICONOS } from "@/lib/iconos.generated";
 
 interface Omision {
   id: number;
@@ -129,7 +130,7 @@ export default function OmissionsScreen() {
         />
         <Button
           label={saving ? t("omissions.saving") : t("omissions.add")}
-          icon="add"
+          icon={ICONOS.acciones.agregar.android}
           onPress={() => void add()}
           disabled={saving || nombre.trim() === ""}
         />
@@ -177,7 +178,7 @@ export default function OmissionsScreen() {
               title={item.nombre}
               trailing={
                 <IconButton
-                  icon="delete"
+                  icon={ICONOS.acciones.eliminar.android}
                   label={t("omissions.delete")}
                   variant="standard"
                   color={colors.error}

@@ -14,6 +14,7 @@ import { t, useLocale } from "@/lib/i18n";
 import type { MenuPreview } from "@/lib/menu";
 import { ingredientUnit } from "@/lib/recipes";
 import { showToast } from "@/lib/toast";
+import { ICONOS } from "@/lib/iconos.generated";
 
 interface ListaResumen {
   id: number;
@@ -151,7 +152,7 @@ export function MenuListSheet({
       footer={
         <Button
           label={saving ? t("common.loading") : t("menu.generateListAction")}
-          icon="check"
+          icon={ICONOS.acciones.guardar.android}
           onPress={() => void save()}
           disabled={saving || loading || preview === null}
         />

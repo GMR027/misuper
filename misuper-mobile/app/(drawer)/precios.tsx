@@ -10,6 +10,7 @@ import { apiErrorMessage, apiFetch, getApiUrl } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/avatars";
 import { formatCurrency, unitLabel } from "@/lib/format";
 import { t, useLocale } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 
 interface PrecioItem {
   id: number;
@@ -137,7 +138,7 @@ export default function PricesScreen() {
         onChangeText={setQuery}
         label={t("prices.search")}
         placeholder={t("prices.searchPlaceholder")}
-        leadingIcon="search"
+        leadingIcon={ICONOS.acciones.buscar.android}
       />
 
       {summary ? (

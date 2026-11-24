@@ -41,6 +41,7 @@ import { useResponsive } from "@/lib/responsive";
 import { showToast } from "@/lib/toast";
 import { closeMenu, openMenu, useMenuOpen } from "@/lib/ui-store";
 import { refreshAppUpdate, useAppUpdate } from "@/lib/app-update-store";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t } from "@/lib/i18n";
 
 type DockRoute = "/" | "/notas" | "/tickets" | "/ajustes";
@@ -119,28 +120,28 @@ export function AppDock() {
                   modifiers={[fillMaxWidth()]}
                 >
                   <RailItem
-                    icon="home"
+                    icon={ICONOS.navegacion.inicio.android}
                     label={t("drawer.home")}
                     active={pathname === "/"}
                     onPress={() => go("/")}
                     compact={compactRail}
                   />
                   <RailItem
-                    icon="list"
+                    icon={ICONOS.navegacion.notas.android}
                     label={t("drawer.notes")}
                     active={pathname === "/notas"}
                     onPress={() => go("/notas")}
                     compact={compactRail}
                   />
                   <RailItem
-                    icon="receipt-long"
+                    icon={ICONOS.navegacion.ticket.android}
                     label={t("drawer.tickets")}
                     active={pathname === "/tickets"}
                     onPress={() => go("/tickets")}
                     compact={compactRail}
                   />
                   <RailItem
-                    icon="menu"
+                    icon={ICONOS.acciones.menu.android}
                     label={t("menu.title")}
                     active={false}
                     onPress={openMenu}
@@ -148,7 +149,7 @@ export function AppDock() {
                     dot={updateAvailable}
                   />
                   <RailItem
-                    icon="settings"
+                    icon={ICONOS.navegacion.ajustes.android}
                     label={t("drawer.settings")}
                     active={pathname === "/ajustes"}
                     onPress={() => go("/ajustes")}
@@ -157,7 +158,7 @@ export function AppDock() {
                 </Column>
                 <Spacer modifiers={[weight(1)]} />
                 <IconButton
-                  icon="add"
+                  icon={ICONOS.acciones.buscar.android}
                   label={t("dock.searchTitle")}
                   onPress={openSearch}
                   variant="filled"
@@ -200,26 +201,26 @@ export function AppDock() {
                 modifiers={[fillMaxWidth(), height(DOCK_HEIGHT)]}
               >
                 <DockItem
-                  icon="home"
+                  icon={ICONOS.navegacion.inicio.android}
                   label={t("drawer.home")}
                   active={pathname === "/"}
                   onPress={() => go("/")}
                 />
                 <DockItem
-                  icon="list"
+                  icon={ICONOS.navegacion.notas.android}
                   label={t("drawer.notes")}
                   active={pathname === "/notas"}
                   onPress={() => go("/notas")}
                 />
                 <Spacer modifiers={[width(56)]} />
                 <DockItem
-                  icon="receipt-long"
+                  icon={ICONOS.navegacion.ticket.android}
                   label={t("drawer.tickets")}
                   active={pathname === "/tickets"}
                   onPress={() => go("/tickets")}
                 />
                 <DockItem
-                  icon="menu"
+                  icon={ICONOS.acciones.menu.android}
                   label={t("menu.title")}
                   active={false}
                   onPress={openMenu}
@@ -247,7 +248,7 @@ export function AppDock() {
               }}
             >
               <IconButton
-                icon="add"
+                icon={ICONOS.acciones.buscar.android}
                 label={t("dock.searchTitle")}
                 onPress={openSearch}
                 variant="filled"

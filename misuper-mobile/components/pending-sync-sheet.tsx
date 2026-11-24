@@ -8,6 +8,7 @@ import { ListRow } from "@/components/m3/lists";
 import { useTheme } from "@/components/theme";
 import { apiErrorMessage } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import {
   descartarPendiente,
@@ -121,7 +122,7 @@ export function PendingSyncSheet({
         <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
           <Button
             label={sincronizando ? t("sync.syncing") : t("sync.now")}
-            icon="refresh"
+            icon={ICONOS.acciones.reintentar.android}
             onPress={() => void sincronizar()}
             disabled={sincronizando || items.length === 0}
           />
@@ -176,7 +177,7 @@ export function PendingSyncSheet({
               trailing={
                 item.bloqueado ? (
                   <IconButton
-                    icon="delete"
+                    icon={ICONOS.acciones.descartar.android}
                     label={t("sync.discard")}
                     variant="standard"
                     color={colors.error}

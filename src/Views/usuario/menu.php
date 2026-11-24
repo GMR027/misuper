@@ -40,14 +40,14 @@ ob_start();
 
     <div class="menu-toolbar">
         <div class="menu-weeknav">
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-menu-prev aria-label="Semana anterior">
+            <button class="icon-btn icon-btn--outlined" type="button" data-menu-prev aria-label="Semana anterior">
                 <i class="bi bi-chevron-left" aria-hidden="true"></i>
             </button>
             <div class="menu-weeknav__label">
                 <strong data-menu-rango>Esta semana</strong>
                 <span class="text-muted small" data-menu-status aria-live="polite"></span>
             </div>
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-menu-next aria-label="Semana siguiente">
+            <button class="icon-btn icon-btn--outlined" type="button" data-menu-next aria-label="Semana siguiente">
                 <i class="bi bi-chevron-right" aria-hidden="true"></i>
             </button>
             <button class="btn btn-sm btn-outline-primary" type="button" data-menu-hoy>

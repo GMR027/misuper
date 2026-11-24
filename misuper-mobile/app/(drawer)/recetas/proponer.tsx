@@ -11,6 +11,7 @@ import { Spinner } from "@/components/m3/feedback";
 import { TextField } from "@/components/m3/inputs";
 import { apiErrorMessage, apiFetch, apiUpload } from "@/lib/api";
 import { t, useLocale } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 import {
   type RecetaCategoria,
   type RecetasResponse,
@@ -374,7 +375,7 @@ export default function ProposeRecipeScreen() {
                 : t("recipes.chooseImage")
           }
           variant="outlined"
-          icon="upload-file"
+          icon={ICONOS.acciones.subir.android}
           onPress={() => void pickImage()}
           disabled={uploading}
         />
@@ -405,7 +406,7 @@ export default function ProposeRecipeScreen() {
               />
             </View>
             <IconButton
-              icon="delete"
+              icon={ICONOS.acciones.quitar.android}
               label={t("recipes.removeIngredient")}
               onPress={() =>
                 setIngredients((current) =>
@@ -462,7 +463,7 @@ export default function ProposeRecipeScreen() {
 
       <Button
         label={saving ? t("recipes.submitting") : t("recipes.submit")}
-        icon="check"
+        icon={ICONOS.acciones.confirmar.android}
         onPress={() => void submit()}
         disabled={saving || uploading || loadingMeta}
       />

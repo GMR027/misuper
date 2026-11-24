@@ -13,6 +13,7 @@ import { formatQuantity } from "@/lib/format";
 import { t, useLocale } from "@/lib/i18n";
 import { ingredientUnit } from "@/lib/recipes";
 import { showToast } from "@/lib/toast";
+import { ICONOS } from "@/lib/iconos.generated";
 
 interface PreviewItem {
   clave: string;
@@ -182,7 +183,7 @@ export function AddRecipeListSheet({
       footer={
         <Button
           label={saving ? t("common.loading") : t("recipes.addToListAction")}
-          icon="check"
+          icon={ICONOS.acciones.guardar.android}
           onPress={() => void save()}
           disabled={saving || loading || preview === null}
         />

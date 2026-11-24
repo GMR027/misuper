@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Middleware\AuthMiddleware;
+use App\Support\Iconos;
 
 $usuario = $usuario ?? AuthMiddleware::usuario();
 
@@ -24,7 +25,7 @@ ob_start();
     <div class="recipe-head">
         <div>
             <h2 class="mb-1">
-                <span class="title-icon"><i class="bi bi-cart-check" aria-hidden="true"></i></span>
+                <span class="title-icon"><?= Iconos::render('navegacion', 'por-comprar') ?></span>
                 Productos por comprar
             </h2>
             <p class="text-muted mb-0">
@@ -56,15 +57,15 @@ ob_start();
                 <div class="col-12 col-lg-6">
                     <div class="d-flex flex-wrap gap-2">
                         <button class="btn btn-outline-primary" type="button" data-lista-nueva>
-                            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                            <?= Iconos::render('acciones', 'nueva-lista') ?>
                             Nueva lista
                         </button>
                         <button class="btn btn-outline-secondary" type="button" data-lista-renombrar>
-                            <i class="bi bi-pencil" aria-hidden="true"></i>
+                            <?= Iconos::render('acciones', 'editar') ?>
                             Renombrar
                         </button>
                         <button class="btn btn-outline-danger" type="button" data-lista-eliminar>
-                            <i class="bi bi-trash3" aria-hidden="true"></i>
+                            <?= Iconos::render('acciones', 'eliminar') ?>
                             Eliminar
                         </button>
                     </div>
@@ -107,7 +108,7 @@ ob_start();
 
             <div class="d-flex flex-wrap gap-2 mt-3">
                 <button class="btn btn-outline-danger" type="button" data-lista-vaciar>
-                    <i class="bi bi-trash3" aria-hidden="true"></i>
+                    <?= Iconos::render('acciones', 'vaciar') ?>
                     Vaciar esta lista
                 </button>
             </div>
@@ -117,7 +118,7 @@ ob_start();
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title mb-2">
-                        <span class="title-icon"><i class="bi bi-plus-lg" aria-hidden="true"></i></span>
+                        <span class="title-icon"><?= Iconos::render('acciones', 'agregar') ?></span>
                         Agregar producto
                     </h5>
                     <p class="text-muted small">
@@ -160,7 +161,7 @@ ob_start();
                         <p class="form__message mb-2" data-lista-mensaje hidden></p>
 
                         <button class="btn btn-primary w-100" type="submit" data-lista-agregar>
-                            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                            <?= Iconos::render('acciones', 'agregar') ?>
                             Agregar a la lista
                         </button>
                     </form>

@@ -13,6 +13,7 @@ import { TextField } from "@/components/m3/inputs";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { addFreeItem, addProduct } from "@/lib/cart";
 import { formatCurrency, formatQuantity } from "@/lib/format";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import { useResponsive } from "@/lib/responsive";
 import { showToast } from "@/lib/toast";
@@ -425,20 +426,20 @@ export default function ShoppingListDetailScreen() {
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 <Button
                   label={sending ? t("common.loading") : t("shopping.sendToCart")}
-                  icon="shopping-cart"
+                  icon={ICONOS.navegacion["por-comprar"].android}
                   onPress={() => void sendToCart()}
                   disabled={sending || pending === 0}
                 />
                 <Button
                   label={t("shopping.addItem")}
                   variant="outlined"
-                  icon="add"
+                  icon={ICONOS.acciones.agregar.android}
                   onPress={openAdd}
                 />
                 <Button
                   label={t("shopping.clear")}
                   variant="outlined"
-                  icon="delete"
+                  icon={ICONOS.acciones.vaciar.android}
                   onPress={clear}
                   disabled={data.items.length === 0}
                 />
@@ -547,11 +548,11 @@ export default function ShoppingListDetailScreen() {
                             </Text>
                           </Pressable>
                           <IconButton
-                            icon="delete"
+                            icon={ICONOS.acciones.quitar.android}
                             label={t("shopping.deleteItem")}
                             onPress={() => removeItem(item)}
-                            size={28}
-                            iconSize={16}
+                            size={36}
+                            iconSize={18}
                             color={colors.error}
                           />
                         </View>
@@ -565,7 +566,8 @@ export default function ShoppingListDetailScreen() {
             <Button
               label={t("shopping.deleteList")}
               variant="outlined"
-              icon="delete"
+              tone="danger"
+              icon={ICONOS.acciones.eliminar.android}
               onPress={deleteList}
             />
           </>
@@ -580,7 +582,7 @@ export default function ShoppingListDetailScreen() {
           footer={
             <Button
               label={savingItem ? t("common.loading") : t("common.save")}
-              icon="check"
+              icon={ICONOS.acciones.guardar.android}
               onPress={() => void saveItem()}
               disabled={savingItem}
             />
@@ -624,7 +626,7 @@ export default function ShoppingListDetailScreen() {
           footer={
             <Button
               label={renaming ? t("common.loading") : t("common.save")}
-              icon="check"
+              icon={ICONOS.acciones.guardar.android}
               onPress={() => void rename()}
               disabled={renaming}
             />

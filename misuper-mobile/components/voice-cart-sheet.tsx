@@ -29,6 +29,7 @@ import { M3Text, SymbolIcon } from "@/components/m3/text";
 import { useTheme } from "@/components/theme";
 import { addFreeItem, addProduct } from "@/lib/cart";
 import { formatCurrency, formatQuantity } from "@/lib/format";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import { buscarParaVoz, type CoincidenciaVoz } from "@/lib/offline/catalog";
 import type { Producto } from "@/lib/products";
@@ -315,14 +316,14 @@ export function VoiceCartSheet({
         fase === "confirmar" ? (
           <Button
             label={t("voice.addItems")}
-            icon="add"
+            icon={ICONOS.acciones.agregar.android}
             onPress={agregar}
             disabled={lineas.length === 0}
           />
         ) : fase === "sin-resultado" ? (
           <Button
             label={t("voice.retry")}
-            icon="refresh"
+            icon={ICONOS.acciones.reintentar.android}
             onPress={reintentar}
           />
         ) : undefined
@@ -337,7 +338,7 @@ export function VoiceCartSheet({
             <Spinner />
           ) : (
             <SymbolIcon
-              name="mic"
+              name={ICONOS.acciones.microfono.android}
               size={44}
               tint={colors.accent}
               label={t("voice.listening")}
@@ -399,7 +400,7 @@ export function VoiceCartSheet({
                   </M3Text>
                 </Column>
                 <IconButton
-                  icon="delete"
+                  icon={ICONOS.acciones.quitar.android}
                   label={t("voice.remove")}
                   variant="standard"
                   color={colors.error}

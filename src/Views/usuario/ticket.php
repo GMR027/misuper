@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Middleware\AuthMiddleware;
+use App\Support\Iconos;
 
 $usuario = $usuario ?? AuthMiddleware::usuario();
 
@@ -21,7 +22,7 @@ ob_start();
     <div class="notes-head">
         <div>
             <h2 class="mb-1">
-                <span class="title-icon"><i class="bi bi-receipt-cutoff" aria-hidden="true"></i></span>
+                <span class="title-icon"><?= Iconos::render('navegacion', 'ticket') ?></span>
                 Ticket
             </h2>
             <p class="text-muted mb-0">
@@ -118,7 +119,7 @@ ob_start();
                 </p>
             </div>
             <button class="btn btn-outline-secondary" type="button" data-ticket-otra>
-                <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                <?= Iconos::render('acciones', 'reintentar') ?>
                 Elegir otra imagen
             </button>
         </div>
@@ -181,11 +182,11 @@ ob_start();
 
         <div class="ticket-review__actions">
             <button class="btn btn-outline-primary" type="button" data-ticket-add>
-                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                <?= Iconos::render('acciones', 'agregar') ?>
                 Agregar artículo
             </button>
             <button class="btn btn-success" type="button" data-ticket-guardar>
-                <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                <?= Iconos::render('acciones', 'confirmar') ?>
                 Guardar compra
             </button>
         </div>
@@ -204,7 +205,7 @@ ob_start();
             <span class="ticket-item__index" data-ticket-index>1</span>
             <span class="ticket-item__confidence badge" data-ticket-confianza hidden></span>
             <button class="ticket-item__remove" type="button" data-ticket-remove aria-label="Quitar artículo">
-                <i class="bi bi-x-lg" aria-hidden="true"></i>
+                <?= Iconos::render('acciones', 'quitar') ?>
             </button>
         </div>
 

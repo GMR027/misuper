@@ -28,6 +28,7 @@ import {
 import { cartKcal } from "@/lib/nutrition";
 import { readText, writeText } from "@/lib/db";
 import { formatCurrency } from "@/lib/format";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import {
   buscarProductos,
@@ -269,7 +270,7 @@ export default function HomeScreen() {
   };
 
   const chipOptions: ChipOption<number | null>[] = [
-    { value: FREQUENT, label: t("quick.frequentChip"), icon: "shopping-cart" },
+    { value: FREQUENT, label: t("quick.frequentChip"), icon: ICONOS.navegacion["por-comprar"].android },
     { value: null, label: t("quick.all") },
     ...categorias.map((categoria) => ({
       value: categoria.id,
@@ -327,7 +328,7 @@ export default function HomeScreen() {
           >
             <M3Host matchContents>
               <SymbolIcon
-                name="shopping-cart"
+                name={ICONOS.navegacion["por-comprar"].android}
                 size={20}
                 tint={colors.accent}
                 label={t("cart.title")}
@@ -410,25 +411,25 @@ export default function HomeScreen() {
               onChangeText={changeQuery}
               label={t("quick.search")}
               placeholder={t("quick.searchPlaceholder")}
-              leadingIcon="search"
+              leadingIcon={ICONOS.acciones.buscar.android}
               modifiers={[weight(1)]}
             />
             <IconButton
-              icon="mic"
+              icon={ICONOS.acciones.microfono.android}
               label={t("voice.open")}
               onPress={openVoice}
               variant="tonal"
               size={44}
             />
             <IconButton
-              icon="add"
+              icon={ICONOS.acciones.agregar.android}
               label={t("quick.newProduct")}
               onPress={openNew}
               variant="filled"
               size={44}
             />
               <IconButton
-                icon="apps"
+                icon={ICONOS.acciones.apps.android}
                 label={t("quick.categories")}
                 onPress={() => setCategoriesOpen(true)}
                 variant="outlined"
@@ -450,11 +451,15 @@ export default function HomeScreen() {
                 {status}
               </M3Text>
               <IconButton
-                icon={list ? "grid-view" : "list"}
+                icon={
+                  list
+                    ? ICONOS.acciones.cuadricula.android
+                    : ICONOS.acciones.lista.android
+                }
                 label={list ? t("quick.gridView") : t("quick.listView")}
                 onPress={toggleView}
                 variant="standard"
-                size={36}
+                size={40}
                 iconSize={20}
               />
             </Row>
@@ -509,7 +514,7 @@ export default function HomeScreen() {
             {hasQuery || isFrequent ? (
               <Button
                 label={t("quick.newProduct")}
-                icon="add"
+                icon={ICONOS.acciones.agregar.android}
                 onPress={openNew}
               />
             ) : null}

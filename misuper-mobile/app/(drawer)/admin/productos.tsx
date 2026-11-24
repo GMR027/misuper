@@ -7,6 +7,7 @@ import { Button } from "@/components/m3/buttons";
 import { Spinner } from "@/components/m3/feedback";
 import { TextField } from "@/components/m3/inputs";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
 
@@ -149,7 +150,7 @@ export default function AdminProductsScreen() {
         onChangeText={setQuery}
         label={t("admin.searchProducts")}
         placeholder={t("admin.searchProductsPlaceholder")}
-        leadingIcon="search"
+        leadingIcon={ICONOS.acciones.buscar.android}
       />
       <View style={{ flexDirection: "row", gap: 6 }}>
         {STATES.map((value) => {
@@ -201,7 +202,7 @@ export default function AdminProductsScreen() {
           <Button
             label={loadingMore ? t("common.loading") : t("admin.loadMore")}
             variant="outlined"
-            icon="refresh"
+            icon={ICONOS.acciones["cargar-mas"].android}
             onPress={() => void loadMore()}
             disabled={loadingMore}
           />

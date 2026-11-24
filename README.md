@@ -129,6 +129,28 @@ apunta a `https://misuper.iguzman.com.mx` y vive en
 `public/assets/img/misuper-qr.png`.
 
 
+## Diseño de controles e iconos
+
+Los botones e iconos de web y Android siguen un catálogo común en
+`shared/iconos.json`: cada sección de navegación y cada acción tiene un icono
+distinto. Web usa Bootstrap Icons (también lo usan los campos `icono` que ya
+están en la base de datos) y Android usa Material Symbols outlined.
+
+```bash
+node scripts/gen-iconos.mjs     # regenera los mapas de PHP, JS y Android
+node scripts/gen-symbols.mjs    # descarga los XML de Material Symbols
+node scripts/check-iconos.mjs   # verifica que no haya iconos de navegación repetidos
+```
+
+Las referencias visuales se generaron con Google Stitch y están en
+`docs/diseno/stitch/`. El cliente de Stitch lee `STITCH_API_KEY` desde `.env`:
+
+```bash
+node scripts/stitch.mjs list
+node scripts/stitch.mjs screens <projectId>
+node scripts/stitch.mjs generate <projectId> --device DESKTOP --prompt "…"
+```
+
 ## Despliegue en Kubernetes
 
 Requisitos: `docker` con sesión en Docker Hub, `helm`, `kubectl` y acceso al

@@ -10,6 +10,7 @@ import { TextField } from "@/components/m3/inputs";
 import { M3Text } from "@/components/m3/text";
 import { apiFetch, apiFieldError, apiErrorMessage } from "@/lib/api";
 import { addProduct, type CartUnit } from "@/lib/cart";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t } from "@/lib/i18n";
 import { parseDecimal, roundMoney } from "@/lib/numbers";
 import type { Categoria, Producto } from "@/lib/products";
@@ -115,7 +116,7 @@ export function NewProductSheet({
       footer={
         <Button
           label={busy ? t("productForm.saving") : t("productForm.save")}
-          icon="add"
+          icon={ICONOS.acciones.agregar.android}
           onPress={() => void save()}
           disabled={busy}
         />

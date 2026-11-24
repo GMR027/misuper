@@ -14,6 +14,7 @@ import { M3Text } from "@/components/m3/text";
 import { useTheme } from "@/components/theme";
 import { clearSession, logout, updateUser, useAuth } from "@/lib/auth";
 import { apiErrorMessage, apiFetch, getApiUrl } from "@/lib/api";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import { useResponsive } from "@/lib/responsive";
 import {
@@ -146,7 +147,7 @@ export default function SettingsScreen() {
       />
       <Button
         label={savingProfile ? t("common.loading") : t("account.saveProfile")}
-        icon="check"
+        icon={ICONOS.acciones.guardar.android}
         onPress={() => void saveProfile()}
         disabled={savingProfile}
       />
@@ -158,13 +159,14 @@ export default function SettingsScreen() {
       <Button
         label={t("account.logout")}
         variant="outlined"
-        icon="arrow-back"
+        icon={ICONOS.acciones.salir.android}
         onPress={() => void logout()}
       />
       <Button
         label={t("account.deleteAccount")}
         variant="outlined"
-        icon="delete"
+        tone="danger"
+        icon={ICONOS.acciones.eliminar.android}
         onPress={confirmDelete}
       />
     </View>
@@ -215,7 +217,7 @@ export default function SettingsScreen() {
         />
         <Button
           label={t("settings.save")}
-          icon="check"
+          icon={ICONOS.acciones.guardar.android}
           onPress={() => void saveApi()}
         />
         {saved ? (

@@ -1,6 +1,7 @@
 /** Product cards with a real image, the web's 2:1 crop and a proper Add button. */
 
 import { useState } from "react";
+import { ICONOS } from "@/lib/iconos.generated";
 import {
   Image,
   Pressable,
@@ -199,7 +200,7 @@ function CalcButton({ onPress }: { onPress: () => void }) {
     >
       <M3Host matchContents>
         <SymbolIcon
-          name="calculate"
+          name={ICONOS.acciones.calculadora.android}
           size={18}
           tint={colors.accent}
           label={t("quick.calculate")}

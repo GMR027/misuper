@@ -10,6 +10,7 @@ import { Spinner } from "@/components/m3/feedback";
 import { NativeContent } from "@/components/m3/host";
 import { TextField } from "@/components/m3/inputs";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import { useResponsive } from "@/lib/responsive";
 import { showToast } from "@/lib/toast";
@@ -118,7 +119,7 @@ export default function ShoppingListsScreen() {
           </Text>
           <Button
             label={t("shopping.new")}
-            icon="add"
+            icon={ICONOS.acciones["nueva-lista"].android}
             onPress={() => setCreateOpen(true)}
           />
         </View>
@@ -220,7 +221,7 @@ export default function ShoppingListsScreen() {
           footer={
             <Button
               label={saving ? t("common.loading") : t("shopping.create")}
-              icon="check"
+              icon={ICONOS.acciones.guardar.android}
               onPress={() => void create()}
               disabled={saving}
             />

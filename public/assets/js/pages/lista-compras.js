@@ -4,6 +4,7 @@
 
 import { fetchApi } from '../modules/api.js';
 import { confirmar } from '../modules/confirm.js';
+import { icono as iconoHtml } from '../modules/iconos.generated.js';
 import { formatCurrency, formatQuantity } from '../modules/format.js';
 import { showToast } from '../modules/toast.js';
 
@@ -401,7 +402,7 @@ function init(root) {
         remove.type = 'button';
         remove.className = 'lista-item__remove';
         remove.setAttribute('aria-label', `Eliminar ${item.nombre}`);
-        remove.innerHTML = '<i class="bi bi-trash3" aria-hidden="true"></i>';
+        remove.innerHTML = iconoHtml('acciones', 'quitar');
         remove.addEventListener('click', async () => {
             const confirmado = await confirmar({
                 title: 'Quitar de la lista',

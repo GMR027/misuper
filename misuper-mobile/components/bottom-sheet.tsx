@@ -17,6 +17,7 @@ import { useTheme } from "@/components/theme";
 import { IconButton } from "@/components/m3/buttons";
 import { Compose } from "@/components/m3/host";
 import { M3Text } from "@/components/m3/text";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t } from "@/lib/i18n";
 
 /**
@@ -86,7 +87,7 @@ export function BottomSheet({
             </M3Text>
             {actions}
             <IconButton
-              icon="close"
+              icon={ICONOS.acciones.cerrar.android}
               label={t("common.close")}
               onPress={onClose}
             />

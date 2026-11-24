@@ -16,6 +16,7 @@ import { ProductThumb } from "@/components/product-card";
 import { apiFetch, apiErrorMessage } from "@/lib/api";
 import { addProduct } from "@/lib/cart";
 import { formatCurrency, unitLabel } from "@/lib/format";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t } from "@/lib/i18n";
 import type { Producto } from "@/lib/products";
 import { showToast } from "@/lib/toast";
@@ -83,7 +84,7 @@ export function DockSearchSheet({
         <Button
           label={t("dock.goHome")}
           variant="outlined"
-          icon="home"
+          icon={ICONOS.navegacion.inicio.android}
           onPress={() => {
             onClose();
             router.navigate("/");
@@ -104,7 +105,7 @@ export function DockSearchSheet({
           }}
           label={t("quick.search")}
           placeholder={t("dock.searchPlaceholder")}
-          leadingIcon="search"
+          leadingIcon={ICONOS.acciones.buscar.android}
         />
       </Column>
 
@@ -169,14 +170,14 @@ export function DockSearchSheet({
                   trailing={
                     <Row horizontalArrangement={{ spacedBy: 2 }}>
                       <IconButton
-                        icon="add"
+                        icon={ICONOS.acciones.agregar.android}
                         label={t("quick.add")}
                         onPress={() => add(product)}
                         size={34}
                         iconSize={18}
                       />
                       <IconButton
-                        icon="calculate"
+                        icon={ICONOS.acciones.calculadora.android}
                         label={t("quick.calculate")}
                         onPress={() => {
                           onClose();

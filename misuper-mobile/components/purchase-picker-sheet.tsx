@@ -10,6 +10,7 @@ import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { formatCurrency } from "@/lib/format";
 import { getLocale, t, useLocale } from "@/lib/i18n";
 import type { CompraResumen } from "@/lib/recipes";
+import { ICONOS } from "@/lib/iconos.generated";
 
 interface HistoryPage {
   items: CompraResumen[];
@@ -117,7 +118,7 @@ export function PurchasePickerSheet({
                 ? t("recipes.purchasesApplyOne")
                 : t("recipes.purchasesApply", { count: draft.length })
           }
-          icon="check"
+          icon={ICONOS.acciones.confirmar.android}
           onPress={() => {
             onApply(draft);
             onClose();
@@ -159,7 +160,7 @@ export function PurchasePickerSheet({
             setDraft(allLoadedSelected ? [] : items.map((item) => item.id))
           }
           modifiers={[padding(16, 0, 16, 0)]}
-          leading={<SymbolIcon name="check" size={20} />}
+          leading={<SymbolIcon name={ICONOS.acciones.confirmar.android} size={20} />}
         />
       ) : null}
 
@@ -210,7 +211,7 @@ export function PurchasePickerSheet({
             loadingMore ? t("common.loading") : t("recipes.purchasesMore")
           }
           variant="outlined"
-          icon="refresh"
+          icon={ICONOS.acciones.actualizar.android}
           onPress={() => void loadMore()}
           disabled={loadingMore}
         />

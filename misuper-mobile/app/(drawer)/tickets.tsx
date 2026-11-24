@@ -11,6 +11,7 @@ import { Button, IconButton } from "@/components/m3/buttons";
 import { Spinner } from "@/components/m3/feedback";
 import { TextField } from "@/components/m3/inputs";
 import { t, useLocale } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 import { apiErrorMessage, apiFieldError, apiFetch, isOfflineError } from "@/lib/api";
 import { formatCurrency, formatDateTime, formatQuantity } from "@/lib/format";
 import {
@@ -414,14 +415,14 @@ export default function TicketsScreen() {
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 <Button
                   label={saving ? t("tickets.confirming") : t("tickets.confirm")}
-                  icon="check"
+                  icon={ICONOS.acciones.confirmar.android}
                   onPress={() => void confirm()}
                   disabled={saving}
                 />
                 <Button
                   label={t("tickets.discard")}
                   variant="outlined"
-                  icon="delete"
+                  icon={ICONOS.acciones.descartar.android}
                   onPress={discard}
                   disabled={saving}
                 />
@@ -470,13 +471,13 @@ export default function TicketsScreen() {
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               <Button
                 label={t("tickets.camera")}
-                icon="add"
+                icon={ICONOS.acciones.camara.android}
                 onPress={() => void pickPhoto(true)}
               />
               <Button
                 label={t("tickets.gallery")}
                 variant="outlined"
-                icon="upload-file"
+                icon={ICONOS.acciones.subir.android}
                 onPress={() => void pickPhoto(false)}
               />
             </View>
@@ -549,7 +550,7 @@ export default function TicketsScreen() {
                     {item.estado === "subido" ? (
                       <Button
                         label={t("tickets.review")}
-                        icon="check"
+                        icon={ICONOS.acciones.ver.android}
                         onPress={() => abrirRevision(item)}
                       />
                     ) : null}
@@ -557,14 +558,14 @@ export default function TicketsScreen() {
                       <Button
                         label={t("tickets.retry")}
                         variant="outlined"
-                        icon="refresh"
+                        icon={ICONOS.acciones.reintentar.android}
                         onPress={() => void reintentar(item)}
                       />
                     ) : null}
                     <Button
                       label={t("tickets.discard")}
                       variant="outlined"
-                      icon="delete"
+                      icon={ICONOS.acciones.descartar.android}
                       onPress={() => descartarPendiente(item)}
                     />
                   </View>
@@ -744,10 +745,10 @@ export default function TicketsScreen() {
                     </Text>
                   </Pressable>
                   <IconButton
-                    icon="delete"
+                    icon={ICONOS.acciones.quitar.android}
                     label={t("tickets.removeItem")}
                     onPress={() => removeItem(item.key)}
-                    size={32}
+                    size={36}
                     iconSize={18}
                     color={colors.error}
                   />
@@ -799,7 +800,7 @@ export default function TicketsScreen() {
           <Button
             label={t("tickets.addItem")}
             variant="outlined"
-            icon="add"
+            icon={ICONOS.acciones.agregar.android}
             onPress={addItem}
           />
 

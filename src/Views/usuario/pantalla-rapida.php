@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Middleware\AuthMiddleware;
+use App\Support\Iconos;
 
 $usuario = AuthMiddleware::require();
 
@@ -22,7 +23,7 @@ ob_start();
 
             <div class="hero-actions">
                 <button class="btn btn-light" type="button" id="btn-add-custom" data-libre-open>
-                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    <?= Iconos::render('acciones', 'agregar') ?>
                     Nuevo producto
                 </button>
             </div>
@@ -30,7 +31,7 @@ ob_start();
 
         <button class="hero-summary" type="button" data-cart-open aria-live="polite">
             <span class="hero-summary__label">
-                <i class="bi bi-receipt-cutoff" aria-hidden="true"></i>
+                <?= Iconos::render('navegacion', 'por-comprar') ?>
                 Importe del carrito
             </span>
             <strong class="hero-summary__value" data-carrito-hero-total>$0.00</strong>
@@ -52,12 +53,12 @@ ob_start();
                 aria-label="Abrir menú"
                 title="Menú"
             >
-                <i class="bi bi-list" aria-hidden="true"></i>
+                <?= Iconos::render('acciones', 'menu') ?>
             </button>
 
             <label class="visually-hidden" for="buscador">Buscar producto</label>
             <div class="input-group input-group-lg search-box quick-search-box">
-                <span class="input-group-text" aria-hidden="true"><i class="bi bi-search"></i></span>
+                <span class="input-group-text" aria-hidden="true"><?= Iconos::render('acciones', 'buscar') ?></span>
                 <input
                     class="form-control"
                     type="search"
@@ -77,7 +78,7 @@ ob_start();
                 aria-label="Nuevo producto"
                 title="Nuevo producto"
             >
-                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                <?= Iconos::render('acciones', 'agregar') ?>
             </button>
 
             <button
@@ -86,13 +87,13 @@ ob_start();
                 data-categorias-open
                 aria-label="Abrir categorías"
             >
-                <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+                <?= Iconos::render('acciones', 'apps') ?>
                 <span>Categorías</span>
             </button>
 
             <button class="quick-toolbar__cart" type="button" data-cart-open aria-label="Abrir carrito">
                 <span class="quick-toolbar__cart-meta">
-                    <i class="bi bi-bag-check-fill" aria-hidden="true"></i>
+                    <?= Iconos::render('navegacion', 'por-comprar') ?>
                     <span data-carrito-hero-count>0 ítems</span>
                 </span>
                 <strong data-carrito-hero-total>$0.00</strong>
@@ -159,7 +160,7 @@ ob_start();
             <div class="cart-panel__head">
                 <div class="cart-panel__heading">
                     <span class="cart-panel__icon" aria-hidden="true">
-                        <i class="bi bi-bag-check-fill"></i>
+                        <?= Iconos::render('navegacion', 'por-comprar') ?>
                     </span>
                     <div>
                         <h5 class="card-title mb-0" id="carrito-title">Tu carrito</h5>
@@ -168,8 +169,8 @@ ob_start();
                 </div>
                 <div class="quick-cart__head-actions">
                     <span class="badge cart-panel__badge" data-carrito-count>0 ítems</span>
-                    <button class="quick-cart__close" type="button" data-cart-close aria-label="Cerrar carrito">
-                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                    <button class="icon-btn quick-cart__close" type="button" data-cart-close aria-label="Cerrar carrito">
+                        <?= Iconos::render('acciones', 'cerrar') ?>
                     </button>
                 </div>
             </div>
@@ -197,7 +198,7 @@ ob_start();
                 </div>
 
                 <button class="btn btn-success w-100 cart-save" type="button" data-guardar disabled>
-                    <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                    <?= Iconos::render('acciones', 'guardar') ?>
                     Guardar compra
                 </button>
 
@@ -211,7 +212,7 @@ ob_start();
 
     <button class="quick-bottom-bar" type="button" data-cart-open aria-label="Abrir carrito">
         <span class="quick-bottom-bar__summary">
-            <i class="bi bi-bag-check-fill" aria-hidden="true"></i>
+            <?= Iconos::render('navegacion', 'por-comprar') ?>
             <span data-carrito-hero-count>0 ítems</span>
         </span>
         <strong data-carrito-hero-total>$0.00</strong>
@@ -231,11 +232,11 @@ ob_start();
         <span class="quick-sheet__grabber" aria-hidden="true"></span>
         <header class="quick-sheet__head">
             <h2 class="quick-sheet__title" id="quick-categorias-title">
-                <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+                <?= Iconos::render('acciones', 'apps') ?>
                 Categorías
             </h2>
-            <button class="quick-sheet__close" type="button" data-categorias-close aria-label="Cerrar categorías">
-                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            <button class="icon-btn quick-sheet__close" type="button" data-categorias-close aria-label="Cerrar categorías">
+                <?= Iconos::render('acciones', 'cerrar') ?>
             </button>
         </header>
         <div class="quick-sheet__body">

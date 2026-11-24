@@ -7,6 +7,7 @@ import { Button } from "@/components/m3/buttons";
 import { Spinner } from "@/components/m3/feedback";
 import { TextField } from "@/components/m3/inputs";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
 
@@ -125,7 +126,7 @@ export default function AdminRecipesScreen() {
         onChangeText={setQuery}
         label={t("admin.searchRecipes")}
         placeholder={t("admin.searchRecipesPlaceholder")}
-        leadingIcon="search"
+        leadingIcon={ICONOS.acciones.buscar.android}
       />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
         {STATES.map((value) => {
@@ -224,7 +225,7 @@ export default function AdminRecipesScreen() {
                       ? t("common.loading")
                       : t("admin.publish")
                   }
-                  icon="check"
+                  icon={ICONOS.acciones.publicar.android}
                   onPress={() => void publish(item)}
                   disabled={busy === item.id}
                 />
@@ -232,7 +233,8 @@ export default function AdminRecipesScreen() {
               <Button
                 label={t("admin.delete")}
                 variant="outlined"
-                icon="delete"
+                tone="danger"
+                icon={ICONOS.acciones.eliminar.android}
                 onPress={() => void remove(item)}
                 disabled={busy === item.id}
               />

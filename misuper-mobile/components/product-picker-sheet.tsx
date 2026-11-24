@@ -11,6 +11,7 @@ import { apiFetch } from "@/lib/api";
 import { formatCurrency, unitLabel } from "@/lib/format";
 import { t, useLocale } from "@/lib/i18n";
 import type { Producto } from "@/lib/products";
+import { ICONOS } from "@/lib/iconos.generated";
 
 export function ProductPickerSheet({
   visible,
@@ -79,7 +80,7 @@ export function ProductPickerSheet({
             onChangeText={setQuery}
             label={t("productPicker.search")}
             placeholder={t("productPicker.placeholder")}
-            leadingIcon="search"
+            leadingIcon={ICONOS.acciones.buscar.android}
           />
 
           {loading ? (

@@ -28,6 +28,7 @@ import {
 } from "@/lib/cart";
 import { formatCurrency, formatQuantity, todayISO, unitLabel } from "@/lib/format";
 import { cartKcal, itemKcal } from "@/lib/nutrition";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t } from "@/lib/i18n";
 import { encolarCompra, type CompraPayload } from "@/lib/offline/outbox";
 import { nuevoUuid } from "@/lib/offline/uuid";
@@ -130,7 +131,7 @@ export function CartSheet({
       actions={
         onDictate ? (
           <IconButton
-            icon="mic"
+            icon={ICONOS.acciones.microfono.android}
             label={t("voice.open")}
             onPress={onDictate}
             disabled={saving}
@@ -160,7 +161,7 @@ export function CartSheet({
           </M3Text>
           <Button
             label={saving ? t("cart.saving") : t("cart.save")}
-            icon="check"
+            icon={ICONOS.acciones.guardar.android}
             onPress={() => void save()}
             disabled={saving || cart.length === 0}
           />
@@ -288,7 +289,7 @@ function CartLine({
               modifiers={[padding(8, 8, 8, 8)]}
             >
               <SymbolIcon
-                name="shopping-cart"
+                name={ICONOS.navegacion["por-comprar"].android}
                 size={20}
                 tint={colors.accent}
                 label={item.nombre}
@@ -313,7 +314,7 @@ function CartLine({
               ) : null}
             </Column>
             <IconButton
-              icon="delete"
+              icon={ICONOS.acciones.quitar.android}
               label={t("cart.remove")}
               onPress={() => onRemove(index)}
               size={34}

@@ -7,6 +7,7 @@ import { M3Text } from "@/components/m3/text";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { changeForcedPassword, logout } from "@/lib/auth";
 import { t, useLocale } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 
 /**
  * Shown only while the account has `debe_cambiar_password`; the web does the
@@ -77,7 +78,7 @@ export default function ChangePasswordScreen() {
         ) : null}
         <Button
           label={busy ? t("changePassword.saving") : t("changePassword.submit")}
-          icon="check"
+          icon={ICONOS.acciones.confirmar.android}
           onPress={() => void submit()}
           disabled={busy}
         />

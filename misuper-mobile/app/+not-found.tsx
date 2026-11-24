@@ -6,6 +6,7 @@ import { Card } from "@/components/m3/card";
 import { M3Text } from "@/components/m3/text";
 import { useTheme } from "@/components/theme";
 import { t, useLocale } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 
 export default function NotFoundScreen() {
   useLocale();
@@ -28,7 +29,7 @@ export default function NotFoundScreen() {
         </M3Text>
         <Button
           label={t("notFound.goHome")}
-          icon="home"
+          icon={ICONOS.navegacion.inicio.android}
           onPress={() => router.replace("/")}
         />
       </Card>

@@ -15,6 +15,7 @@ import { SymbolIcon } from "@/components/m3/text";
 import { useTheme } from "@/components/theme";
 import { logout, useAuth } from "@/lib/auth";
 import { refreshAppUpdate, useAppUpdate } from "@/lib/app-update-store";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t } from "@/lib/i18n";
 
 type MenuRoute =
@@ -120,26 +121,26 @@ export function MenuSheet({
       <MenuRow
         title={t("drawer.home")}
         onPress={() => go("/")}
-        leading={<SymbolIcon name="home" size={22} />}
-        trailing={<SymbolIcon name="chevron-right" size={18} />}
+        leading={<SymbolIcon name={ICONOS.navegacion.inicio.android} size={22} />}
+        trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
       />
       <MenuRow
         title={t("shopping.title")}
         onPress={() => go("/lista-compras")}
-        leading={<SymbolIcon name="shopping-cart" size={22} />}
-        trailing={<SymbolIcon name="chevron-right" size={18} />}
+        leading={<SymbolIcon name={ICONOS.navegacion["por-comprar"].android} size={22} />}
+        trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
       />
       <MenuRow
         title={t("drawer.tickets")}
         onPress={() => go("/tickets")}
-        leading={<SymbolIcon name="receipt-long" size={22} />}
-        trailing={<SymbolIcon name="chevron-right" size={18} />}
+        leading={<SymbolIcon name={ICONOS.navegacion.ticket.android} size={22} />}
+        trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
       />
       <MenuRow
         title={t("history.title")}
         onPress={() => go("/historial")}
-        leading={<SymbolIcon name="list" size={22} />}
-        trailing={<SymbolIcon name="chevron-right" size={18} />}
+        leading={<SymbolIcon name={ICONOS.navegacion.historial.android} size={22} />}
+        trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
       />
 
 
@@ -147,42 +148,42 @@ export function MenuSheet({
       <MenuRow
         title={t("menu.weekly")}
         onPress={() => go("/menu")}
-        leading={<SymbolIcon name="menu" size={22} />}
-        trailing={<SymbolIcon name="chevron-right" size={18} />}
+        leading={<SymbolIcon name={ICONOS.navegacion["menu-semanal"].android} size={22} />}
+        trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
       />
       <MenuRow
         title={t("recipes.title")}
         onPress={() => go("/recetas")}
-        leading={<SymbolIcon name="list" size={22} />}
-        trailing={<SymbolIcon name="chevron-right" size={18} />}
+        leading={<SymbolIcon name={ICONOS.navegacion.recetas.android} size={22} />}
+        trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
       />
       <MenuRow
         title={t("omissions.title")}
         onPress={() => go("/productos-omision")}
-        leading={<SymbolIcon name="close" size={22} />}
-        trailing={<SymbolIcon name="chevron-right" size={18} />}
+        leading={<SymbolIcon name={ICONOS.navegacion["productos-omision"].android} size={22} />}
+        trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
       />
 
       <SectionLabel label={t("menu.analysis")} />
       <MenuRow
         title={t("metrics.title")}
         onPress={() => go("/metricas")}
-        leading={<SymbolIcon name="grid-view" size={22} />}
-        trailing={<SymbolIcon name="chevron-right" size={18} />}
+        leading={<SymbolIcon name={ICONOS.navegacion.metricas.android} size={22} />}
+        trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
       />
       <MenuRow
         title={t("prices.title")}
         onPress={() => go("/precios")}
-        leading={<SymbolIcon name="savings" size={22} />}
-        trailing={<SymbolIcon name="chevron-right" size={18} />}
+        leading={<SymbolIcon name={ICONOS.navegacion.precios.android} size={22} />}
+        trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
       />
 
       <SectionLabel label={t("menu.personalSection")} />
       <MenuRow
         title={t("drawer.notes")}
         onPress={() => go("/notas")}
-        leading={<SymbolIcon name="list" size={22} />}
-        trailing={<SymbolIcon name="chevron-right" size={18} />}
+        leading={<SymbolIcon name={ICONOS.navegacion.notas.android} size={22} />}
+        trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
       />
 
       {user?.rol === "admin" ? (
@@ -191,20 +192,20 @@ export function MenuSheet({
           <MenuRow
             title={t("admin.recipes")}
             onPress={() => go("/admin/recetas")}
-            leading={<SymbolIcon name="list" size={22} />}
-            trailing={<SymbolIcon name="chevron-right" size={18} />}
+            leading={<SymbolIcon name={ICONOS.navegacion["admin-recetas"].android} size={22} />}
+            trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
           />
           <MenuRow
             title={t("admin.products")}
             onPress={() => go("/admin/productos")}
-            leading={<SymbolIcon name="shopping-cart" size={22} />}
-            trailing={<SymbolIcon name="chevron-right" size={18} />}
+            leading={<SymbolIcon name={ICONOS.navegacion["admin-productos"].android} size={22} />}
+            trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
           />
           <MenuRow
             title={t("admin.users")}
             onPress={() => go("/admin/usuarios")}
-            leading={<SymbolIcon name="info" size={22} />}
-            trailing={<SymbolIcon name="chevron-right" size={18} />}
+            leading={<SymbolIcon name={ICONOS.navegacion["admin-usuarios"].android} size={22} />}
+            trailing={<SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />}
           />
         </>
       ) : null}
@@ -213,13 +214,13 @@ export function MenuSheet({
       <MenuRow
         title={t("drawer.settings")}
         onPress={() => go("/ajustes")}
-        leading={<SymbolIcon name="settings" size={22} />}
+        leading={<SymbolIcon name={ICONOS.navegacion.ajustes.android} size={22} />}
         trailing={
           <Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 6 }}>
             {update.status === "outdated" ? (
               <Badge kind="warning">{t("install.updateShort")}</Badge>
             ) : null}
-            <SymbolIcon name="chevron-right" size={18} />
+            <SymbolIcon name={ICONOS.acciones.adelante.android} size={18} />
           </Row>
         }
       />
@@ -229,7 +230,7 @@ export function MenuSheet({
           onClose();
           void logout();
         }}
-        leading={<SymbolIcon name="arrow-back" size={22} tint={colors.error} />}
+        leading={<SymbolIcon name={ICONOS.acciones.salir.android} size={22} tint={colors.error} />}
         titleColor={colors.error}
       />
     </BottomSheet>

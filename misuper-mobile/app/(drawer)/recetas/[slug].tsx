@@ -21,6 +21,7 @@ import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { useResponsive } from "@/lib/responsive";
 import { t, useLocale } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 import {
   difficultyLabel,
   ingredientUnit,
@@ -151,14 +152,14 @@ export default function RecipeDetailScreen() {
         <Button
           label={t("recipes.addToMenu")}
           variant="outlined"
-          icon="receipt-long"
+          icon={ICONOS.navegacion.ticket.android}
           onPress={() => setMenuOpen(true)}
         />
       </View>
       <View style={{ flex: 1 }}>
         <Button
           label={t("recipes.addToList")}
-          icon="shopping-cart"
+          icon={ICONOS.navegacion["por-comprar"].android}
           onPress={() => setListOpen(true)}
         />
       </View>

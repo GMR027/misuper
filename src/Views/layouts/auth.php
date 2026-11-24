@@ -34,6 +34,7 @@ $scripts ??= [];
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/theme.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/texture.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/modes.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(Asset::url('/assets/css/controles.css'), ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
     <main class="auth">

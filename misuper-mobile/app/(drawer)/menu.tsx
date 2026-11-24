@@ -13,6 +13,7 @@ import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { useResponsive } from "@/lib/responsive";
 import { t, useLocale } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 import {
   currentMonday,
   isoDate,
@@ -362,19 +363,20 @@ export default function WeeklyMenuScreen() {
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               <Button
                 label={t("menu.generateList")}
-                icon="shopping-cart"
+                icon={ICONOS.navegacion["por-comprar"].android}
                 onPress={() => setListOpen(true)}
               />
               <Button
                 label={t("menu.copyPrevious")}
                 variant="outlined"
-                icon="refresh"
+                icon={ICONOS.acciones.reintentar.android}
                 onPress={copyWeek}
               />
               <Button
                 label={t("menu.clear")}
                 variant="outlined"
-                icon="delete"
+                tone="danger"
+                icon={ICONOS.acciones.vaciar.android}
                 onPress={clearWeek}
               />
             </View>

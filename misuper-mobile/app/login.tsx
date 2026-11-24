@@ -13,6 +13,7 @@ import { authErrorMessage } from "@/lib/auth-errors";
 import { login } from "@/lib/auth";
 import { t, useLocale } from "@/lib/i18n";
 import { setSettings } from "@/lib/settings";
+import { ICONOS } from "@/lib/iconos.generated";
 
 /** Email and password against the PHP backend, then the drawer. */
 export default function LoginScreen() {
@@ -99,7 +100,7 @@ export default function LoginScreen() {
         ) : null}
         <Button
           label={busy ? t("login.signingIn") : t("login.submit")}
-          icon="check"
+          icon={ICONOS.acciones.confirmar.android}
           onPress={() => void submit()}
           disabled={busy}
         />
@@ -118,7 +119,7 @@ export default function LoginScreen() {
         <Button
           label={showServer ? t("login.serverHide") : t("login.serverChange")}
           variant="outlined"
-          icon="settings"
+          icon={ICONOS.navegacion.ajustes.android}
           onPress={() => {
             setShowServer((visible) => !visible);
             setTestResult(null);
@@ -139,7 +140,7 @@ export default function LoginScreen() {
             <Button
               label={testing ? t("login.testing") : t("login.test")}
               variant="tonal"
-              icon="wifi"
+              icon={ICONOS.acciones.wifi.android}
               onPress={() => void test()}
               disabled={testing}
             />

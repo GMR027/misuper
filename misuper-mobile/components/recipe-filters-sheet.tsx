@@ -7,6 +7,7 @@ import { Button } from "@/components/m3/buttons";
 import { NativeContent } from "@/components/m3/host";
 import { useTheme } from "@/components/theme";
 import { t } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 import {
   EMPTY_RECIPE_FILTERS,
   type RecetaCategoria,
@@ -111,7 +112,7 @@ export function RecipeFiltersSheet({
       footer={
         <Button
           label={t("recipes.applyFilters")}
-          icon="check"
+          icon={ICONOS.acciones.confirmar.android}
           onPress={() => {
             onApply(draft);
             onClose();

@@ -10,6 +10,7 @@ import { Spinner } from "@/components/m3/feedback";
 import { useTheme } from "@/components/theme";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 import { t, useLocale } from "@/lib/i18n";
+import { ICONOS } from "@/lib/iconos.generated";
 import {
   recipeQuery,
   readSelectedPurchases,
@@ -222,7 +223,7 @@ export function MenuAddSheet({
                 ? t("menu.replaceAction")
                 : t("menu.addAction")
           }
-          icon="check"
+          icon={ICONOS.acciones.guardar.android}
           onPress={() => void save()}
           disabled={saving}
         />
@@ -274,7 +275,7 @@ export function MenuAddSheet({
                 onChangeText={setQuery}
                 label={t("recipes.search")}
                 placeholder={t("recipes.searchPlaceholder")}
-                leadingIcon="search"
+                leadingIcon={ICONOS.acciones.buscar.android}
               />
 
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>

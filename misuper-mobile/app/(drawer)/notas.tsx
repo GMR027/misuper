@@ -28,6 +28,7 @@ import {
 } from "@/lib/api";
 import { resolveMediaUrl } from "@/lib/avatars";
 import { useResponsive } from "@/lib/responsive";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t, useLocale } from "@/lib/i18n";
 import { showToast } from "@/lib/toast";
 
@@ -284,7 +285,7 @@ export default function NotesScreen() {
             onChangeText={setQuery}
             label={t("notes.search")}
             placeholder={t("notes.searchPlaceholder")}
-            leadingIcon="search"
+            leadingIcon={ICONOS.acciones.buscar.android}
           />
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Text style={{ flex: 1, color: colors.muted, fontSize: 12 }}>
@@ -292,7 +293,7 @@ export default function NotesScreen() {
             </Text>
             <Button
               label={t("notes.new")}
-              icon="add"
+              icon={ICONOS.acciones.agregar.android}
               onPress={openNew}
             />
           </View>
@@ -416,7 +417,7 @@ export default function NotesScreen() {
           <>
             <Button
               label={saving ? t("notes.saving") : t("common.save")}
-              icon="check"
+              icon={ICONOS.acciones.guardar.android}
               onPress={() => void save()}
               disabled={saving}
             />
@@ -424,7 +425,8 @@ export default function NotesScreen() {
               <Button
                 label={t("notes.delete")}
                 variant="outlined"
-                icon="delete"
+                tone="danger"
+                icon={ICONOS.acciones.eliminar.android}
                 onPress={removeNote}
                 disabled={saving}
               />
@@ -472,11 +474,11 @@ export default function NotesScreen() {
                     resizeMode="cover"
                   />
                   <IconButton
-                    icon="delete"
+                    icon={ICONOS.acciones.quitar.android}
                     label={t("notes.removePhoto")}
                     onPress={() => void removePhoto(foto.id)}
-                    size={28}
-                    iconSize={16}
+                    size={36}
+                    iconSize={18}
                   />
                 </View>
               ))}
@@ -488,15 +490,15 @@ export default function NotesScreen() {
                     resizeMode="cover"
                   />
                   <IconButton
-                    icon="delete"
+                    icon={ICONOS.acciones.quitar.android}
                     label={t("notes.removePhoto")}
                     onPress={() =>
                       setPendingPhotos((current) =>
                         current.filter((_, currentIndex) => currentIndex !== index),
                       )
                     }
-                    size={28}
-                    iconSize={16}
+                    size={36}
+                    iconSize={18}
                   />
                 </View>
               ))}
@@ -517,13 +519,13 @@ export default function NotesScreen() {
             <Button
               label={t("notes.addPhotos")}
               variant="outlined"
-              icon="upload-file"
+              icon={ICONOS.acciones.subir.android}
               onPress={() => void pickPhotos()}
             />
             <Button
               label={t("notes.camera")}
               variant="outlined"
-              icon="add"
+              icon={ICONOS.acciones.camara.android}
               onPress={() => void takePhoto()}
             />
           </View>
@@ -576,7 +578,7 @@ export default function NotesScreen() {
             }}
           >
             <M3Host matchContents>
-              <SymbolIcon name="close" size={28} tint="#ffffff" label={t("common.close")} />
+              <SymbolIcon name={ICONOS.acciones.cerrar.android} size={28} tint="#ffffff" label={t("common.close")} />
             </M3Host>
           </Pressable>
           {lightbox ? (

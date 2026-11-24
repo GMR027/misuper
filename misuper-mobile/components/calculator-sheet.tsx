@@ -10,6 +10,7 @@ import { TextField } from "@/components/m3/inputs";
 import { M3Text } from "@/components/m3/text";
 import { addProduct } from "@/lib/cart";
 import { formatCurrency, formatQuantity, unitLabel } from "@/lib/format";
+import { ICONOS } from "@/lib/iconos.generated";
 import { t } from "@/lib/i18n";
 import { parseDecimal, roundMoney } from "@/lib/numbers";
 import { readUnitPrice, saveUnitPrice } from "@/lib/prices";
@@ -89,7 +90,7 @@ export function CalculatorSheet({
       footer={
         <Button
           label={t("calculator.add")}
-          icon="add"
+          icon={ICONOS.acciones.agregar.android}
           onPress={submit}
         />
       }
