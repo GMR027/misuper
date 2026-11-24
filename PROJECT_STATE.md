@@ -892,5 +892,9 @@ STATE_HANDOFF — Controles e iconos web/Android — 2026-11-23
 - Listas: guardar/confirmar/publicar/editar/eliminar/quitar/vaciar/descartar/reintentar tienen iconos propios. En Android se quitó el enlace duplicado de Ajustes del drawer, el FAB de búsqueda usa `search` y el alta de producto usa `add`.
 - Android: `Button` admite `tone="danger"`; `IconButton` usa 48 dp por defecto, 40 dp compacto y área táctil mayor; `CompactButton` subió a 40 dp. Menú, drawer, dock, Inicio, listas, tickets, notas, historial, ajustes y admin usan el catálogo.
 - Migración completa: todos los iconos de la app Android (pantallas, hojas, login, registro, avisos, menús y componentes) pasan por `ICONOS`; `scripts/check-iconos.mjs` también falla si vuelve a aparecer un `icon="…"`, `leadingIcon="…"` o `SymbolIcon name="…"` literal.
-- Verificación: `node scripts/check-iconos.mjs`, `node scripts/gen-iconos.mjs --check`, `node scripts/gen-symbols.mjs --check`, `php -l` en todas las vistas, `pnpm --dir misuper-mobile check-types` y `pnpm --dir misuper-mobile lint` pasan.
-- Pendiente: revisión visual autenticada en navegador y compilar/instalar el APK (los símbolos nuevos son vector drawables y requieren rebuild).
+- Verificación local: `pnpm icons:check`, `php -l` en todas las vistas, `pnpm --dir misuper-mobile check` y `npx expo export --platform android` pasan.
+- Release **0.1.14 / versionCode 15** compilada con firma release e instalada en los dos teléfonos conectados (BRP-NX3); la app abre correctamente. APK publicado en `public/descargas/misuper.apk` (46,944,678 bytes; SHA-256 `a20190d8e20d99a7ae670995058f4a5dc153751c3b6f6a4e2fd45795fcd8043e`).
+- Commits subidos a `origin/main`: `7bb8fd0` (rediseño y versión 0.1.14).
+- Backend: **tag 37** construido y desplegado con Helm; pod `misuper` 1/1 Running. `/api/health` 200; `/api/app/version` devuelve 0.1.14 (15); `HEAD /descargas/misuper.apk` 200 con 46,944,678 bytes y MIME de APK; `/assets/css/controles.css` 200.
+- El instalador de escritorio no requiere rebuild: es un contenedor de la web remota y toma el rediseño al recargar. El APK de Android sí se reconstruyó por los nuevos vector drawables.
+- Pendiente: revisión visual autenticada en navegador de escritorio/móvil; el despliegue y la instalación Android ya están verificados.
